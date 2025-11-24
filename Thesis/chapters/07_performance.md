@@ -32,7 +32,7 @@ where the bracketed placeholders are to be replaced by the corresponding values 
 
 Two boiler efficiencies are reported:
 
-- **Direct efficiency (LHV basis)**  
+- Direct efficiency (LHV basis)  
   Direct efficiency is defined as the ratio of useful heat transferred to the firing rate based on fuel LHV:
 
   $$
@@ -43,7 +43,7 @@ Two boiler efficiencies are reported:
 
   where $P_\text{LHV}$ is the firing capacity (field `P_LHV[MW]`).
 
-- **Indirect efficiency (heat-balance basis)**  
+- Indirect efficiency (heat-balance basis)  
   Indirect efficiency is defined as the ratio of useful heat to the total heat released by combustion:
   $$
   \eta_\text{indirect}

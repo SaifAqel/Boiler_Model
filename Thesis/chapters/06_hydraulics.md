@@ -6,26 +6,26 @@ Hydraulic behaviour is extracted directly from the solver through the per-step p
 
 The model divides gas-side pressure losses into:
 
-- **Frictional losses**:  
+- Frictional losses:  
   Computed by Colebrook–White (turbulent), laminar 64/Re, and a linear transitional blend for  
-  \(2300 < $\mathrm{Re}$
+  2300 < $\mathrm{Re}$
 - < 4000\).  
   The per-step drop is  
   $$\Delta P_{\mathrm{fric}} = - f \frac{\Delta x}{D_h}\left(\frac{\rho V^2}{2}\right)$$  
-  where \(f\) is obtained from `_friction_factor()` and hydraulic diameter, velocity, and density come from the local gas state.
+  where $f$ is obtained from `_friction_factor()` and hydraulic diameter, velocity, and density come from the local gas state.
 
-- **Minor losses**:  
-  Applied using per-stage catalogue \(K\)-values.  
-  For reversal chambers, inlet/outlet nozzle \(K\) plus bend-equivalent loss are included; tube-banks default to zero unless specified.  
+- Minor losses:  
+  Applied using per-stage catalogue $K$-values.  
+  For reversal chambers, inlet/outlet nozzle $K$ plus bend-equivalent loss are included; tube-banks default to zero unless specified.  
   In `solve_stage`, the total per-stage loss coefficient $K_{\mathrm{sum}}$ is uniformly distributed across $N$ steps:
   $$K_{\mathrm{per\,step}} = \frac{K_{\mathrm{sum}}}{N}$$  
   The per-step minor loss is  
   $$\Delta P_{\mathrm{minor}} = -K_{\mathrm{per\,step}}\left(\frac{\rho V^2}{2}\right)$$
 
-- **Total gas-side drop**:  
+- Total gas-side drop:  
   $$\Delta P_{\mathrm{total}} = \Delta P_{\mathrm{fric}} + \Delta P_{\mathrm{minor}}$$
 
-Water-side pressure losses are intentionally **not** included in this model (all water movement is treated as once-through enthalpy update at constant pressure).
+Water-side pressure losses are intentionally not included in this model (all water movement is treated as once-through enthalpy update at constant pressure).
 
 ---
 
@@ -53,7 +53,7 @@ $$\Delta P_{\mathrm{stage}} = \sum_{i=1}^{N} \Delta P(i)$$
 
 ## Water-Side ΔP per Stage
 
-The present solver does **not** compute water-side frictional or accelerational pressure losses.  
+The present solver does not compute water-side frictional or accelerational pressure losses.  
 From the code (`update_water_after_step`), pressure remains constant:
 
 ```python
@@ -114,7 +114,7 @@ A typical extracted table structure (values populated after running `main.py`):
 | TOTAL | —                 | Σ            | Σ              | Σ              |
 ```
 
-HX₆ (economiser) contributes **zero** ΔP by design (`_gas_dp_components` returns 0 for this stage).
+HX₆ (economiser) contributes zero ΔP by design (`_gas_dp_components` returns 0 for this stage).
 
 The table is directly generated as part of `summary_rows` once `main.py` completes the mass-flow/efficiency iteration and writes final CSVs.
 

@@ -1,1 +1,1 @@
-pandoc master.md Chapters/*.md -o thesis.pdf --citeproc --pdf-engine=xelatex
+pandoc Thesis/master.md Thesis/Chapters/*.md -o Thesis/thesis.pdf --citeproc --pdf-engine=xelatex

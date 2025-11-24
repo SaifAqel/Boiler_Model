@@ -4,7 +4,7 @@
 
 The boiler is modelled as a one-dimensional counter-current heat exchanger composed of six stages (HX_1–HX_6). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.
 
-- **Notation (per segment)**
+- Notation (per segment)
 
 - $x$ – axial coordinate along the gas flow [m]
 - $\mathrm{d}x$ – marching step in $x$ [m]
@@ -148,7 +148,7 @@ $$
 
 These integrated quantities are later used in the performance and efficiency evaluation (Section 7) and for constructing stage-wise summary tables.
 
-## Gas-side correlations: single-tube, tube-banks, economizer, radiation model
+## Gas-side
 
 Gas-side heat transfer is computed with geometry-aware correlations based on local gas properties from Cantera (`GasProps`) and stage-specific geometry from the `GeometryBuilder`. For each marching step, the total gas-side HTC is split into a convective and a radiative contribution:
 
@@ -160,7 +160,7 @@ The implementation uses the helper `gas_htc_parts(g, spec, T_{gw})`, which retur
 
 ---
 
-### Single-tube and reversal-chamber stages (HX_1, HX_2, HX_4)
+### Single-tube and reversal-chamber
 
 Stages of kind `"single_tube"` and `"reversal_chamber"` are treated as internal forced convection in a circular duct. The characteristic quantities are:
 
@@ -179,8 +179,8 @@ Stages of kind `"single_tube"` and `"reversal_chamber"` are treated as internal 
   $$
   Local gas properties $\rho_g, \mu_g, k_g, c_{p,g}$ are obtained from the Cantera mixture at the local gas temperature and pressure.
 
-**Laminar/developing flow (Graetz-type)**  
-For $\mathrm{Re} < 2300$, the code uses a Graetz correlation for thermally developing laminar flow:
+Laminar/developing flow (Graetz-type)  
+For $\mathrm{Re} < 2300$, uses a Graetz correlation for thermally developing laminar flow:
 
 $$
 \mathrm{Gz} = \mathrm{Re}\,\mathrm{Pr}\,\frac{D}{L}
@@ -193,7 +193,7 @@ $$
 
 [@incropera]
 
-**Turbulent flow (Gnielinski with Petukhov friction factor)**  
+Turbulent flow (Gnielinski with Petukhov friction factor)  
 For $\mathrm{Re} \ge 2300$, the Gnielinski correlation is applied with a Petukhov friction factor:
 
 $$
@@ -221,7 +221,7 @@ This same internal correlation is used for `"single_tube"`, `"reversal_chamber"`
 
 ---
 
-### Tube-bank stages (HX_3, HX_5 – gas side)
+### Tube-bank
 
 Stages `"tube_bank"` correspond to tube bundles inside the shell. In this model, the gas side is still treated as internal flow inside the tubes:
 
@@ -237,7 +237,7 @@ with $\mathrm{Nu}_\text{internal}$ given by the Graetz/Gnielinski formulation ab
 
 ---
 
-### Economizer stage (HX_6 – gas crossflow over tubes)
+### Economizer (external)
 
 The economizer `"economiser"` stage reverses the roles: gas flows outside the tubes in crossflow, while water flows inside. The gas-side convection is then modelled as external crossflow over a tube bank.
 
@@ -301,7 +301,7 @@ $$
 
 ---
 
-### Gas radiation model (H₂O/CO₂ participation)
+### Gas radiation model
 
 Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating-medium model for the H₂O/CO₂ mixture. The implementation follows a simplified Smith–Shen–Friedman style four-gray model.
 
@@ -388,12 +388,12 @@ $$
 
 These diagnostics are later integrated on a per-stage basis to quantify the share of convective vs radiative heat transfer in each section of the boiler.
 
-## Water-side correlations: internal flow and external crossflow over tube banks
+## Water-side
 
 Water-side heat transfer is modelled with geometry-dependent correlations using local water properties from the `WaterProps` helper. The water side appears in two configurations:
 
-1. **Water inside tubes** (single-tube, reversal chamber, economizer)
-2. **Water outside tubes in crossflow** (tube-bank stages HX_3 and HX_5)
+1. Water inside tubes (single-tube, reversal chamber, economizer)
+2. Water outside tubes in crossflow (tube-bank stages HX_3 and HX_5)
 
 The total water-side HTC is computed at each marching step as:
 
@@ -405,14 +405,14 @@ Water-side radiation is neglected.
 
 In the present work, the water-side model is used in two distinct regimes:
 
-- HX*1–HX_5 are treated as **boiling surfaces in contact with a pool at saturation temperature**. In these stages the bulk water temperature is forced to $T*\text{sat}(p)$ and the heat-transfer coefficient is obtained from a pure pool-boiling correlation.
-- HX_6 (economizer) is treated as a **single-phase / flow-boiling tube bundle** with water flowing inside the tubes and heated by the flue-gas crossflow.
+- HX*1–HX_5 are treated as boiling surfaces in contact with a pool at saturation temperature. In these stages the bulk water temperature is forced to $T*\text{sat}(p)$ and the heat-transfer coefficient is obtained from a pure pool-boiling correlation.
+- HX_6 (economizer) is treated as a single-phase / flow-boiling tube bundle with water flowing inside the tubes and heated by the flue-gas crossflow.
 
 The underlying implementation is more general (it contains a full Chen-type flow-boiling formulation valid for internal forced convection), but for the final boiler calculations this capability is only used in the economizer; in HX_1–HX_5 the water side is deliberately simplified to a pool-boiling model.
 
 ---
 
-### Internal forced convection and flow boiling in the economiser (HX_6)
+### Economizer (internal)
 
 For the economiser stage (kind `"economiser"`, HX_6), where water flows inside the tubes, the model uses standard internal-flow correlations augmented with a viscosity-ratio correction and, when needed, a Chen-type flow-boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
 
@@ -480,7 +480,7 @@ $$
 
 ---
 
-### External crossflow over tube banks (water side in HX_3 and HX_5)
+### Tube-banks (external)
 
 In the boiling sections (HX*1–HX_5) the water occupies the shell-side region around the heated tubes. When a crossflow description is needed (e.g. in HX_3 and HX_5), a Zukauskas-type correlation is applied for flow over a tube bundle on the water side, using the outer tube diameter $D_o$ and the cold-side flow area $A*{\text{cold,flow}}$ supplied by the geometry builder.
 
@@ -540,11 +540,11 @@ $$
 
 ---
 
-### Treatment of boiling: pool boiling in HX_1–HX_5, flow boiling in HX_6
+### Treatment of boiling
 
 Boiling is treated differently in the pool-boiling stages (HX_1–HX_5) and in the economiser (HX_6).
 
-#### Pool-boiling stages HX_1–HX_5
+#### Pool-boiling
 
 For stages flagged as `pool_boiling = true` (HX_1–HX_5), the water side is deliberately simplified to a pure pool-boiling model:
 
@@ -569,17 +569,17 @@ For stages flagged as `pool_boiling = true` (HX_1–HX_5), the water side is del
 
 In other words, HX_1–HX_5 are modelled as heated surfaces immersed in a saturated pool, with boiling controlled by the local heat flux and surface roughness rather than by a detailed prediction of the liquid velocity. This reflects the natural-circulation behavior of the boiler riser and furnace sections and follows the modelling simplification requested for the thesis.
 
-#### Economizer HX_6: internal single-phase and Chen-type flow boiling
+#### Economizer
 
 For the economizer stage HX_6 (`pool_boiling = false`), the model uses a more general internal-flow formulation that can represent both single-phase convection and flow boiling:
 
-1. **Boiling detection.**  
+1. Boiling detection.  
    A helper function checks whether the local state falls into the saturation enthalpy interval $[h_f(p), h_g(p)]$ or, for slightly subcooled liquid, whether the wall superheat exceeds a threshold. If neither condition is met, the flow is treated as single-phase liquid.
 
-2. **Single-phase regime.**  
+2. Single-phase regime.  
    In single-phase operation, the water-side HTC is computed from an internal forced-convection correlation (Gnielinski with viscosity-ratio correction), as described in Section 5.3.1.
 
-3. **Flow-boiling regime (Chen-type model).**  
+3. Flow-boiling regime (Chen-type model).  
     When boiling is detected, the HTC is assembled from a liquid-only contribution and a nucleate-boiling contribution:
    $$
    h_\text{lo} = \text{single-phase liquid HTC at } T_\text{sat}(p),
