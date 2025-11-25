@@ -2,7 +2,7 @@
 
 ## Fundamental heat-balance equations
 
-The boiler is modelled as a one-dimensional counter-current heat exchanger composed of six stages (HX_1–HX_6). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.
+The boiler is modelled as a one-dimensional counter-current heat exchanger composed of six stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.
 
 - Notation (per segment)
 
@@ -160,7 +160,7 @@ The implementation uses the helper `gas_htc_parts(g, spec, T_{gw})`, which retur
 
 ---
 
-### Single-tube and reversal-chamber
+### Single-tube and reversal-chamber (internal)
 
 Stages of kind `"single_tube"` and `"reversal_chamber"` are treated as internal forced convection in a circular duct. The characteristic quantities are:
 
@@ -221,7 +221,7 @@ This same internal correlation is used for `"single_tube"`, `"reversal_chamber"`
 
 ---
 
-### Tube-bank
+### Tube-bank (internal)
 
 Stages `"tube_bank"` correspond to tube bundles inside the shell. In this model, the gas side is still treated as internal flow inside the tubes:
 
@@ -303,7 +303,7 @@ $$
 
 ### Gas radiation model
 
-Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating-medium model for the H₂O/CO₂ mixture. The implementation follows a simplified Smith–Shen–Friedman style four-gray model.
+Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating-medium model for the $H₂O$/$CO₂$ mixture. The implementation follows a simplified Smith–Shen–Friedman style four-gray model.
 
 For each step, the gas emissivity is computed as:
 
@@ -414,7 +414,7 @@ The underlying implementation is more general (it contains a full Chen-type flow
 
 ### Economizer (internal)
 
-For the economiser stage (kind `"economiser"`, HX_6), where water flows inside the tubes, the model uses standard internal-flow correlations augmented with a viscosity-ratio correction and, when needed, a Chen-type flow-boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
+For the economiser stage (kind `"economiser"`, $\mathrm{HX_6}$), where water flows inside the tubes, the model uses standard internal-flow correlations augmented with a viscosity-ratio correction and, when needed, a Chen-type flow-boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
 
 #### Velocity and nondimensional groups
 
@@ -480,9 +480,9 @@ $$
 
 ---
 
-### Tube-banks (external)
+### Tube-bank (external)
 
-In the boiling sections (HX*1–HX_5) the water occupies the shell-side region around the heated tubes. When a crossflow description is needed (e.g. in HX_3 and HX_5), a Zukauskas-type correlation is applied for flow over a tube bundle on the water side, using the outer tube diameter $D_o$ and the cold-side flow area $A*{\text{cold,flow}}$ supplied by the geometry builder.
+In the boiling sections ($\mathrm{HX_1}$–$\mathrm{HX_5}$) the water occupies the shell-side region around the heated tubes. When a crossflow description is needed (e.g. in HX_3 and HX_5), a Zukauskas-type correlation is applied for flow over a tube bundle on the water side, using the outer tube diameter $D_o$ and the cold-side flow area $A*{\text{cold,flow}}$ supplied by the geometry builder.
 
 #### Geometry inputs from `GeometryBuilder`
 

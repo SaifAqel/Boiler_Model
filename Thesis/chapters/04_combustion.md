@@ -3,21 +3,21 @@
 ## Fuel composition
 
 The boiler is fired with a natural-gas–type fuel defined in the simulation input (`config/fuel.yaml`).  
-The fuel is supplied at 300 K and 1.013×10⁵ Pa with a mass flow rate of 0.5 kg·s⁻¹.  
+The fuel is supplied at 300 K and 1.013×10⁵ Pa with a mass flow rate of $0.5 kg·s⁻¹$.  
 Its composition is specified on a mass-fraction basis and converted internally to mole fractions for all stoichiometric and thermodynamic calculations.
 
-Table 4-1 summarises the fuel composition in both mass and mole fraction form (mole fractions obtained from the mass fractions using the species molar masses in `common/constants.py`).
+Table 4-1 summarises the fuel composition in both mass and mole fraction form.
 
-| Component        | Formula         | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] | Comment                                            |
-| ---------------- | --------------- | -------------------------------- | -------------------------------- | -------------------------------------------------- |
-| Methane          | $\mathrm{CH_4}$ | 0.80                             | 0.8895                           | Main combustible, dominant contributor to LHV      |
-| Ethane           | $C₂H₆$          | 0.10                             | 0.0593                           | Heavier hydrocarbon, increases LHV and required O₂ |
-| Propane          | $C₃H₈$          | 0.04                             | 0.0162                           | Heavier hydrocarbon, raises flame temperature      |
-| n-Butane         | $C₄H₁₀$         | 0.01                             | 0.00307                          | Minor heavy hydrocarbon fraction                   |
-| Hydrogen sulfide | $H₂S$           | 0.01                             | 0.00523                          | Sulfur-bearing contaminant → SO₂ in flue gas       |
-| Nitrogen         | $N₂$            | 0.02                             | 0.0127                           | Inert ballast in the fuel stream                   |
-| Carbon dioxide   | $CO₂$           | 0.01                             | 0.00405                          | Inert (already fully oxidised)                     |
-| Water vapour     | $H₂O$           | 0.01                             | 0.00990                          | Moisture carried with the fuel                     |
+| Component        | Formula         | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] | Comment                                              |
+| ---------------- | --------------- | -------------------------------- | -------------------------------- | ---------------------------------------------------- |
+| Methane          | $\mathrm{CH_4}$ | 0.80                             | 0.8895                           | Main combustible, dominant contributor to LHV        |
+| Ethane           | $C₂H₆$          | 0.10                             | 0.0593                           | Heavier hydrocarbon, increases LHV and required $O₂$ |
+| Propane          | $C₃H₈$          | 0.04                             | 0.0162                           | Heavier hydrocarbon, raises flame temperature        |
+| n-Butane         | $C₄H₁₀$         | 0.01                             | 0.00307                          | Minor heavy hydrocarbon fraction                     |
+| Hydrogen sulfide | $H₂S$           | 0.01                             | 0.00523                          | Sulfur-bearing contaminant → $SO₂$ in flue gas       |
+| Nitrogen         | $N₂$            | 0.02                             | 0.0127                           | Inert ballast in the fuel stream                     |
+| Carbon dioxide   | $CO₂$           | 0.01                             | 0.00405                          | Inert (already fully oxidised)                       |
+| Water vapour     | $H₂O$           | 0.01                             | 0.00990                          | Moisture carried with the fuel                       |
 
 The mass fractions sum to 1.0 by definition. The mole fractions $\mathrm{x_i}$ are obtained from
 
@@ -29,17 +29,9 @@ where $\mathrm{M_i}$ is the molar mass of species $i$ from `molar_masses` in `co
 
 ## Stoichiometric $\mathrm{O_2}$ requirement
 
-Evaluate the stoichiometric oxygen requirement via the helper function `stoich_O2_required_per_mol_fuel(fuel)` in `combustion/flue.py`. The algorithm is:
+Evaluate the stoichiometric oxygen requirement via the function `stoich_O2_required_per_mol_fuel(fuel)` in `combustion/flue.py`. The algorithm is:
 
-1. Convert fuel mass fractions $\mathrm{w_i}$ to mole fractions $\mathrm{x_i}$ using
-
-   $$
-   n_i = \frac{w_i}{M_i}, \qquad x_i = \frac{n_i}{\sum_j n_j}
-   $$
-
-   where $\mathrm{M_i}$ is the molar mass of species $i$.
-
-2. Use per–mole-of-species stoichiometric $\mathrm{O_2}$ factors $\nu_{\mathrm{O_2},i}$ from `O2_per_mol` in `common/constants.py`:
+1. Use per–mole-of-species stoichiometric $\mathrm{O_2}$ factors $\nu_{\mathrm{O_2},i}$ from `O2_per_mol` in `common/constants.py`:
 
    | Species            | Global reaction (complete combustion)     | $\nu_{\mathrm{O_2},i}$ [mol $O₂$ / mol species] |
    | ------------------ | ----------------------------------------- | ----------------------------------------------- |
@@ -50,7 +42,7 @@ Evaluate the stoichiometric oxygen requirement via the helper function `stoich_O
    | $H₂S$              | $H₂S$ + 1 $O₂$ → $SO₂$ + $H₂O$            | 1.0                                             |
    | $N₂$, $CO₂$, $H₂O$ | Inert/fully oxidised → no additional $O₂$ | 0.0                                             |
 
-3. Compute the stoichiometric $O₂$ requirement per mole of fuel mixture as
+2. Compute the stoichiometric $O₂$ requirement per mole of fuel mixture as
    $$
    \nu_{\mathrm{O_2,stoich}}
    \;=\; \sum_i x_i \,\nu_{\mathrm{O_2},i}
@@ -132,7 +124,7 @@ in `config/operation.yaml`. This value enters the calculation through
 
 ---
 
-### Stoichiometric $O₂$ requirement (per mole of fuel mixture)
+### Stoichiometric $\mathrm{O_2}$ requirement (per mole of fuel mixture)
 
 From Section 4.2:
 
@@ -140,7 +132,7 @@ $$
 \nu_{\mathrm{O_2,stoich}} = 2.09 \;\text{mol $O₂$/mol fuel}
 $$
 
-### Actual $O₂$ supplied
+### Actual $\mathrm{O_2}$ supplied
 
 Using:
 
@@ -351,8 +343,7 @@ P_LHV = (LHV_kg * fuel.mass_flow).to("kW")
 
 ### Numerical results for the present fuel
 
-Using the mass fractions given in Section 4.1 and typical component heating values, the
-mixture heating values are approximately:
+For the fuel specified above, the mixture heating values are:
 
 - Higher heating value (HHV, mass-based):
   $$
@@ -390,7 +381,7 @@ These correspond directly to `P_HHV` and `P_LHV` returned by `compute_LHV_HHV`.
 
 ---
 
-### Total heat input to the boiler $Q_in$
+### Total heat input to the boiler $\mathrm{Q_{in}}$
 
 The function `total_input_heat(fuel, air)` combines chemical and sensible contributions:
 
@@ -431,8 +422,7 @@ water/steam side.
 
 ## Adiabatic flame temperature
 
-The adiabatic flame temperature $T_\mathrm{ad}$ is evaluated in the model by the function  
-`adiabatic_flame_T(air, fuel)` in `combustion/adiabatic_flame_temperature.py`. This routine uses Cantera and an enthalpy–pressure equilibrium (`HP`) calculation to determine the final
+The adiabatic flame temperature $T_\mathrm{ad}$ is evaluated in the model by the function `adiabatic_flame_T(air, fuel)` in `combustion/adiabatic_flame_temperature.py`. This routine uses Cantera and an enthalpy–pressure equilibrium (`HP`) calculation to determine the final
 equilibrium temperature and composition of the flue gas, assuming:
 
 - complete mixing of fuel and air,
@@ -701,39 +691,7 @@ This completes all combustion chemistry inputs passed to the boiler model.
 
 ## Combustion summary
 
-Table 4-2 summarises the key combustion quantities used by the boiler model for all
-subsequent heat-transfer and hydraulic calculations. All values are derived from the
-configuration files in `config/` and from the combustion routines in
-`combustion/*.py` (`compute_LHV_HHV`, `total_input_heat`, `air_flow_rates`,
-`adiabatic_flame_T`).
-
-- Table 4-2 – Combustion summary (input to boiler model)
-
-| Item                                                 | Symbol / field                | Value                                                                                                 | Source / note                                                           |
-| ---------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Fuel type                                            | –                             | Natural-gas–type mixture with C₁–C₄, H₂S, inerts                                                      | `config/fuel.yaml`                                                      |
-| Fuel composition (mass fractions)                    | $w_i$                         | CH₄ 0.80; C₂H₆ 0.10; C₃H₈ 0.04; C₄H₁₀ 0.01; H₂S 0.01; N₂ 0.02; CO₂ 0.01; H₂O 0.01                     | Section 4.1                                                             |
-| Fuel composition (mole fractions)                    | $x_i$                         | CH₄ 0.8895; C₂H₆ 0.0593; C₃H₈ 0.0162; C₄H₁₀ 0.00307; H₂S 0.00523; N₂ 0.0127; CO₂ 0.00405; H₂O 0.00990 | Section 4.1, `to_mole`                                                  |
-| Fuel mass flow                                       | $\dot{m}_f$                   | 0.5 kg·s⁻¹                                                                                            | `fuel.yaml`                                                             |
-| Fuel inlet T, P                                      | $T_f, P_f$                    | 300 K, 1.013×10⁵ Pa                                                                                   | `fuel.yaml`                                                             |
-| Air composition (mass fractions)                     | –                             | O₂ 0.2095; N₂ 0.7808; Ar 0.0093; CO₂ 0.0004; H₂O 0.0                                                  | `air.yaml`                                                              |
-| Air inlet T, P                                       | $T_a, P_a$                    | 300 K, 1.013×10⁵ Pa                                                                                   | `air.yaml`                                                              |
-| Excess air ratio                                     | $\lambda$                     | 1.1 (10 % excess air)                                                                                 | `operation.yaml`                                                        |
-| Stoich O₂ per mol fuel                               | $\nu_{\mathrm{O_2,stoich}}$   | 2.09 mol O₂/mol fuel                                                                                  | Section 4.2; `stoich_O2_required_per_mol_fuel`                          |
-| Stoich O₂ per kg fuel                                | –                             | 3.75 kg O₂/kg fuel                                                                                    | Section 4.2                                                             |
-| Stoich air requirement (mass)                        | $\dot{m}_{\text{air,stoich}}$ | ≈ 8.1 kg air/kg fuel                                                                                  | From AFR in Section 4.3 (stoichiometric)                                |
-| Actual air mass flow                                 | $\dot{m}_a$                   | ≈ 8.93 kg·s⁻¹                                                                                         | Section 4.3; `air_flow_rates`                                           |
-| Actual air–fuel ratio                                | AFR                           | ≈ 17.9 kg air/kg fuel                                                                                 | Section 4.3                                                             |
-| Lower heating value (mass-based)                     | $\mathrm{LHV}_\text{mix}$     | ≈ 47 MJ·kg⁻¹                                                                                          | Section 4.4; `compute_LHV_HHV`                                          |
-| Higher heating value (mass-based)                    | $\mathrm{HHV}_\text{mix}$     | ≈ 52 MJ·kg⁻¹                                                                                          | Section 4.4; `compute_LHV_HHV`                                          |
-| LHV-based firing rate                                | $P_\mathrm{LHV}$              | ≈ 23.6 MW                                                                                             | $P_\mathrm{LHV} = \dot{m}_f \cdot \mathrm{LHV}$                         |
-| Total heat input (LHV + sensible)                    | $Q_\mathrm{in}$               | ≈ 23.6 MW (sensible << chemical)                                                                      | Section 4.4; `total_input_heat`                                         |
-| Adiabatic flame temperature                          | $T_\mathrm{ad}$               | ≈ 2050 K (≈ 1780 °C)                                                                                  | Section 4.5; `adiabatic_flame_T` (Cantera, HP-equilibrium)              |
-| Equilibrium flue gas (major species, mass fractions) | –                             | CO₂ ≈ 0.09; H₂O ≈ 0.08; O₂ ≈ 0.02–0.03; N₂ ≈ 0.78–0.80; SO₂, CO, H₂, NO ≪ 1 % each                    | Section 4.6; Cantera HP-equilibrium at $T_\mathrm{ad}$                  |
-| Flue-gas mass flow (equilibrium stream)              | $\dot{m}_\mathrm{flue}$       | $\dot{m}_\mathrm{flue} = \dot{m}_f + \dot{m}_a$                                                       | Constructed in `adiabatic_flame_T` as `GasStream(m_tot, T_ad, P, comp)` |
-
-In the implementation, these quantities are wrapped in a `CombustionResult` dataclass
-(`common/results.py`):
+In the implementation, all values are derived from the configuration files in `config/` and from the combustion routines in `combustion/*.py` (`compute_LHV_HHV`, `total_input_heat`, `air_flow_rates`, `adiabatic_flame_T`), these quantities are wrapped in a `CombustionResult` dataclass (`common/results.py`):
 
 ```python
 @dataclass(frozen=True)

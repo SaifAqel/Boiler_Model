@@ -46,11 +46,6 @@ Shell boilers are normally applied in low-to-medium pressure ranges and moderate
   - Medium units: 5–20 t/h
   - Large shell boilers (upper practical range): 20–40 t/h, beyond which water-tube designs are usually preferred
 
-- Typical services:
-  - Process steam for heating, evaporation, and drying
-  - Building heating and HVAC (via heat exchangers or direct steam)
-  - Feedwater preheating and clean-steam generation for hygienic duties
-
 ## Advantages and Limitations
 
 ### Advantages
@@ -111,9 +106,9 @@ Industrial shell boilers typically adopt multi-pass fire-tube configurations to 
 
 - Three-pass layout (most common for industrial shell boilers)
 
-  - Pass 1: Furnace (high radiative heat transfer, strong temperature drop near burner).
-  - Pass 2: First bank of fire-tubes (typically reversing at the rear turnaround chamber).
-  - Pass 3: Second bank of fire-tubes returning to the front smoke-box.
+  - Pass 1: large diameter furnace tube running from burner front to rear tubeplate.
+  - Pass 2: First bank of smoke-tubes (typically reversing at the rear turnaround chamber).
+  - Pass 3: Second bank of smoke-tubes.
   - Provides higher overall heat-transfer surface, more uniform gas cooling, and lower exit-gas temperatures.
 
 - Extended heat-recovery sections
