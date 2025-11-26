@@ -14,6 +14,7 @@ geometry: margin=1in
 documentclass: report
 pdf-engine: xelatex
 highlight-style: tango
+tables: true
 ---
 
 \newpage

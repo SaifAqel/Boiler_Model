@@ -1,18 +1,12 @@
 # Hydraulic Calculations
 
-Hydraulic behaviour is extracted directly from the solver through the per-step pressure-drop decomposition implemented in  
-`heat/solver.py` (`_gas_dp_components`, `pressure_drop_gas`) and accumulated at the stage level in  
-`heat/solver.py::solve_stage` and in the boiler summary computed by `heat/postproc.py::summary_from_profile`.
+Hydraulic behaviour is extracted directly from the solver through the per-step pressure-drop decomposition implemented in `heat/solver.py` (`_gas_dp_components`, `pressure_drop_gas`) and accumulated at the stage level in `heat/solver.py::solve_stage` and in the boiler summary computed by `heat/postproc.py::summary_from_profile`.
 
 The model divides gas-side pressure losses into:
 
 - Frictional losses:  
-  Computed by Colebrook–White (turbulent), laminar 64/Re, and a linear transitional blend for  
-  2300 < $\mathrm{Re}$
-- < 4000\).  
-  The per-step drop is  
-  $$\Delta P_{\mathrm{fric}} = - f \frac{\Delta x}{D_h}\left(\frac{\rho V^2}{2}\right)$$  
-  where $f$ is obtained from `_friction_factor()` and hydraulic diameter, velocity, and density come from the local gas state.
+  Computed by Colebrook–White (turbulent), laminar 64/Re, and a linear transitional blend for 2300 < $\mathrm{Re} < 4000$.  
+  The per-step drop is $$\Delta P_{\mathrm{fric}} = - f \frac{\Delta x}{D_h}\left(\frac{\rho V^2}{2}\right)$$ where $f$ is obtained from `_friction_factor()` and hydraulic diameter, velocity, and density come from the local gas state.
 
 - Minor losses:  
   Applied using per-stage catalogue $K$-values.  
@@ -25,7 +19,7 @@ The model divides gas-side pressure losses into:
 - Total gas-side drop:  
   $$\Delta P_{\mathrm{total}} = \Delta P_{\mathrm{fric}} + \Delta P_{\mathrm{minor}}$$
 
-Water-side pressure losses are intentionally not included in this model (all water movement is treated as once-through enthalpy update at constant pressure).
+Water-side pressure losses are intentionally not included in this model (water at constant pressure).
 
 ---
 
@@ -114,7 +108,7 @@ A typical extracted table structure (values populated after running `main.py`):
 | TOTAL | —                 | Σ            | Σ              | Σ              |
 ```
 
-HX₆ (economiser) contributes zero ΔP by design (`_gas_dp_components` returns 0 for this stage).
+$HX_6$ (economiser) contributes zero ΔP by design (`_gas_dp_components` returns 0 for this stage).
 
 The table is directly generated as part of `summary_rows` once `main.py` completes the mass-flow/efficiency iteration and writes final CSVs.
 

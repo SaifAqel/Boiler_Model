@@ -3,21 +3,21 @@
 ## Fuel composition
 
 The boiler is fired with a natural-gas–type fuel defined in the simulation input (`config/fuel.yaml`).  
-The fuel is supplied at 300 K and 1.013×10⁵ Pa with a mass flow rate of $0.5 kg·s⁻¹$.  
+The fuel is supplied at $300 K$ and $1.013×10⁵ Pa$ with a mass flow rate of $0.5 kg/s$.  
 Its composition is specified on a mass-fraction basis and converted internally to mole fractions for all stoichiometric and thermodynamic calculations.
 
 Table 4-1 summarises the fuel composition in both mass and mole fraction form.
 
-| Component        | Formula         | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] | Comment                                              |
-| ---------------- | --------------- | -------------------------------- | -------------------------------- | ---------------------------------------------------- |
-| Methane          | $\mathrm{CH_4}$ | 0.80                             | 0.8895                           | Main combustible, dominant contributor to LHV        |
-| Ethane           | $C₂H₆$          | 0.10                             | 0.0593                           | Heavier hydrocarbon, increases LHV and required $O₂$ |
-| Propane          | $C₃H₈$          | 0.04                             | 0.0162                           | Heavier hydrocarbon, raises flame temperature        |
-| n-Butane         | $C₄H₁₀$         | 0.01                             | 0.00307                          | Minor heavy hydrocarbon fraction                     |
-| Hydrogen sulfide | $H₂S$           | 0.01                             | 0.00523                          | Sulfur-bearing contaminant → $SO₂$ in flue gas       |
-| Nitrogen         | $N₂$            | 0.02                             | 0.0127                           | Inert ballast in the fuel stream                     |
-| Carbon dioxide   | $CO₂$           | 0.01                             | 0.00405                          | Inert (already fully oxidised)                       |
-| Water vapour     | $H₂O$           | 0.01                             | 0.00990                          | Moisture carried with the fuel                       |
+| Component        | Formula                         | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] | Comment                                                             |
+| ---------------- | ------------------------------- | -------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| Methane          | $\mathrm{CH_4}$                 | 0.80                             | 0.8895                           | Main combustible, dominant contributor to LHV                       |
+| Ethane           | $\mathrm{C_2}$$\mathrm{H_6}$    | 0.10                             | 0.0593                           | Heavier hydrocarbon, increases LHV and required $\mathrm{O_2}$      |
+| Propane          | $\mathrm{C_3}$$\mathrm{H_8}$    | 0.04                             | 0.0162                           | Heavier hydrocarbon, raises flame temperature                       |
+| n-Butane         | $\mathrm{C_4}$$\mathrm{H_{10}}$ | 0.01                             | 0.00307                          | Minor heavy hydrocarbon fraction                                    |
+| Hydrogen sulfide | $\mathrm{H_2}$$\mathrm{S}$      | 0.01                             | 0.00523                          | Sulfur-bearing contaminant → $\mathrm{S}$$\mathrm{O_2}$ in flue gas |
+| Nitrogen         | $\mathrm{N_2}$                  | 0.02                             | 0.0127                           | Inert ballast in the fuel stream                                    |
+| Carbon dioxide   | $\mathrm{C}$$\mathrm{O_2}$      | 0.01                             | 0.00405                          | Inert (already fully oxidised)                                      |
+| Water vapour     | $\mathrm{H_2}$$\mathrm{O}$      | 0.01                             | 0.00990                          | Moisture carried with the fuel                                      |
 
 The mass fractions sum to 1.0 by definition. The mole fractions $\mathrm{x_i}$ are obtained from
 
@@ -33,16 +33,16 @@ Evaluate the stoichiometric oxygen requirement via the function `stoich_O2_requi
 
 1. Use per–mole-of-species stoichiometric $\mathrm{O_2}$ factors $\nu_{\mathrm{O_2},i}$ from `O2_per_mol` in `common/constants.py`:
 
-   | Species            | Global reaction (complete combustion)     | $\nu_{\mathrm{O_2},i}$ [mol $O₂$ / mol species] |
-   | ------------------ | ----------------------------------------- | ----------------------------------------------- |
-   | $CH₄$              | $CH₄$ + 2 $O₂$ → $CO₂$ + 2 $H₂O$          | 2.0                                             |
-   | $C₂H₆$             | $C₂H₆$ + 3.5 $O₂$ → 2 $CO₂$ + 3 $H₂O$     | 3.5                                             |
-   | $C₃H₈$             | $C₃H₈$ + 5 $O₂$ → 3 $CO₂$ + 4 $H₂O$       | 5.0                                             |
-   | $C₄H₁₀$            | $C₄H₁₀$ + 6.5 $O₂$ → 4 $CO₂$ + 5 $H₂O$    | 6.5                                             |
-   | $H₂S$              | $H₂S$ + 1 $O₂$ → $SO₂$ + $H₂O$            | 1.0                                             |
-   | $N₂$, $CO₂$, $H₂O$ | Inert/fully oxidised → no additional $O₂$ | 0.0                                             |
+   | Species                                                                | Global reaction (complete combustion)                                                                     | $\nu_{\mathrm{O_2},i}$ [mol $\mathrm{O_2}$ / mol species] |
+   | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+   | $\mathrm{C}$$\mathrm{H_4}$                                             | $\mathrm{C}$$\mathrm{H_4}$ + 2 $\mathrm{O_2}$ → $\mathrm{C}$$\mathrm{O_2}$ + 2 $\mathrm{H_2}$$\mathrm{O}$ | 2.0                                                       |
+   | $\mathrm{C_2}$$\mathrm{H_6}$                                           | $\mathrm{C_2}$$\mathrm{H_6}$ + 3.5 $\mathrm{O_2}$ → 2 $C$$\mathrm{O_2}$ + 3 $\mathrm{H_2}$$\mathrm{O}$    | 3.5                                                       |
+   | $\mathrm{C_3}$$\mathrm{H_8}$                                           | $C₃H₈$ + 5 $\mathrm{O_2}$ → 3 $\mathrm{C}$$\mathrm{O_2}$ + 4 $\mathrm{H_2}$$\mathrm{O}$                   | 5.0                                                       |
+   | $\mathrm{C_4}$$\mathrm{H_{10}}$                                        | $C₄H₁₀$ + 6.5 $\mathrm{O_2}$ → 4 $\mathrm{C}$$\mathrm{O_2}$ + 5 $\mathrm{H_2}$$\mathrm{O}$                | 6.5                                                       |
+   | $\mathrm{H_2}$$\mathrm{S}$                                             | $\mathrm{H_2}$$\mathrm{S}$ + 1 $\mathrm{O_2}$ → $S$$\mathrm{O_2}$ + $\mathrm{H_2}$$\mathrm{O}$            | 1.0                                                       |
+   | $\mathrm{N_2}$, $\mathrm{C}$$\mathrm{O_2}$, $\mathrm{H_2}$$\mathrm{O}$ | Inert/fully oxidised → no additional $\mathrm{O_2}$                                                       | 0.0                                                       |
 
-2. Compute the stoichiometric $O₂$ requirement per mole of fuel mixture as
+2. Compute the stoichiometric $\mathrm{O_2}$ requirement per mole of fuel mixture as
    $$
    \nu_{\mathrm{O_2,stoich}}
    \;=\; \sum_i x_i \,\nu_{\mathrm{O_2},i}
@@ -67,7 +67,7 @@ $$
  + 0.0162 \cdot 5.0
  + 0.00307 \cdot 6.5
  + 0.00523 \cdot 1.0 \\[3pt]
-&\approx 2.09 \;\;\text{mol $O₂$ per mol fuel mixture}
+&\approx 2.09 \;\;\text{mol $\mathrm{O_2}$ per mol fuel mixture}
 \end{aligned}
 $$
 
@@ -87,33 +87,33 @@ $$
 n_{\text{fuel,total}} = \sum_i \frac{w_i}{M_i} \approx 56.1 \;\text{mol fuel/kg}
 $$
 
-Thus the stoichiometric $O₂$ requirement per unit fuel mass is
+Thus the stoichiometric $\mathrm{O_2}$ requirement per unit fuel mass is
 
 $$
 n_{\mathrm{O_2,stoich}}^{(m)}
 = \nu_{\mathrm{O_2,stoich}} \, n_{\text{fuel,total}}
-\approx 2.09 \times 56.1 \approx 1.17\times 10^2\;\text{mol $O₂$/kg fuel}
+\approx 2.09 \times 56.1 \approx 1.17\times 10^2\;\text{mol $\mathrm{O_2}$/kg fuel}
 $$
 
-Converting to mass of $O₂$ per kg of fuel:
+Converting to mass of $\mathrm{O_2}$ per kg of fuel:
 
 $$
 \dot{m}_{\mathrm{O_2,stoich}}
 = n_{\mathrm{O_2,stoich}}^{(m)} M_{\mathrm{O_2}}
 \approx 117.3 \,\text{mol/kg} \times 0.031998 \,\text{kg/mol}
-\approx 3.75 \,\text{kg $O₂$/kg fuel}
+\approx 3.75 \,\text{kg $\mathrm{O_2}$/kg fuel}
 $$
 
 So, for this fuel:
 
 - Stoichiometric oxygen requirement:  
-  $\boxed{\nu_{\mathrm{O_2,stoich}} \approx 2.09 \text{ mol $O₂$ per mol fuel mixture}}$
+  $\boxed{\nu_{\mathrm{O_2,stoich}} \approx 2.09 \text{ mol $\mathrm{O_2}$ per mol fuel mixture}}$
 - Equivalent mass requirement:  
-  $\boxed{\dot{m}_{\mathrm{O_2,stoich}} \approx 3.75 \text{ kg $O₂$ per kg fuel}}$
+  $\boxed{\dot{m}_{\mathrm{O_2,stoich}} \approx 3.75 \text{ kg $\mathrm{O_2}$ per kg fuel}}$
 
 ## Air–fuel ratio and excess air $λ$
 
-The simulation specifies an excess‐air ratio
+The simulation specifies an excess air ratio
 
 $$
 \lambda = 1.1
@@ -129,7 +129,7 @@ in `config/operation.yaml`. This value enters the calculation through
 From Section 4.2:
 
 $$
-\nu_{\mathrm{O_2,stoich}} = 2.09 \;\text{mol $O₂$/mol fuel}
+\nu_{\mathrm{O_2,stoich}} = 2.09 \;\text{mol $\mathrm{O_2}$/mol fuel}
 $$
 
 ### Actual $\mathrm{O_2}$ supplied
@@ -167,7 +167,7 @@ The molar fuel flow is determined from the mass-flow rate:
   \dot{n}_f = 56.1 \times 0.5 \approx 28.05\;\text{mol/s}
   $$
 
-Hence the stoichiometric and actual $O₂$ flows are:
+Hence the stoichiometric and actual $\mathrm{O_2}$ flows are:
 
 $$
 \dot{n}_{\mathrm{O_2,stoich}} = 2.09 \times 28.05 = 58.7\;\text{mol/s}
@@ -181,7 +181,7 @@ $$
 
 ### Air required
 
-Air $O₂$ mole fraction (from `air.yaml`):
+Air $\mathrm{O_2}$ mole fraction (from `air.yaml`):
 
 $$
 x_{\mathrm{O_2,air}} = 0.2095
@@ -254,22 +254,22 @@ where:
 Standard formation enthalpies $\Delta h^\circ_\mathrm{f}$ (at 298.15 K, 1 bar) are taken from
 `common/constants.py` in kJ/mol:
 
-| Species  | $\Delta h^\circ_\mathrm{f}$ [kJ/mol] |
-| -------- | ------------------------------------ |
-| $CH₄$    | −74.8                                |
-| $C₂H₆$   | −84.7                                |
-| $C₃H₈$   | −103.8                               |
-| $C₄H₁₀$  | −126.1                               |
-| $SO₂$    | −296.8                               |
-| $CO₂$    | −393.5                               |
-| $H₂O(l)$ | −285.5                               |
+| Species                         | $\Delta h^\circ_\mathrm{f}$ [kJ/mol] |
+| ------------------------------- | ------------------------------------ |
+| $C$$\mathrm{H_4}$               | −74.8                                |
+| $\mathrm{C_2}$$\mathrm{H_6}$    | −84.7                                |
+| $\mathrm{C_3}$$\mathrm{H_8}$    | −103.8                               |
+| $\mathrm{C_4}$$\mathrm{H_{10}}$ | −126.1                               |
+| $S$$\mathrm{O_2}$               | −296.8                               |
+| $C$$\mathrm{O_2}$               | −393.5                               |
+| $\mathrm{H_2}$$O$$(l)$          | −285.5                               |
 
 #### Products for HHV and LHV
 
 For each fuel species, complete combustion is considered:
 
-- $CH₄$ + 2 $O₂$ → $CO₂$ + 2 $H₂O$
-- $C₂H₆$ + 3.5 $O₂$ → 2 $CO₂$ + 3 $H₂O$
+- $C$$\mathrm{H_4}$ + 2 $\mathrm{O_2}$ → $C$$\mathrm{O_2}$ + 2 $\mathrm{H_2}$$O$
+- $\mathrm{C_2}$$\mathrm{H_6}$ + 3.5 $\mathrm{O_2}$ → 2 $C$$\mathrm{O_2}$ + 3 $\mathrm{H_2}$$O$
 
 Builds product formation enthalpies for:
 
@@ -568,145 +568,219 @@ The scalar `T_ad` is passed forward and written into the boiler summary CSV
 (`*_boiler_summary.csv`) for reference and later comparison with non-adiabatic stack
 temperatures obtained from the full boiler simulation.
 
-## Flue-gas composition at adiabatic conditions
+## Flue-gas composition
 
-After equilibrium is solved in `adiabatic_flame_T`, the model constructs the full equilibrium flue-gas composition. This composition is used only for reporting (via `CombustionResult`)
-and is not the same composition used in the heat-exchanger network (the boiler heat-transfer
-model uses _non-equilibrium, fully burnt_ flue gas based on pure stoichiometry and excess air).
+In the combustion model two different flue-gas streams are distinguished:
 
----
+1. An **equilibrium flue gas at adiabatic flame conditions** (`flue_ad`), obtained from high-temperature HP equilibrium in Cantera.
+2. A **fully burnt boiler flue gas** (`flue`), obtained from pure stoichiometry with excess air and no dissociation, used throughout the heat-exchanger network.
 
-### Species included
-
-The mechanism `config/flue_cantera.yaml` defines the set of gaseous species for equilibrium.
-Typical species present after equilibrium include:
-
-- Major products:
-
-  - CO₂
-  - H₂O
-  - N₂
-  - O₂ (from excess air)
-
-- Minor equilibrium species:
-  - CO
-  - H₂
-  - OH
-  - O
-  - NO
-  - NO₂
-  - SO₂ (from fuel H₂S)
-
-Because chemical equilibrium is enforced, small fractions of dissociation products appear at
-high temperature (CO, H₂, radicals, NOₓ). These are automatically included in `gas_mix.Y`.
+Both are represented as `GasStream` objects and stored in the `CombustionResult`, but they serve different purposes in the boiler calculation.
 
 ---
 
-### Procedure
+### Definitions and distinction
 
-Once the HP equilibrium is complete:
+- **Equilibrium flue gas (`flue_ad`)**
 
-```python
-Y_eq = gas_mix.Y
-species = gas_mix.species_names
+  - Thermodynamic state: high-temperature HP equilibrium at the adiabatic flame temperature.
+  - Contains all equilibrium species allowed by the mechanism (major products + dissociation products + radicals).
+  - Used only to:
+    - determine the adiabatic flame temperature $T_\mathrm{ad}$,
+    - report equilibrium composition in diagnostics/CSV.
 
-comp_eq = {
-    sp: Q_(float(Y_eq[i]), "")
-    for i, sp in enumerate(species)
-    if Y_eq[i] > 1e-15
-}
-```
+- **Fully burnt flue gas (`flue`)**
+  - Thermodynamic state: chemically frozen, fully burnt mixture at the same temperature and pressure as the equilibrium gas at burner exit.
+  - Contains only “engineering” products ($C$$\mathrm{O_2}$, $\mathrm{H_2}$$O$, $S$$\mathrm{O_2}$, $\mathrm{O_2}$, $\mathrm{N_2}$, $Ar$) with no $CO$, $\mathrm{H_2}$, $N$$\mathrm{O_x}$ or radicals.
+  - Used as the hot-side gas in all boiler heat-transfer and pressure-drop calculations.
 
-This produces a dictionary of mass fractions for all species above a cut-off. These form:
-
-```python
-flue = GasStream(
-    mass_flow = Q_(m_tot, "kg/s"),
-    T         = Q_(gas_mix.T, "K"),
-    P         = air.P,
-    comp      = comp_eq,
-)
-```
-
-This `flue` object is stored inside the `CombustionResult`.
+Hence, equilibrium chemistry is confined to the flame-temperature calculation, while the boiler itself is solved with a simplified, fully burnt flue gas consistent with complete combustion and 10 % excess air.
 
 ---
 
-### Representative equilibrium composition for the present case
+### Equilibrium flue gas at adiabatic conditions
 
-For the fuel and air conditions of Sections 4.1–4.3 and λ = 1.1, an HP-equilibrium calculation
-at $T_\mathrm{ad} \approx 2050\ \mathrm{K}$ typically yields approximate mass fractions:
+The adiabatic flame calculation is performed in `combustion/adiabatic_flame_temperature.py` via the function `adiabatic_flame_T(air, fuel)`:
 
-- CO₂: 0.085–0.095
-- H₂O: 0.075–0.085
-- O₂: 0.020–0.030 (excess)
-- N₂: 0.78–0.80
-- CO: ~10⁻³
-- H₂: ~10⁻⁴
-- NO: ~10⁻⁴–10⁻⁵
-- OH, O, radicals: < 10⁻⁶ each
-- SO₂: ~10⁻⁴ (proportional to fuel H₂S)
+- The inlet **air** and **fuel** streams are:
 
-The exact values depend on the mechanism and equilibrium temperature. The values above are
-consistent with:
+  - represented as `GasStream` objects (mass flow, $T$, $P$, mass fractions),
+  - converted to mole fractions (`to_mole`) and set into separate Cantera `Solution` objects (`gas_air`, `gas_fuel`) based on `config/flue_cantera.yaml`.
 
-- natural-gas combustion,
-- slight dissociation at ~2000 K,
-- 10 % excess air,
-- trace sulfur combustion.
+- A mixed-reactant state is constructed at constant pressure:
+
+  - Total enthalpy flow of reactants:
+    $$
+      \dot H_\text{react} = \dot m_\text{air}\, h_\text{air} + \dot m_\text{fuel}\, h_\text{fuel}
+    $$
+  - Target specific enthalpy:
+    $$
+      h_\text{target} = \dot H_\text{react} / \dot m_\text{tot}
+    $$
+  - Overall reactant mole fractions are built from molar flow rates of air and fuel.
+
+- The mixture is then set in Cantera (`gas_mix`) with:
+
+  - composition $X_\text{react}$,
+  - pressure $P = P_\text{air}$,
+  - specific enthalpy $h = h_\text{target}$,
+  - and equilibrated under HP constraints:
+
+    ```python
+    gas_mix.TPX = 300.0, P_Pa, X_react   # T placeholder
+    gas_mix.HP  = h_target, P_Pa
+    gas_mix.equilibrate("HP")
+    ```
+
+- After equilibrium:
+
+  - The **adiabatic flame temperature** is `gas_mix.T`.
+  - The **equilibrium mass fractions** are read from `gas_mix.Y`:
+
+    ```python
+    Y_eq = gas_mix.Y
+    comp_eq = {
+        sp: Q_(float(Y_eq[i]), "")
+        for i, sp in enumerate(gas_mix.species_names)
+        if Y_eq[i] > 1e-15
+    }
+    ```
+
+- These are stored in the equilibrium flue-gas stream:
+
+  ```python
+  flue_ad = GasStream(
+      mass_flow = Q_(m_tot, "kg/s"),
+      T         = Q_(gas_mix.T, "K"),
+      P         = air.P,
+      comp      = comp_eq,
+  )
+  ```
+
+Typical equilibrium composition (λ = 1.1, natural gas, $T_\mathrm{ad} \approx 2050\ \text{K}$) is:
+
+- Major species:
+  - $C$$\mathrm{O_2}$ ≈ 0.085–0.095
+  - $\mathrm{H_2}$$O$ ≈ 0.075–0.085
+  - $\mathrm{O_2}$ ≈ 0.020–0.030 (excess air)
+  - $\mathrm{N_2}$ ≈ 0.78–0.80
+- Dissociation / minor species:
+  - $CO$ ≈ $10^{-3}$
+  - $\mathrm{H_2}$ ≈ $10^{-4}$
+  - $NO$ ≈ $10^{-4}–10^{-5}$
+  - $OH$, $O$, radicals < $10^{-6}$
+  - $S$$\mathrm{O_2}$ = $10^{-4}$ (from fuel $\mathrm{H_2}$$S$)
+
+This composition is physically consistent with high-temperature equilibrium at $~2000 K$ and slight dissociation.
+
+The object `flue_ad` is stored in `CombustionResult` and is only used to:
+
+- provide $T_\mathrm{ad}$ and equilibrium composition to the boiler summary CSV,
+- support diagnostic post-processing.
+
+It is **not** used directly in the heat-exchanger network.
 
 ---
 
-### Distinction between equilibrium flue gas and boiler flue gas
+### Fully burnt boiler flue gas
 
-The equilibrium flue gas calculated here is not used for heat-exchanger calculations.
+The boiler thermal model requires a chemically simple flue-gas mixture to compute heat transfer and pressure drop. For that purpose a **fully burnt** flue gas is constructed in `combustion/flue.py` and `combustion/combustor.py`:
 
-Instead:
+1. In `Combustor.run()` the air mass flow is first set from stoichiometry plus excess air:
 
-- Equilibrium flue gas is used only to compute the adiabatic flame temperature and for
-  diagnostic output in the summary CSV.
-- The boiler thermal model assumes complete combustion with no dissociation at the actual
-  furnace and convection-pass temperatures. For all heat-transfer and pressure-drop
-  calculations:
-  - product species CO₂, H₂O, SO₂,
-  - unreacted O₂ (from λ),
-  - N₂ from air and fuel,
-    with no radicals or dissociation species.
+   ```python
+   air.mass_flow = air_flow_rates(air, fuel, self.excess_air_ratio)
+   ```
 
-Thus, equilibrium chemistry is isolated to the flame-temperature calculation.
+2. The fully burnt flue-gas composition is then computed from pure stoichiometry:
+
+   ```python
+   mass_comp_burnt, m_dot_flue = from_fuel_and_air(fuel, air)
+   ```
+
+   - `from_fuel_and_air` assumes complete oxidation of:
+     - C-containing species → $C$$\mathrm{O_2}$,
+     - $H$ → $\mathrm{H_2}$$O$,
+     - $S$ → $S$$\mathrm{O_2}$,
+   - including $C$$\mathrm{O_2}$ and $\mathrm{H_2}$$O$ already present in the inlet fuel and air.
+   - The allowed product set is:
+     - $C$$\mathrm{O_2}$, $\mathrm{H_2}$$O$, $S$$\mathrm{O_2}$, $\mathrm{O_2}$, $\mathrm{N_2}$, $Ar$.
+   - Residual $\mathrm{O_2}$ is determined by the imposed excess air ratio $λ$; there is no $CO$, $\mathrm{H_2}$, $N$$\mathrm{O_x}$, or radicals in this stream.
+
+   Internally, `from_fuel_and_air` works with molar balances:
+
+   - determines stoichiometric $\mathrm{O_2}$ demand per mole of fuel (`stoich_O2_required_per_mol_fuel`),
+   - combines fuel and air mole fractions to get:
+     $$
+     \dot n_{\mathrm{CO_2}},\
+     \dot n_{\mathrm{H_2O}},\
+     \dot n_{\mathrm{SO_2}},\
+     \dot n_{\mathrm{O_2}},\
+     \dot n_{\mathrm{N_2}},\
+     \dot n_{\mathrm{Ar}}
+     $$
+   - normalises by total moles to obtain mole fractions, converts to mass fractions (`to_mass`), and returns both:
+     - `mass_comp` (mass fractions),
+     - `m_dot` (total mass flow of flue gas).
+
+3. The fully burnt flue-gas stream is then created as:
+
+   ```python
+   flue_boiler = GasStream(
+       mass_flow = Q_(m_dot_flue, "kg/s"),
+       T         = T_ad,     # assume recombination to near Tad at burner exit
+       P         = air.P,
+       comp      = {sp: Q_(y, "") for sp, y in mass_comp_burnt.items()},
+   )
+   ```
+
+4. `CombustionResult` is populated with both flue streams:
+
+   ```python
+   return CombustionResult(
+       LHV        = power_LHV,
+       Q_in       = Q_in,
+       T_ad       = T_ad,
+       flue       = flue_boiler,  # fully burnt flue used in boiler model
+       flue_ad    = flue_ad,      # equilibrium flue at Tad (diagnostics)
+       fuel_LHV_mass = LHV_mass,
+       fuel_P_LHV    = P_LHV,
+   )
+   ```
+
+The **boiler solver** (`run_hx`) always receives `combustion.flue` (i.e. `flue_boiler`) as its gas inlet, and this fully burnt composition is used for:
+
+- gas properties (`cp`, ρ, μ, k),
+- heat-transfer coefficients,
+- radiative heat transfer (emissivity based on $C$$\mathrm{O_2}$/$\mathrm{H_2}$$O$/$S$$\mathrm{O_2}$),
+- pressure-drop estimates and stack temperature.
+
+Thus, the equilibrium flue gas provides a physically consistent high-temperature reference, while the fully burnt flue gas represents the practical working fluid in the convective–radiative sections of the boiler.
 
 ---
 
 ### Output fields
 
-The following entries in `CombustionResult` originate from this section:
-
-| Field     | Meaning                                                 |
-| --------- | ------------------------------------------------------- |
-| `flue_ad` | `GasStream` of equilibrium flue gas (T, P, composition) |
-| `T_ad`    | Adiabatic flame temperature                             |
-| `comp_ad` | Equilibrium mass fractions written to the CSV           |
-
-This completes all combustion chemistry inputs passed to the boiler model.
-
-## Combustion summary
-
-In the implementation, all values are derived from the configuration files in `config/` and from the combustion routines in `combustion/*.py` (`compute_LHV_HHV`, `total_input_heat`, `air_flow_rates`, `adiabatic_flame_T`), these quantities are wrapped in a `CombustionResult` dataclass (`common/results.py`):
+The flue-gas information exposed to the rest of the model and to the post-processing is encapsulated in `CombustionResult`:
 
 ```python
 @dataclass(frozen=True)
 class CombustionResult:
-    LHV: Q_          # LHV-based firing power [kW]
-    Q_in: Q_         # total heat input (LHV + sensible) [kW]
-    T_ad: Q_         # adiabatic flame temperature [K]
-    flue: GasStream  # flue-gas stream at adiabatic conditions
-    fuel_LHV_mass: Q_ | None = None  # LHV_mix [kJ/kg]
-    fuel_P_LHV:   Q_ | None = None   # P_LHV [kW]
+    LHV: Q_
+    Q_in: Q_
+    T_ad: Q_
+    flue: GasStream               # fully-burnt flue used in boiler
+    flue_ad: GasStream | None = None   # equilibrium flue at T_ad (optional)
+    fuel_LHV_mass: Q_ | None = None
+    fuel_P_LHV: Q_ | None = None
 ```
 
-This object is created in `Combustor.run()` and passed to the boiler solver:
+The relevant report/CSV entries are:
 
-- to define the total available heat $Q_\mathrm{in}$,
-- to initialise the flue-gas stream entering the first heat-transfer stage (HX_1),
-- and to provide diagnostic quantities (LHV, $T_\mathrm{ad}$) for the boiler performance
-  summary.
+| Field     | Meaning                                                                  |
+| --------- | ------------------------------------------------------------------------ |
+| `T_ad`    | Adiabatic flame temperature from HP equilibrium                          |
+| `flue_ad` | `GasStream` of equilibrium flue gas (adiabatic composition, diagnostics) |
+| `flue`    | `GasStream` of fully burnt flue gas used in all boiler HX calculations   |
+
+This completes the description of how flue-gas composition is defined, distinguished, and used in the boiler model.
