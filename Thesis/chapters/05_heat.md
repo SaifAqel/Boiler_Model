@@ -392,8 +392,8 @@ These diagnostics are later integrated on a per-stage basis to quantify the shar
 
 Water-side heat transfer is modelled with geometry-dependent correlations using local water properties from the `WaterProps` helper. The water side appears in two configurations:
 
-1. Water inside tubes (single-tube, reversal chamber, economizer)
-2. Water outside tubes in crossflow (tube-bank stages HX_3 and HX_5)
+1. Water inside tubes (economizer)
+2. Water outside tubes in crossflow ($\mathrm{HX_1}$-$\mathrm{HX_5}$)
 
 The total water-side HTC is computed at each marching step as:
 
