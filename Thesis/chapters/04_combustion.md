@@ -27,6 +27,17 @@ $$
 
 where $\mathrm{M_i}$ is the molar mass of species $i$ from `molar_masses` in `common/constants.py`. The resulting fuel mixture is therefore predominantly methane with small amounts of heavier hydrocarbons and trace inert/contaminant species, representative of a typical processed natural gas for boiler firing.
 
+## Model flow
+
+The purpose of the combustion model is to determine combustion conditions inside the furnace (1st pass), resulting in a fully burnt flue gas stream entering the heat transfer model at adiabatic temperature.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/combustion_flow.pdf}
+\caption{Combustion flow}
+\label{fig:combustion-flow}
+\end{figure}
+
 ## Stoichiometric $\mathrm{O_2}$ requirement
 
 Evaluate the stoichiometric oxygen requirement via the function `stoich_O2_required_per_mol_fuel(fuel)` in `combustion/flue.py`. The algorithm is:

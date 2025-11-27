@@ -15,6 +15,8 @@ documentclass: report
 pdf-engine: xelatex
 highlight-style: tango
 tables: true
+header-includes:
+  - \usepackage{float}
 ---
 
 \newpage
