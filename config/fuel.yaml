@@ -1,6 +1,6 @@
 T: { value: 300.0, unit: kelvin }
 P: { value: 101325, unit: Pa }
-mass_flow: { value: 0.5, unit: kg/s }
+mass_flow: { value: 0.1, unit: kg/s }
 composition:
   CH4: { value: 0.80, unit: dimensionless }
   C2H6: { value: 0.10, unit: dimensionless }
