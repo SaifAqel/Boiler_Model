@@ -12,17 +12,15 @@ def run_default_case() -> None:
 
 def run_excess_air_sensitivity() -> None:
     """
-    Example sensitivity analysis on excess air ratio.
-    Results are written to separate outdirs/run_ids by run_hx/write_results_csvs.
+    Sensitivity analysis on excess air ratio.
+    Uses the same configs, only changes excess_air_ratio.
     """
-    # Define a few excess air ratios to test
-    ea_values = [1.00, 1.05, 1.10, 1.15, 1.20]
+    ea_values = [1.0, 1.1, 1.2, 1.3]
 
     for ea in ea_values:
         logging.getLogger(__name__).info(f"Running case with excess_air_ratio={ea}")
         run_boiler_case(
             operation_overrides={"excess_air_ratio": Q_(ea, "")},
-            # You can also pass different tolerances/iteration controls if desired:
             eta_guess=Q_(0.90, ""),
             tol_m=Q_(1e-3, "kg/s"),
             max_iter=20,
@@ -30,12 +28,54 @@ def run_excess_air_sensitivity() -> None:
         )
 
 
+def run_water_pressure_sensitivity() -> None:
+    """
+    Sensitivity analysis on feedwater pressure.
+    Pressures in bar (absolute): 4, 10, 16.
+    Everything else remains from the default YAMLs.
+    """
+    Pbar_values = [4.0, 10.0, 16.0]
+
+    for P_bar in Pbar_values:
+        logging.getLogger(__name__).info(f"Running case with water pressure={P_bar} bar")
+        run_boiler_case(
+            water_overrides={"P": Q_(P_bar, "bar")},
+            eta_guess=Q_(0.90, ""),
+            tol_m=Q_(1e-3, "kg/s"),
+            max_iter=20,
+            write_csv=True,
+        )
+
+def run_fuel_flow_sensitivity() -> None:
+    """
+    Sensitivity analysis on fuel mass flow rate.
+    Uses 0.1, 0.075, 0.05, 0.025 kg/s.
+    Everything else remains from the default YAMLs.
+    """
+    mdot_values = [0.10, 0.075, 0.050, 0.025]  # kg/s
+
+    for mdot in mdot_values:
+        logging.getLogger(__name__).info(f"Running case with fuel mass_flow={mdot} kg/s")
+        run_boiler_case(
+            fuel_overrides={"mass_flow": Q_(mdot, "kg/s")},
+            eta_guess=Q_(0.90, ""),
+            tol_m=Q_(1e-3, "kg/s"),
+            max_iter=20,
+            write_csv=True,
+        )
+
+
+
 def main() -> None:
     setup_logging("INFO")
 
-    run_default_case()
+    # Choose exactly one of these to run at a time:
 
+    run_default_case()
     # run_excess_air_sensitivity()
+    # run_water_pressure_sensitivity()
+    # run_fuel_flow_sensitivity()
+
 
 
 if __name__ == "__main__":

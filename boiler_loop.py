@@ -59,6 +59,8 @@ def run_boiler_case(
     max_iter: int = 20,
     write_csv: bool = True,
     operation_overrides: Dict[str, Q_] | None = None,
+    water_overrides: Dict[str, Q_] | None = None,
+    fuel_overrides: Dict[str, Q_] | None = None,
 ) -> Dict[str, Any]:
     """
     Single boiler run with iteration on water mass flow.
@@ -84,6 +86,23 @@ def run_boiler_case(
     # Allow caller to tweak operation variables without changing YAML
     if operation_overrides:
         operation.update(operation_overrides)
+
+    # Optional override of water stream properties (P, h, mass_flow, etc.)
+    if water_overrides:
+        for attr, val in water_overrides.items():
+            if hasattr(water, attr):
+                setattr(water, attr, val)
+            else:
+                log.warning(f"WaterStream has no attribute '{attr}', ignoring override.")
+
+    # Optional override of fuel stream properties (mass_flow, T, P, etc.)
+    if fuel_overrides:
+        for attr, val in fuel_overrides.items():
+            if hasattr(fuel, attr):
+                setattr(fuel, attr, val)
+            else:
+                log.warning(f"GasStream (fuel) has no attribute '{attr}', ignoring override.")
+
 
     svc = Combustor(air, fuel, operation["excess_air_ratio"])
     combustion_results = svc.run()
