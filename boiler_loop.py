@@ -61,6 +61,7 @@ def run_boiler_case(
     operation_overrides: Dict[str, Q_] | None = None,
     water_overrides: Dict[str, Q_] | None = None,
     fuel_overrides: Dict[str, Q_] | None = None,
+    run_id: str | None = None,
 ) -> Dict[str, Any]:
     """
     Single boiler run with iteration on water mass flow.
@@ -189,13 +190,17 @@ def run_boiler_case(
 
     csv_paths: Tuple[str, str, str] | None = None
     if write_csv:
+        # If a custom run_id was provided, use it; otherwise fall back to the model's run_id
+        effective_run_id = run_id if run_id is not None else final_result["run_id"]
+
         steps_csv, stages_summary_csv, boiler_summary_csv = write_results_csvs(
             global_profile=final_result["global_profile"],
             combustion=final_result["combustion"],
             outdir=final_result["outdir"],
-            run_id=final_result["run_id"],
+            run_id=effective_run_id,
         )
         csv_paths = (steps_csv, stages_summary_csv, boiler_summary_csv)
+
 
     log.info(f"Final water mass flow: {final_m}")
     log.info(f"Final indirect efficiency: {final_eta}")
