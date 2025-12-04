@@ -2,6 +2,13 @@
 
 ## Typical Industries
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/fire_tube_boiler_photo.png}
+\caption{Example of a packaged three-pass fire-tube shell boiler in industrial service.}
+\label{fig:fire-tube-photo}
+\end{figure}
+
 Shell (fire-tube) boilers are widely used in small-to-medium steam and hot-water duties where compactness, robustness, and simple operation are prioritized over very high pressure or very large throughput. Typical sectors include:
 
 - Food and beverage
@@ -47,6 +54,13 @@ Shell boilers are normally applied in low-to-medium pressure ranges and moderate
   - Large shell boilers (upper practical range): 20–40 t/h, beyond which water-tube designs are usually preferred
 
 ## Advantages and Limitations
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/desing_of_shell_boilers.png}
+\caption{Typical design principles of shell boilers, highlighting furnace, passes, drum and auxiliary equipment.}
+\label{fig:design-principles}
+\end{figure}
 
 ### Advantages
 
@@ -115,6 +129,13 @@ Industrial shell boilers typically adopt multi-pass fire-tube configurations to 
 
   - Economizer: additional convective heat exchanger in the flue-gas path downstream of the boiler to preheat feedwater.
   - Air preheater / condensing sections (optional): for high-efficiency systems using suitable fuels and materials.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/boiler_with_economizer.png}
+\caption{Three-pass shell boiler with rear-mounted economizer for feedwater preheating.}
+\label{fig:boiler-with-economizer}
+\end{figure}
 
 - Flow arrangement
   - Gas-side: burner → furnace (Pass 1) → turnaround chamber → tube bank(s) (Passes 2 and 3) → stack.

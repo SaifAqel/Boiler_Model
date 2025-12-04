@@ -148,6 +148,13 @@ $$
 
 These integrated quantities are later used in the performance and efficiency evaluation (Section 7) and for constructing stage-wise summary tables.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/3_pass_T-Q_diagram.png}
+\caption{Representative $T$–$Q$ diagram for the three-pass boiler, showing gas and water/steam temperature evolution and stage heat duties $\mathrm{HX_1}$–$\mathrm{HX_6}$.}
+\label{fig:TQ-diagram}
+\end{figure}
+
 ## Gas-side
 
 Gas-side heat transfer is computed with geometry-aware correlations based on local gas properties from Cantera (`GasProps`) and stage-specific geometry from the `GeometryBuilder`. For each marching step, the total gas-side HTC is split into a convective and a radiative contribution:

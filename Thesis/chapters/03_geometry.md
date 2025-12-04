@@ -31,6 +31,13 @@ with the following interpretation:
 - $\mathrm{HX_6}$ – Economiser (`economiser`)  
   Separate, downstream tube bank used to preheat feedwater in single-phase operation before entering the drum/boiler circuit.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/economiser_cross_section.jpg}
+\caption{Cross-section of the economiser tube bundle $\mathrm{HX_6}$, showing gas-side crossflow and water-side internal flow.}
+\label{fig:economiser-cross-section}
+\end{figure}
+
 Pool boiling is enabled for $\mathrm{HX_1}$–$\mathrm{HX_5}$ (pressure parts); $\mathrm{HX_6}$ is explicitly single-phase on the water side.
 
 ---
@@ -54,6 +61,13 @@ Table 3-1 summarises the principal geometric inputs used in the simulation for t
 | $\mathrm{HX_4}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
 | $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620 |     100     |     2.9     |      0.5       |       true       |
 | $\mathrm{HX_6}$ | economiser   | 0.076  | 7.50  |     160     |     2.5     |      0.5       |      false       |
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/boiler_cross_section.jpg}
+\caption{Detailed cross-section of the simulated boiler, showing drum, furnace, tube banks and reversal chambers with key dimensions.}
+\label{fig:boiler-cross-section-2}
+\end{figure}
 
 All pressure-part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 16$ $\text{W/m/K}$. The economiser ($\mathrm{HX_6}$) is modelled with a higher wall conductivity $\mathrm{k_{wall}} = 30$ $\text{W/m/K}$ and a clean surface (zero fouling thickness) to represent a best-case heat-recovery configuration.
 

@@ -26,6 +26,13 @@ A concise numerical statement:
 - $Q*\text{in} = Q*\text{in,total} =
 - $Q*\text{useful} = Q*\text{total,useful} =
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/boiler_T-S_chart.png}
+\caption{Temperature–entropy ($T$–$s$) representation of the feedwater heating and evaporation process across economiser and boiler at the operating pressure.}
+\label{fig:boiler-TS}
+\end{figure}
+
 ## Efficiencies (direct and indirect)
 
 Two boiler efficiencies are reported:

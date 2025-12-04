@@ -17,6 +17,7 @@ highlight-style: tango
 tables: true
 header-includes:
   - \usepackage{float}
+  - \usepackage{graphicx}
 ---
 
 \newpage
