@@ -78,11 +78,14 @@ The input files `drum.yaml` and `stages.yaml`, provided in Annex A, contain the 
 
 All pressure-part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 16$ $\text{W/m/K}$. The economizer ($\mathrm{HX_6}$) is modelled with a higher wall conductivity $\mathrm{k_{wall}} = 30$ $\text{W/m/K}$ and a clean surface (zero fouling thickness) to represent a best-case heat-recovery configuration.
 
-The YAML configuration supplies wall, surface, and hydraulic properties not captured in the tabulated geometry. Each pressure-part exchanger defines wall thickness, wall conductivity, surface roughness, emissivity, and optional fouling layers with specified thickness and conductivity. Most stages use a uniform carbon-steel wall with smooth surfaces and thin fouling layers, while the economizer uses a thinner, higher-conductivity wall and no fouling to reflect a cleaned section.  
+The YAML configuration supplies wall, surface, and hydraulic properties not captured in the tabulated geometry. Each pressure-part exchanger defines wall thickness, wall conductivity, surface roughness, emissivity, and optional fouling layers with specified thickness and conductivity. Most stages use a uniform carbon-steel wall with smooth surfaces and thin fouling layers, while the economizer uses a thinner, higher-conductivity wall and no fouling to reflect a cleaned section.
+
 The steam drum defines diameter, length, and internal surface properties with its own roughness and fouling settings.
 
-Reversal chambers specify curvature radius and nozzle minor-loss coefficients used in pressure-drop calculations.  
-Tube-bank stages define full shell-side layout: shell diameter, tube count and pitch, tube-row arrangement (staggered or inline), baffle spacing and cut, and bundle clearances. Evaporator banks use tighter pitch and spacing to enhance shell-side transfer, whereas the economizer uses a more open inline layout with a larger tube count and longer tubes.  
+Reversal chambers specify curvature radius and nozzle minor-loss coefficients used in pressure-drop calculations.
+
+Tube-bank stages define full shell-side layout: shell diameter, tube count and pitch, tube-row arrangement (staggered or inline), baffle spacing and cut, and bundle clearances. Evaporator banks use tighter pitch and spacing to enhance shell-side transfer, whereas the economizer uses a more open inline layout with a larger tube count and longer tubes.
+
 These YAML entries are translated by the loader into the geometric and hydraulic quantities required for cross-flow areas, Reynolds numbers, and shell-side heat-transfer evaluation.
 
 \newpage
