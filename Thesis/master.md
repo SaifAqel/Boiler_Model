@@ -18,6 +18,7 @@ tables: true
 header-includes:
   - \usepackage{float}
   - \usepackage{graphicx}
+  - \usepackage{amsmath}
 ---
 
 \newpage
