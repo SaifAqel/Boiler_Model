@@ -192,7 +192,6 @@ def write_results_csvs(
         m_w = global_profile.water[0].mass_flow.to("kg/s").magnitude
     except Exception:
         m_w = float("nan")
-    df_stages["steam_capacity[t/h]"] = m_w * 3600.0 / 1000.0  # kg/s → t/h
 
     # 4b) Reindex by stage name so columns = stages
     df_stages = df_stages.set_index("stage_name")
@@ -230,8 +229,6 @@ def write_results_csvs(
             "Q total[MW]": df_stages["Q_stage[MW]"],
             "UA[MW/K]": df_stages["UA_stage[MW/K]"],
 
-            # steam capacity (t/h)
-            "steam capacity[t/h]": df_stages["steam_capacity[t/h]"],
         },
         index=df_stages.index,
     )
@@ -253,7 +250,6 @@ def write_results_csvs(
         except Exception:
             m_w = float("nan")
         boiler_row["water_mass_flow[kg/s]"] = m_w
-        boiler_row["steam_capacity[t/h]"] = m_w * 3600.0 / 1000.0
 
 
         # Add combustion-related scalars if available

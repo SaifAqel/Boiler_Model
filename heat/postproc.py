@@ -347,9 +347,11 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             Q_stage_MW = r["Q_stage[MW]"]
             # Only stage rows have numeric Q_stage; TOTAL row is added later
             if isinstance(Q_stage_MW, (int, float)):
+                # stage-level *equivalent* steam capacity
                 m_dot = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s").magnitude
                 r["steam_capacity[kg/s]"] = m_dot
                 steam_capacity_total += m_dot
+
 
 
 
