@@ -175,6 +175,9 @@ def write_results_csvs(
             "ΔP_stage_fric[Pa]", "ΔP_stage_minor[Pa]", "ΔP_stage_total[Pa]",
             "stack_temperature[°C]",
             "Q_conv_stage[MW]", "Q_rad_stage[MW]",
+
+            "steam_capacity[kg/s]", "steam_capacity[t/h]",
+
             "η_direct[-]", "η_indirect[-]",
             "Q_total_useful[MW]", "Q_in_total[MW]",
             "P_LHV[MW]", "LHV_mass[kJ/kg]",
@@ -229,6 +232,7 @@ def write_results_csvs(
             "Q total[MW]": df_stages["Q_stage[MW]"],
             "UA[MW/K]": df_stages["UA_stage[MW/K]"],
 
+            "steam capacity[t/h]": df_stages["steam_capacity[t/h]"],
         },
         index=df_stages.index,
     )

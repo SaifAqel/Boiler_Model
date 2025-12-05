@@ -308,6 +308,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "Q_rad_stage[MW]": Q_stage_rad,
 
             "steam_capacity[kg/s]": "",
+            "steam_capacity[t/h]": "",
 
             # boiler-level fields (blank at stage level)
             "η_direct[-]": "",
@@ -335,22 +336,36 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         dP_total_total += dP_total
         stack_T_C = gas_out_T
 
-    steam_capacity_total = None
+    steam_capacity_total_kg_s = None
+    steam_capacity_total_tph = None
 
     if boiler_water_in_P_Pa is not None:
         P_q = Q_(boiler_water_in_P_Pa, "Pa")
         boiler_water_Tsat_C = WaterProps.Tsat(P_q).to("degC").magnitude
         h_fg = (WaterProps.h_g(P_q) - WaterProps.h_f(P_q)).to("J/kg")
 
-        steam_capacity_total = 0.0
+        steam_capacity_total_kg_s = 0.0
+
         for r in rows:
             Q_stage_MW = r["Q_stage[MW]"]
             # Only stage rows have numeric Q_stage; TOTAL row is added later
             if isinstance(Q_stage_MW, (int, float)):
-                # stage-level *equivalent* steam capacity
-                m_dot = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s").magnitude
-                r["steam_capacity[kg/s]"] = m_dot
-                steam_capacity_total += m_dot
+                # stage duty → kg/s
+                m_dot_q = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s")
+                m_dot_kg_s = m_dot_q.to("kg/s").magnitude
+                # convert to t/h
+                m_dot_tph = m_dot_q.to("tonne/hour").magnitude
+
+                r["steam_capacity[kg/s]"] = m_dot_kg_s
+                r["steam_capacity[t/h]"] = m_dot_tph
+
+                steam_capacity_total_kg_s += m_dot_kg_s
+
+        if steam_capacity_total_kg_s is not None:
+            steam_capacity_total_tph = (
+                Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
+            )
+
 
 
 
@@ -420,8 +435,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,
 
-        "steam_capacity[kg/s]": steam_capacity_total if steam_capacity_total is not None else "",
-
+        "steam_capacity[kg/s]": (
+            steam_capacity_total_kg_s if steam_capacity_total_kg_s is not None else ""
+        ),
+        "steam_capacity[t/h]": (
+            steam_capacity_total_tph if steam_capacity_total_tph is not None else ""
+        ),
         "η_direct[-]": eta_direct if eta_direct is not None else "",
         "η_indirect[-]": eta_indirect if eta_indirect is not None else "",
         "Q_total_useful[MW]": Q_useful,
