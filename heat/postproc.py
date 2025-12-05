@@ -191,12 +191,38 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     for k, grp in itertools.groupby(range(len(gp.x)), key=lambda i: gp.stage_index[i]):
         idxs = list(grp)
         name = gp.stage_name[idxs[0]]
+        sr_stage = gp.stage_results[k]
+
+        A_hot = sr_stage.hot_flow_A   # gas-side flow area
+        A_cold = sr_stage.cold_flow_A # water-side flow area
+
+        # NEW: stage-average velocities
+        gas_V_sum = 0.0
+        water_V_sum = 0.0
+        n_steps = len(idxs)
+
+        for i in idxs:
+            g = gp.gas[i]
+            w = gp.water[i]
+
+            # gas velocity
+            g_rho = _gas.rho(g.T, g.P, g.comp)
+            gas_V = (g.mass_flow / (g_rho * A_hot)).to("m/s").magnitude
+            gas_V_sum += gas_V
+
+            # water velocity
+            if A_cold is not None:
+                w_rho = WaterProps.rho_from_Ph(w.P, w.h)
+                water_V = (w.mass_flow / (w_rho * A_cold)).to("m/s").magnitude
+                water_V_sum += water_V
+
+        gas_V_avg = gas_V_sum / max(n_steps, 1)
+        water_V_avg = water_V_sum / max(n_steps, 1) if A_cold is not None else float("nan")
 
         # integrals
         Q_stage = sum((gp.qprime[i] * gp.dx[i]).to("MW").magnitude for i in idxs)
         UA_stage = sum((gp.UA_prime[i] * gp.dx[i]).to("MW/K").magnitude for i in idxs)
 
-        sr_stage = gp.stage_results[k]
         Q_stage_conv = sum((st.qprime_conv * st.dx).to("MW").magnitude for st in sr_stage.steps)
         Q_stage_rad  = sum((st.qprime_rad  * st.dx).to("MW").magnitude for st in sr_stage.steps)
 
@@ -253,6 +279,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
             "Q_stage[MW]": Q_stage,
             "UA_stage[MW/K]": UA_stage,
+            "gas_V_avg[m/s]": gas_V_avg,
+            "water_V_avg[m/s]": water_V_avg,
 
             # gas endpoints
             "gas_in_P[Pa]": gas_in_P,
@@ -278,6 +306,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             # heat splits
             "Q_conv_stage[MW]": Q_stage_conv,
             "Q_rad_stage[MW]": Q_stage_rad,
+
+            "steam_capacity[kg/s]": "",
 
             # boiler-level fields (blank at stage level)
             "η_direct[-]": "",
@@ -305,9 +335,22 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         dP_total_total += dP_total
         stack_T_C = gas_out_T
 
+    steam_capacity_total = None
+
     if boiler_water_in_P_Pa is not None:
         P_q = Q_(boiler_water_in_P_Pa, "Pa")
         boiler_water_Tsat_C = WaterProps.Tsat(P_q).to("degC").magnitude
+        h_fg = (WaterProps.h_g(P_q) - WaterProps.h_f(P_q)).to("J/kg")
+
+        steam_capacity_total = 0.0
+        for r in rows:
+            Q_stage_MW = r["Q_stage[MW]"]
+            # Only stage rows have numeric Q_stage; TOTAL row is added later
+            if isinstance(Q_stage_MW, (int, float)):
+                m_dot = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s").magnitude
+                r["steam_capacity[kg/s]"] = m_dot
+                steam_capacity_total += m_dot
+
 
 
     # Global boiler useful duty (W)
@@ -349,6 +392,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         "Q_stage[MW]": Q_useful,
         "UA_stage[MW/K]": UA_total,
+        "gas_V_avg[m/s]": "",
+        "water_V_avg[m/s]": "",
 
         # endpoints not meaningful at TOTAL_BOILER level
         "gas_in_P[Pa]": "",
@@ -372,6 +417,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,
+
+        "steam_capacity[kg/s]": steam_capacity_total if steam_capacity_total is not None else "",
 
         "η_direct[-]": eta_direct if eta_direct is not None else "",
         "η_indirect[-]": eta_indirect if eta_indirect is not None else "",

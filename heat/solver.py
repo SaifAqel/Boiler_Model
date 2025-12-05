@@ -48,6 +48,8 @@ def _copy_step_with_stage(
         UA_prime=sr.UA_prime, qprime=sr.qprime,
         boiling=sr.boiling,
         h_g=sr.h_g, h_c=sr.h_c,
+        qprime_conv=sr.qprime_conv,
+        qprime_rad=sr.qprime_rad,  
         stage_name=stage_name, stage_index=stage_index,
         dP_fric=dP_fric or Q_(0.0, "Pa"),
         dP_minor=dP_minor or Q_(0.0, "Pa"),
