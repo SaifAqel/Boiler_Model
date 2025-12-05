@@ -16,6 +16,8 @@ class CombustionResult:
     flue_ad: GasStream | None = None   # equilibrium flue at T_ad (optional)
     fuel_LHV_mass: Q_ | None = None
     fuel_P_LHV: Q_ | None = None
+    fuel_mass_flow: Q_ | None = None
+    excess_air_ratio: Q_ | None = None
 
 
 # ---------------- Streams are imported from common.models ----------------
@@ -171,7 +173,7 @@ def write_results_csvs(
             "water_out_P[Pa]", "water_out_T[°C]", "water_out_h[kJ/kg]",
 
             "ΔP_stage_fric[Pa]", "ΔP_stage_minor[Pa]", "ΔP_stage_total[Pa]",
-            "stack temperature[°C]",
+            "stack_temperature[°C]",
             "Q_conv_stage[MW]", "Q_rad_stage[MW]",
             "η_direct[-]", "η_indirect[-]",
             "Q_total_useful[MW]", "Q_in_total[MW]",
@@ -273,10 +275,23 @@ def write_results_csvs(
                 boiler_row["fuel_P_LHV[MW]"] = combustion.fuel_P_LHV.to("MW").magnitude
             else:
                 boiler_row["fuel_P_LHV[MW]"] = ""
+
+            if combustion.fuel_mass_flow is not None:
+                boiler_row["fuel_mass_flow[kg/s]"] = combustion.fuel_mass_flow.to("kg/s").magnitude
+            else:
+                boiler_row["fuel_mass_flow[kg/s]"] = ""
+
+            if combustion.excess_air_ratio is not None:
+                boiler_row["excess_air_ratio[-]"] = combustion.excess_air_ratio.to("").magnitude
+            else:
+                boiler_row["excess_air_ratio[-]"] = ""
+
         else:
             boiler_row["T_ad[°C]"] = ""
             boiler_row["fuel_LHV_mass[kJ/kg]"] = ""
             boiler_row["fuel_P_LHV[MW]"] = ""
+            boiler_row["fuel_mass_flow[kg/s]"] = ""
+            boiler_row["excess_air_ratio[-]"] = ""
 
         # Single-row boiler summary CSV
 
@@ -287,19 +302,21 @@ def write_results_csvs(
         # Build reordered / reduced boiler summary in "row" fashion
         # New row labels (index) and corresponding source columns:
         summary_mapping = [
-            ("LHV[kJ/kg]",                      "LHV_mass[kJ/kg]"),
-            ("P-LHV[MW]",                       "P_LHV[MW]"),
-            ("Q_in total[MW]",                  "Q_in_total[MW]"),
-            ("Tad[°C]",                         "T_ad[°C]"),
-            ("UA[MW/K]",                        "UA_stage[MW/K]"),
-            ("Quseful[MW]",                     "Q_total_useful[MW]"),
-            ("pressue drop firc total[Pa]",     "ΔP_stage_fric[Pa]"),
-            ("pressure drop minor total[Pa]",   "ΔP_stage_minor[Pa]"),
-            ("pressure drop total[Pa]",         "ΔP_stage_total[Pa]"),
-            ("eta direct[-]",                   "η_direct[-]"),
-            ("eta indirect[-]",                 "η_indirect[-]"),
+            ("fuel mass flow[kg/s]",            "fuel_mass_flow[kg/s]"),
+            ("excess air ratio[-]",             "excess_air_ratio[-]"),
             ("water flow[kg/s]",                "water_mass_flow[kg/s]"),
             ("steam capacity[t/h]",             "steam_capacity[t/h]"),
+            ("eta direct[-]",                   "η_direct[-]"),
+            ("eta indirect[-]",                 "η_indirect[-]"),
+            ("UA[MW/K]",                        "UA_stage[MW/K]"),
+            ("Q_in total[MW]",                  "Q_in_total[MW]"),
+            ("Q_useful[MW]",                     "Q_total_useful[MW]"),
+            ("pressue drop fric total[Pa]",     "ΔP_stage_fric[Pa]"),
+            ("pressure drop minor total[Pa]",   "ΔP_stage_minor[Pa]"),
+            ("pressure drop total[Pa]",         "ΔP_stage_total[Pa]"),
+            ("LHV[kJ/kg]",                      "LHV_mass[kJ/kg]"),
+            ("P-LHV[MW]",                       "P_LHV[MW]"),
+            ("Tad[°C]",                         "T_ad[°C]"),
             ("stack temperature[°C]",           "stack_temperature[°C]"),
         ]
 
@@ -324,6 +341,8 @@ def write_results_csvs(
             "T_ad[°C]",
             "fuel_LHV_mass[kJ/kg]",
             "fuel_P_LHV[MW]",
+            "fuel_mass_flow[kg/s]",
+            "excess_air_ratio[-]", 
         ]
         pd.DataFrame(columns=empty_cols).to_csv(boiler_summary_path, index=False)
 

@@ -180,6 +180,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     dP_total_minor = 0.0
     dP_total_total = 0.0
     stack_T_C = None
+    flue_mdot_kg_s = None               # global flue gas mass flow [kg/s]
+    boiler_water_in_P_Pa = None         # boiler water inlet pressure [Pa]
+    boiler_water_in_T_C = None          # boiler water inlet temperature [°C]
+    boiler_water_out_T_C = None         # boiler water outlet temperature [°C]
+    boiler_water_Tsat_C = None          # water saturation temperature at inlet pressure [°C]
+
 
     import itertools
     for k, grp in itertools.groupby(range(len(gp.x)), key=lambda i: gp.stage_index[i]):
@@ -226,7 +232,19 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         water_in_T  = WaterProps.T_from_Ph(w_in.P,  w_in.h).to("degC").magnitude
         water_out_T = WaterProps.T_from_Ph(w_out.P, w_out.h).to("degC").magnitude
 
+        # NEW: capture global flue mass flow and boiler water inlet/outlet
+        if flue_mdot_kg_s is None:
+            # flue gas mass flow rate from gas stream (same for all stages)
+            flue_mdot_kg_s = g_in.mass_flow.to("kg/s").magnitude
 
+        # First stage (k == 0): water outlet for the whole boiler
+        if k == 0:
+            boiler_water_out_T_C = water_out_T
+
+        # Last stage: water inlet for the whole boiler (counter-current)
+        if k == len(gp.stage_results) - 1:
+            boiler_water_in_T_C = water_in_T
+            boiler_water_in_P_Pa = water_in_P
 
         row = {
             "stage_index": k,
@@ -268,6 +286,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "Q_in_total[MW]": "",
             "P_LHV[MW]": "",
             "LHV_mass[kJ/kg]": "",
+
+            "flue_mdot[kg/s]": "",
+            "boiler_water_in_T[°C]": "",
+            "boiler_water_out_T[°C]": "",
+            "boiler_water_P[Pa]": "",
+            "boiler_water_Tsat[°C]": "",
         }
         
         rows.append(row)
@@ -280,6 +304,11 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         dP_total_minor += dP_minor
         dP_total_total += dP_total
         stack_T_C = gas_out_T
+
+    if boiler_water_in_P_Pa is not None:
+        P_q = Q_(boiler_water_in_P_Pa, "Pa")
+        boiler_water_Tsat_C = WaterProps.Tsat(P_q).to("degC").magnitude
+
 
     # Global boiler useful duty (W)
     Q_useful = Q_total
@@ -350,6 +379,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",
+
+        "flue_mdot[kg/s]": flue_mdot_kg_s if flue_mdot_kg_s is not None else "",
+        "boiler_water_in_T[°C]": boiler_water_in_T_C if boiler_water_in_T_C is not None else "",
+        "boiler_water_out_T[°C]": boiler_water_out_T_C if boiler_water_out_T_C is not None else "",
+        "boiler_water_P[Pa]": boiler_water_in_P_Pa if boiler_water_in_P_Pa is not None else "",
+        "boiler_water_Tsat[°C]": boiler_water_Tsat_C if boiler_water_Tsat_C is not None else "",
     }
 
 
