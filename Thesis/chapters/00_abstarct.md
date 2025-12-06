@@ -1,4 +1,4 @@
-# Abstract
+# Abstract {-}
 
 This thesis develops a coupled combustion–heat-transfer–hydraulics model for a three-pass fire-tube industrial shell boiler and evaluates its performance under realistic operating conditions. The modelling framework integrates (i) detailed fuel-air combustion with temperature-dependent thermophysical properties obtained from Cantera, (ii) six sequential gas-side heat-exchange stages representing furnace radiation, convective tube banks, reversal chambers, and a downstream economiser, and (iii) a water/steam circuit governed by saturated boiling in the pressure parts and single-phase heating in the economiser. The gas–water energy balance is solved using a one-dimensional marching algorithm, which updates local heat-transfer coefficients, wall temperatures, and segmental duties based on a full resistance network combining convection, radiation, fouling, and conduction.
 

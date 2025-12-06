@@ -19,32 +19,9 @@ All sensitivity cases reuse the same geometry, combustion model and heat-transfe
 
 ---
 
-## Control case
+## solution procedure
 
-The control case is the reference operating point against which all sensitivity results are compared. It corresponds to the unmodified configuration in the YAML input files and is executed by
-
-- `run_default_case()` in `main.py`, which calls
-- `run_boiler_case()` in `boiler_loop.py` with no overrides and `run_id="default_case"`.
-
-The control case thus uses:
-
-- Geometry: drum and stages from `config/drum.yaml` and `config/stages.yaml` (Chapter&nbsp;3).
-- Fuel composition and base mass flow: from `config/fuel.yaml` (Chapter&nbsp;4).
-- Air composition: from `config/air.yaml` (Chapter&nbsp;4).
-- Excess air ratio:
-
-  $$
-  \lambda_\text{base} = \texttt{operation["excess\_air\_ratio"]}
-  $$
-
-  specified in `config/operation.yaml`.
-
-- Feedwater state: pressure and enthalpy from `config/water.yaml`.
-- Heat-transfer and hydraulic models: as described in Chapters 5–6.
-
-### Control-case solution procedure
-
-For any given operating condition (including the control case) the main solver `run_boiler_case()` performs an outer fixed-point iteration on boiler efficiency and water mass flow:
+For any given operating condition the main solver `run_boiler_case()` performs an outer fixed-point iteration on boiler efficiency and water mass flow:
 
 1. The combustion sub-model (`Combustor.run()`) computes a `CombustionResult` containing
 
@@ -116,8 +93,6 @@ At convergence, the control case yields a unique pair:
 
 together with the corresponding boiler summary quantities (stack temperature, total pressure drop, etc.). These are exported to CSV as `default_case_boiler_summary.csv` via `write_results_csvs(...)` and form the reference for the sensitivity analysis.
 
----
-
 ## Methodology for sensitivity runs
 
 All sensitivity studies use the same numerical procedure as the control case and differ only in how one input parameter is modified. The helper function `run_boiler_case(...)` accepts optional override dictionaries for:
@@ -154,6 +129,31 @@ $$
 \frac{\eta_{\text{indirect}} - \eta_{\text{indirect,base}}}
      {\eta_{\text{indirect,base}}} \times 100\%.
 $$
+
+---
+
+## Control case
+
+The control case is the reference operating point against which all sensitivity results are compared. It corresponds to the unmodified configuration in the YAML input files and is executed by
+
+- `run_default_case()` in `main.py`, which calls
+- `run_boiler_case()` in `boiler_loop.py` with no overrides and `run_id="default_case"`.
+
+The control case thus uses:
+
+- Geometry: drum and stages from `config/drum.yaml` and `config/stages.yaml` (Chapter&nbsp;3).
+- Fuel composition and base mass flow: from `config/fuel.yaml` (Chapter&nbsp;4).
+- Air composition: from `config/air.yaml` (Chapter&nbsp;4).
+- Excess air ratio:
+
+  $$
+  \lambda_\text{base} = \texttt{operation["excess\_air\_ratio"]}
+  $$
+
+  specified in `config/operation.yaml`.
+
+- Feedwater state: pressure and enthalpy from `config/water.yaml`.
+- Heat-transfer and hydraulic models: as described in Chapters 5–6.
 
 ---
 

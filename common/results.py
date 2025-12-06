@@ -172,6 +172,8 @@ def write_results_csvs(
             "water_in_P[Pa]", "water_in_T[°C]", "water_in_h[kJ/kg]",
             "water_out_P[Pa]", "water_out_T[°C]", "water_out_h[kJ/kg]",
 
+            "gas_V_avg[m/s]", "water_V_avg[m/s]",
+
             "ΔP_stage_fric[Pa]", "ΔP_stage_minor[Pa]", "ΔP_stage_total[Pa]",
             "stack_temperature[°C]",
             "Q_conv_stage[MW]", "Q_rad_stage[MW]",
@@ -220,6 +222,9 @@ def write_results_csvs(
             "water in enthalpy[h]": df_stages["water_in_h[kJ/kg]"],
             "water out temp[°C]": df_stages["water_out_T[°C]"],
             "water out enthalpy[h]": df_stages["water_out_h[kJ/kg]"],
+
+            "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
+            "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],
 
             # pressure drops
             "pressure drop fric[pa]": df_stages["ΔP_stage_fric[Pa]"],

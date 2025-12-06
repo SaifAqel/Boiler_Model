@@ -55,7 +55,7 @@ Shell boilers are normally applied in low to medium pressure ranges and moderate
 
 ## Advantages and Limitations
 
-### Advantages
+### Advantages {- .unlisted}
 
 - Compact and integrated construction
 
@@ -81,7 +81,7 @@ Shell boilers are normally applied in low to medium pressure ranges and moderate
   - Accessible gas passes and tube bundles (depending on design) for cleaning and inspection.
   - Long-established technology with wide service and parts availability.
 
-### Limitations
+### Limitations {- .unlisted}
 
 - Pressure and capacity limits
 

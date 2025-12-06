@@ -34,3 +34,5 @@ Future work could extend the present model by incorporating:
 Such extensions would further enhance the model’s fidelity and applicability across a wider range of industrial boiler configurations and operating regimes.
 
 \newpage
+
+\appendix
