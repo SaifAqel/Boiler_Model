@@ -16,6 +16,13 @@ The boiler is modelled as a one-dimensional counter-current heat exchanger compo
 - $q'(x)$ – linear heat flux (heat per unit length) [W/m]
 - $UA'(x)$ – overall conductance per unit length [W/K/m]
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/heat_step.png}
+\caption{Cross section of heat transfer network from gas to water/steam}
+\label{fig:heat_step}
+\end{figure}
+
 ---
 
 ## Local energy balance

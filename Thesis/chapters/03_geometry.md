@@ -1,5 +1,12 @@
 # Boiler Geometry and Configuration
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/boiler_parts.png}
+\caption{Example of shell boiler setup components}
+\label{fig:boiler_parts}
+\end{figure}
+
 The simulated unit is a three pass fire tube shell boiler with six distinct gas side heat transfer stages and a single common steam drum on the water/steam side. Hot flue gas from the burner traverses a radiative furnace, two reversal chambers, two convective tube banks, and a final economizer before leaving to the stack.
 
 ## Overall layout

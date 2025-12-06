@@ -1,15 +1,15 @@
 # Industrial Application of Shell Boilers
 
-## Typical Industries
-
-Shell (fire-tube) boilers are widely used in small to medium steam and hot water duties where compactness, robustness, and simple operation are prioritized over very high pressure or very large throughput. Typical sectors include:
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/fire_tube_boiler_photo.png}
 \caption{Example of a packaged three-pass fire-tube shell boiler in industrial service.}
 \label{fig:fire-tube-photo}
 \end{figure}
+
+## Typical Industries
+
+Shell (fire-tube) boilers are widely used in small to medium steam and hot water duties where compactness, robustness, and simple operation are prioritized over very high pressure or very large throughput. Typical sectors include:
 
 - Food and beverage
 

@@ -11,6 +11,7 @@ mainfont: "Arial"
 sansfont: "Arial"
 monofont: "Consolas"
 monofontoptions:
+  - Scale=0.85
   - Ligatures=TeX
 fontsize: 12pt
 geometry: margin=1in
@@ -18,10 +19,13 @@ documentclass: report
 pdf-engine: xelatex
 highlight-style: tango
 tables: true
+table-caption-position: below
 header-includes:
   - \usepackage{float}
   - \usepackage{graphicx}
   - \usepackage{amsmath}
+  - \usepackage{caption}
+  - \captionsetup[table]{font=small}
 ---
 
 \newpage

@@ -1,7 +1,5 @@
 results/
-figs/
-inputs.md
-inputs.pdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
