@@ -246,6 +246,8 @@ where:
 Standard formation enthalpies $\Delta h^\circ_\mathrm{f}$ (at 298.15 K, 1 bar) are taken from
 `common/constants.py` in kJ/mol:
 
+Table: Standard enthalpy of formation of selected species [@nist]
+
 | Species              | $\Delta h^\circ_{\mathrm{f}} \; (\mathrm{kJ}\,\mathrm{mol}^{-1})$ |
 | -------------------- | ----------------------------------------------------------------- |
 | $\mathrm{CH_4}$      | –74.8                                                             |
@@ -255,8 +257,6 @@ Standard formation enthalpies $\Delta h^\circ_\mathrm{f}$ (at 298.15 K, 1 bar) a
 | $\mathrm{SO_2}$      | –296.8                                                            |
 | $\mathrm{CO_2}$      | –393.5                                                            |
 | $\mathrm{H_2O(l)}$   | –285.5                                                            |
-
-Table: Standard enthalpy of formation of selected species [@nist]
 
 #### Products for HHV and LHV
 

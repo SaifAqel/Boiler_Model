@@ -1,3 +1,0 @@
-add velocity averages to stages summary
-
-# chapter 3

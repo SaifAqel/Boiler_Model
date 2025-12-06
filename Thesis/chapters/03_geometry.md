@@ -52,8 +52,6 @@ with the following interpretation:
 \label{fig:boiler-with-economizer}
 \end{figure}
 
----
-
 ## Drum configuration
 
 The boiler has a single horizontal steam drum. Its inner diameter is $$D_{i,\text{drum}} = 4.5\ \text{m}$$ and its length $$L_{\text{drum}} = 5.0\ \text{m}$$.

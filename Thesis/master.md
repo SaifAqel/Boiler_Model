@@ -19,7 +19,7 @@ documentclass: report
 pdf-engine: xelatex
 highlight-style: tango
 tables: true
-table-caption-position: below
+caption-position: below
 header-includes:
   - \usepackage{float}
   - \usepackage{graphicx}

@@ -23,8 +23,6 @@ The boiler is modelled as a one-dimensional counter-current heat exchanger compo
 \label{fig:heat_step}
 \end{figure}
 
----
-
 ## Local energy balance
 
 For each differential segment of length $\mathrm{d}x$, the model enforces a one-dimensional steady-state energy balance between the gas, the water and the tube wall:
@@ -67,8 +65,6 @@ $$
 \qquad
 \Delta h_w = +\frac{Q_\text{step}}{\dot{m}_w}
 $$
-
----
 
 ## Overall conductance and resistance network
 
@@ -128,8 +124,6 @@ $$
 q'(x) = UA'(x)\,\bigl[T_g(x) - T_w(x)\bigr]
 $$
 
----
-
 ## Stage- and boiler-level duties
 
 For a stage of length $L_j$, the stage heat duty and stage-level conductance are obtained by integrating the local quantities along $x$:
@@ -172,15 +166,13 @@ $$
 
 The implementation uses the helper `gas_htc_parts(g, spec, T_{gw})`, which returns $(h_{g,\text{conv}},\,h_{g,\text{rad}})$ in W/m²·K, and then sums them in `gas_htc`.
 
----
+### Single-tube and reversal-chamber {#sec-gas-single}
 
-### Single-tube and reversal-chamber (internal)
+Stages of kind `single_tube` and `reversal_chamber`, corresponding to furnace (first pass), and both reversal chambers, are treated as internal forced convection in a circular duct. The characteristic quantities are:
 
-Stages of kind `"single_tube"` and `"reversal_chamber"` are treated as internal forced convection in a circular duct. The characteristic quantities are:
-
-- Diameter: $D = D_i$ (tube inner diameter)
-- Length: $L$ (stage inner length)
-- Flow area: $A = A_\text{hot,flow}$ (from geometry builder)
+- Diameter: $D$ (supplied by `stages.yaml`)
+- Length: $L$ (supplied by `stages.yaml`)
+- Flow area: $A = \frac{1}{4}\,pi\,D^2$ (calculated by geometry builder)
 - Velocity:
   $$
   V = \frac{\dot{m}_g}{\rho_g A}
@@ -191,9 +183,10 @@ Stages of kind `"single_tube"` and `"reversal_chamber"` are treated as internal 
   \qquad
   \mathrm{Pr} = \frac{c_{p,g}\,\mu_g}{k_g}
   $$
-  Local gas properties $\rho_g, \mu_g, k_g, c_{p,g}$ are obtained from the Cantera mixture at the local gas temperature and pressure.
+  Local gas properties $\rho_g, \mu_g, k_g, c_{p,g}$ are obtained from the Cantera mixture via the functions defined in `common\props.py`, at the local gas temperature and pressure.
 
-Laminar/developing flow (Graetz-type)  
+#### Laminar/developing flow (Graetz-type) {- .unlisted}
+
 For $\mathrm{Re} < 2300$, uses a Graetz correlation for thermally developing laminar flow:
 
 $$
@@ -207,7 +200,8 @@ $$
 
 [@incropera]
 
-Turbulent flow (Gnielinski with Petukhov friction factor)  
+#### Turbulent flow (Gnielinski with Petukhov friction factor) {- .unlisted}
+
 For $\mathrm{Re} \ge 2300$, the Gnielinski correlation is applied with a Petukhov friction factor:
 
 $$
@@ -231,29 +225,25 @@ $$
 
 [@incropera]
 
-This same internal correlation is used for `"single_tube"`, `"reversal_chamber"` and `"tube_bank"` gas-side flow (see below).
+This same internal correlation is used for `single_tube`, `reversal_chamber` and `tube_bank` gas-side flow (see below).
 
----
+### Tube-bank {#sec-gas-bank}
 
-### Tube-bank (internal)
-
-Stages `"tube_bank"` correspond to tube bundles inside the shell. In this model, the gas side is still treated as internal flow inside the tubes:
+Stages `tube_bank` correspond to tube bundles inside the shell, ie. first and second passes. In this model, the gas side is still treated as internal flow inside the tubes:
 
 - Hot side (gas): inside tubes (inner diameter $D_i$), using the same internal forced convection model as in Section 5.2.1.
 
 Thus the gas-side convective HTC in tube-bank stages is:
 
 $$
-h_{g,\text{conv}}^\text{(HX3,5)} = \frac{\mathrm{Nu}_\text{internal}(\mathrm{Re},\mathrm{Pr})\,k_g}{D_i}
+h_{g,\text{conv}}^\text{(HX3,5)} = \frac{\mathrm{Nu}(\mathrm{Re},\mathrm{Pr})\,k_g}{D_i}
 $$
 
-with $\mathrm{Nu}_\text{internal}$ given by the Graetz/Gnielinski formulation above, and $\mathrm{Re}$, $\mathrm{Pr}$ computed from the local gas properties and tube hydraulic diameter.
+with $\mathrm{Nu}$ given by the Graetz/Gnielinski formulation above, and $\mathrm{Re}$, $\mathrm{Pr}$ computed from the local gas properties and tube hydraulic diameter.
 
----
+### Economizer {#sec-gas-eco}
 
-### Economizer (external)
-
-The economizer `"economiser"` stage reverses the roles: gas flows outside the tubes in crossflow, while water flows inside. The gas-side convection is then modelled as external crossflow over a tube bank.
+The economizer `economiser` stage reverses the roles: gas flows outside the tubes in crossflow, while water flows inside. The gas-side convection is then modelled as external crossflow over a tube bank.
 
 Key geometry quantities (from `GeometryBuilder` for the economizer):
 
@@ -313,9 +303,7 @@ $$
 
 [@incropera]
 
----
-
-### Gas radiation model
+### Radiation model
 
 Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating-medium model for the $H₂O$/$CO₂$ mixture. The implementation follows a simplified Smith–Shen–Friedman style four-gray model.
 
@@ -424,9 +412,7 @@ In the present work, the water-side model is used in two distinct regimes:
 
 The underlying implementation is more general (it contains a full Chen-type flow-boiling formulation valid for internal forced convection), but for the final boiler calculations this capability is only used in the economizer; in HX_1–HX_5 the water side is deliberately simplified to a pool-boiling model.
 
----
-
-### Economizer (internal)
+### Economizer {#sec-water-eco}
 
 For the economiser stage (kind `"economiser"`, $\mathrm{HX_6}$), where water flows inside the tubes, the model uses standard internal-flow correlations augmented with a viscosity-ratio correction and, when needed, a Chen-type flow-boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
 
@@ -492,9 +478,7 @@ $$
 
 [@incropera]
 
----
-
-### Tube-bank (external)
+### Tube-bank {#sec-water-bank}
 
 In the boiling sections ($\mathrm{HX_1}$–$\mathrm{HX_5}$) the water occupies the shell-side region around the heated tubes. When a crossflow description is needed (e.g. in HX_3 and HX_5), a Zukauskas-type correlation is applied for flow over a tube bundle on the water side, using the outer tube diameter $D_o$ and the cold-side flow area $A*{\text{cold,flow}}$ supplied by the geometry builder.
 
@@ -552,11 +536,11 @@ $$
 h_{w,\text{conv}} = \frac{\mathrm{Nu}_w\,k_w}{D_o}
 $$
 
----
+### Single-tube and reversal-chamber {#sec-water-single}
 
 ### Treatment of boiling
 
-Boiling is treated differently in the pool-boiling stages (HX_1–HX_5) and in the economiser (HX_6).
+Boiling is treated differently in the pool-boiling stages (HX_1–HX_5) and in the economizer (HX_6).
 
 #### Pool-boiling
 
@@ -609,8 +593,6 @@ For the economizer stage HX_6 (`pool_boiling = false`), the model uses a more ge
 
 In the present thesis, this full Chen-type flow-boiling capability is only exercised in the economizer stage. In the main boiling sections (HX_1–HX_5), where circulation is dominated by buoyancy and the flow pattern is closer to pool boiling, the simpler pool-boiling representation described above is preferred.
 
----
-
 ## Per-step resistance insertion
 
 The water-side resistance per unit length used in the overall $UA'$ assembly is:
@@ -637,8 +619,6 @@ R_{w,\text{side}}' = R_{fc}' + R_c'
 $$
 
 This resistance is passed into the overall conductance formulation (Section 5.1.2).
-
----
 
 ## Wall-temperature update and thermal convergence
 

@@ -21,8 +21,6 @@ The model divides gas-side pressure losses into:
 
 Water-side pressure losses are intentionally not included in this model (water at constant pressure).
 
----
-
 ## Gas-Side ΔP per Stage
 
 During each call to `solve_stage`, the solver marches through all steps and accumulates:
@@ -43,8 +41,6 @@ An example schema from `summary_from_profile()`:
 Values are integrated over the entire stage length:
 $$\Delta P_{\mathrm{stage}} = \sum_{i=1}^{N} \Delta P(i)$$
 
----
-
 ## Water-Side ΔP per Stage
 
 The present solver does not compute water-side frictional or accelerational pressure losses.  
@@ -60,8 +56,6 @@ Thus:
 - Total water-side ΔP = 0 Pa
 
 This assumption is consistent with pool-boiling and saturated-drum configurations where the water is not routed through high-velocity conduits.
-
----
 
 ## Total Boiler ΔP and Stack Pressure
 
@@ -89,8 +83,6 @@ gas_out.P
 ```
 
 reported separately in the boiler summary.
-
----
 
 ## Consolidated ΔP Table (from solver output)
 

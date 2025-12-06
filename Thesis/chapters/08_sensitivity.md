@@ -3,7 +3,7 @@
 This chapter evaluates how the coupled combustion–boiler model responds to variations in three key operating parameters:
 
 - excess air ratio $\lambda$,
-- feedwater (drum) pressure,
+- drum pressure,
 - fuel mass flow rate (firing rate).
 
 The goal is to quantify how these parameters influence the boiler-level quantities introduced in Chapter&nbsp;7, in particular:
@@ -16,8 +16,6 @@ The goal is to quantify how these parameters influence the boiler-level quantiti
 - converged water/steam mass flow $\dot{m}_w$.
 
 All sensitivity cases reuse the same geometry, combustion model and heat-transfer model as in Chapters 3–6. Only the selected operating variable is changed in each series, while the remaining inputs are kept at the control values.
-
----
 
 ## solution procedure
 
@@ -69,7 +67,7 @@ For any given operating condition the main solver `run_boiler_case()` performs a
 4. `run_hx` returns per-stage and boiler-level summary rows. From the `TOTAL_BOILER` row the post-processor `summary_from_profile(...)` recovers the indirect efficiency
 
    $$
-   \eta_{\text{indirect}}^{(n)} = \frac{Q_\text{useful}^{(n)}}{Q_\text{in}}.
+   \eta_{\text{indirect}}^{(n)} = \frac{Q_\text{loss}^{(n)}}{Q_\text{in}}.
    $$
 
 5. The new efficiency estimate is set to the indirect efficiency,
@@ -91,7 +89,7 @@ At convergence, the control case yields a unique pair:
 - converged water/steam mass flow $\dot{m}_{w,\text{base}}$,
 - converged indirect efficiency $\eta_{\text{indirect,base}}$,
 
-together with the corresponding boiler summary quantities (stack temperature, total pressure drop, etc.). These are exported to CSV as `default_case_boiler_summary.csv` via `write_results_csvs(...)` and form the reference for the sensitivity analysis.
+together with the corresponding boiler summary quantities (stack temperature, total pressure drop, etc.). These and more are exported to CSV as `boiler_summary.csv` and `stages_summary.csv`.
 
 ## Methodology for sensitivity runs
 
@@ -117,45 +115,31 @@ For each value in a parameter sweep:
 Each sweep is controlled by a dedicated function in `main.py`:
 
 - `run_excess_air_sensitivity()` – excess air ratio,
-- `run_water_pressure_sensitivity()` – feedwater/drum pressure,
+- `run_water_pressure_sensitivity()` – drum pressure,
 - `run_fuel_flow_sensitivity()` – fuel mass flow.
 
-In each case the parameter is varied one-factor-at-a-time (OFAT), i.e. only the parameter of interest is changed, while all other inputs remain at their control values.
+In each case the parameter is varied one factor at a time, i.e. only the parameter of interest is changed, while all other inputs remain at their control values.
 
-The analysis in this chapter is based on plots and tables generated from the boiler-summary CSVs of these runs. Wherever possible, trends are discussed in terms of dimensionless relative changes, e.g.
-
-$$
-\Delta \eta_{\text{indirect}}^\% =
-\frac{\eta_{\text{indirect}} - \eta_{\text{indirect,base}}}
-     {\eta_{\text{indirect,base}}} \times 100\%.
-$$
-
----
+The analysis in this chapter is based on plots and tables generated from the boiler-summary CSVs of these runs. Wherever possible, trends are discussed in terms of dimensionless relative changes.
 
 ## Control case
 
 The control case is the reference operating point against which all sensitivity results are compared. It corresponds to the unmodified configuration in the YAML input files and is executed by
 
 - `run_default_case()` in `main.py`, which calls
-- `run_boiler_case()` in `boiler_loop.py` with no overrides and `run_id="default_case"`.
+- `run_boiler_case()` in `boiler_loop.py` with no overrides.
 
 The control case thus uses:
 
-- Geometry: drum and stages from `config/drum.yaml` and `config/stages.yaml` (Chapter&nbsp;3).
-- Fuel composition and base mass flow: from `config/fuel.yaml` (Chapter&nbsp;4).
-- Air composition: from `config/air.yaml` (Chapter&nbsp;4).
-- Excess air ratio:
+- Geometry: drum and stages from `config/drum.yaml` and `config/stages.yaml`.
+- Fuel stream: from `config/fuel.yaml`.
+- Air stream: from `config/air.yaml`.
+- Excess air ratio: specified in `config/operation.yaml`.
+- Feedwater stream: from `config/water.yaml`.
 
-  $$
-  \lambda_\text{base} = \texttt{operation["excess\_air\_ratio"]}
-  $$
+All configuration YAML files are provided in Appendix A.
 
-  specified in `config/operation.yaml`.
-
-- Feedwater state: pressure and enthalpy from `config/water.yaml`.
-- Heat-transfer and hydraulic models: as described in Chapters 5–6.
-
----
+Unless stated otherwise, all values and results discussed in preceding chapters refer to this control case.
 
 ## Excess Air Ratio
 
@@ -186,15 +170,6 @@ All other configuration files (`stages.yaml`, `fuel.yaml`, `air.yaml`, `water.ya
 - the adiabatic flame temperature $T_\text{ad}$,
 - the gas-side convective and radiative driving forces in all stages.
 
-For each $\lambda$, the final boiler summary provides:
-
-- $Q_\text{useful}(\lambda)$,
-- $Q_\text{in}(\lambda)$ (combustion heat release),
-- $\eta_\text{direct}(\lambda)$, $\eta_\text{indirect}(\lambda)$,
-- stack gas temperature $T_\text{stack}(\lambda)$,
-- total gas-side pressure drops $\Delta P_\text{fric}(\lambda)$, $\Delta P_\text{minor}(\lambda)$, $\Delta P_\text{total}(\lambda)$,
-- converged water/steam mass flow $\dot{m}_w(\lambda)$.
-
 ### Observed trends {#sec-lambda-observed}
 
 The simulation results are consistent with textbook expectations for gas-fired boilers:
@@ -222,15 +197,13 @@ Operationally, the excess air ratio is adjusted to reconcile three competing obj
 
 The present simulations quantify how sensitive the boiler efficiency and stack conditions are to realistic variations in $\lambda$ around the design value. They confirm that modest deviations in excess air lead to measurable, but not catastrophic, efficiency penalties and provide a basis for selecting control set-points in practice.
 
----
-
-## Drum / feedwater pressure
+## Drum pressure
 
 ### Simulation setup {#sec-pressure-setup}
 
 The influence of pressure on boiler performance is studied by varying the feedwater (and implicitly drum) pressure using `run_water_pressure_sensitivity()` in `main.py`. The investigated absolute pressure levels are:
 
-- $P_\text{fw} = 4\,\text{bar},\;10\,\text{bar},\;16\,\text{bar}$.
+- $P = 4\,\text{bar},\;10\,\text{bar},\;16\,\text{bar}$.
 
 For each value, the boiler loop is executed as:
 
@@ -245,7 +218,7 @@ run_boiler_case(
 )
 ```
 
-The override replaces the feedwater pressure in the `WaterStream` object used as template in `_water_mass_from_efficiency()`. The same pressure is also used for saturation properties in the drum and boiling surfaces via `WaterProps`.
+The override replaces the drum pressure in the `WaterStream` object used as template in `_water_mass_from_efficiency()`. The same pressure is also used for saturation properties in the drum and boiling surfaces via `WaterProps`.
 
 For a given pressure $P$, the saturation temperature and phase-change enthalpy are
 
@@ -297,8 +270,6 @@ From a design and operational viewpoint, the pressure sensitivity study illustra
 - The primary effect of increasing drum pressure at fixed firing rate is a change in steam _quantity_ rather than a dramatic change in boiler _efficiency_.
 - Higher-pressure operation delivers steam at higher temperature and higher specific exergy but at lower mass flow for the same $Q_\text{in}$. This is consistent with the thermodynamic trade-offs discussed in Chapter&nbsp;2.
 - For medium-pressure shell boilers in the investigated range, the model suggests that efficiency penalties associated purely with pressure changes are relatively small, provided that other parameters (notably excess air and heat-transfer surface cleanliness) are kept under control.
-
----
 
 ## Fuel mass-flow rate (firing rate)
 
@@ -372,8 +343,6 @@ From an operational standpoint, the firing-rate sensitivity highlights the pract
 - In the mid-load region the boiler behaves nearly “proportionally”: steam capacity and useful duty increase roughly linearly with fuel input, and efficiency remains close to the control-case value.
 - At very low loads the model indicates a deterioration of heat-transfer effectiveness and efficiency, consistent with the well-known part-load penalties of shell boilers (more cycling, lower gas velocities, increased relative losses).
 - At the upper end of the firing range, the rising pressure drop and stack temperature suggest that fan capacity and allowable stack losses will ultimately limit further increases in $\dot{m}_f$, even if the geometry could accommodate higher heat fluxes.
-
----
 
 ## Summary
 

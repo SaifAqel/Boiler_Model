@@ -13,8 +13,6 @@ composition:
   H2O: { value: 0.0, unit: dimensionless }
 ```
 
----
-
 ## Drum geometry and wall properties (`config/drum.yaml`)
 
 ```yaml
@@ -28,8 +26,6 @@ wall:
       fouling_thickness: { value: 0.0001, unit: m }
       fouling_conductivity: { value: 0.2, unit: W/m/K }
 ```
-
----
 
 ## Fuel properties and composition (`config/fuel.yaml`)
 
@@ -48,15 +44,11 @@ composition:
   H2O: { value: 0.01, unit: dimensionless }
 ```
 
----
-
 ## Operating condition (`config/operation.yaml`)
 
 ```yaml
 excess_air_ratio: { value: 1.1, unit: dimensionless }
 ```
-
----
 
 ## Heat exchanger stages (`config/stages.yaml`)
 
@@ -221,8 +213,6 @@ HX_6:
         fouling_thickness: { value: 0.0, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
 ```
-
----
 
 ## Water side properties (`config/water.yaml`)
 
