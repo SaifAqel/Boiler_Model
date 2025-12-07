@@ -124,9 +124,44 @@ $$
 q'(x) = UA'(x)\,\bigl[T_g(x) - T_w(x)\bigr]
 $$
 
-## Stage- and boiler-level duties
+## Wall temperature update and thermal convergence
 
-For a stage of length $L_j$, the stage heat duty and stage-level conductance are obtained by integrating the local quantities along $x$:
+The tube wall temperatures on the gas and water sides, $T_{gw}$ and $T_{ww}$, are updated using a two node wall model in each marching step.
+
+Given $q'(x)$, the wall side energy balances yield:
+
+$$
+T_{gw} = T_g - \frac{q'}{h_{g,\text{tot}}}
+$$
+
+$$
+T_{ww} = T_w + \frac{q'}{h_w}
+$$
+
+The wall conduction temperature drop is:
+
+$$
+\Delta T_\text{wall} = T_{gw} - T_{ww}
+$$
+
+which is also equal to:
+
+$$
+\Delta T_\text{wall}
+= q' \left[
+R_{fg}' + R_w' + R_{fc}'
+\right]
+$$
+
+A consistency check is applied; if the implied wall temperature difference from conduction differs from the one implied by convection, the marching solver iterates the HTC evaluation once with relaxed updates (default under-relaxation factor 0.35).
+
+In the actual implementation this consistency check is performed by iterating on $T_{gw}$, $T_{ww}$, and $q'$ using the full resistance network (gas convection, gas fouling, wall, water fouling, water convection), with an under-relaxation factor applied to both wall temperatures and the linear heat flux.
+
+If temperature overshoot (negative film coefficient, reversed driving force) is detected within a step, the step is automatically halved and recomputed.
+
+## Stage and boiler level duties
+
+For a stage of length $L_j$, the stage heat duty and stage level conductance are obtained by integrating the local quantities along $x$:
 
 $$
 Q_{\text{stage},j}
@@ -173,7 +208,7 @@ The implementation uses the helper `gas_htc_parts(g, spec, T_{gw})`, which retur
 \label{fig:gas_path}
 \end{figure}
 
-### Single-tube and reversal-chamber {#sec-gas-single}
+### Single tube and reversal chamber {#sec-gas-single}
 
 Stages of kind `single_tube` and `reversal_chamber`, corresponding to furnace (first pass), and both reversal chambers, are treated as internal forced convection in a circular duct. The characteristic quantities are:
 
@@ -190,7 +225,7 @@ Stages of kind `single_tube` and `reversal_chamber`, corresponding to furnace (f
   \qquad
   \mathrm{Pr} = \frac{c_{p,g}\,\mu_g}{k_g}
   $$
-  Local gas properties $\rho_g, \mu_g, k_g, c_{p,g}$ are obtained from the Cantera mixture via the functions defined in `common\props.py`, at the local gas temperature and pressure.
+  Local gas properties $\rho_g, \mu_g, k_g, c_{p,g}$ are obtained from the Cantera mixture via the functions defined in `common\props.py`, at the local gas temperature and pressure. [@mcbride1993]
 
 #### Laminar/developing flow (Graetz-type) {- .unlisted}
 
@@ -234,7 +269,7 @@ $$
 
 This same internal correlation is used for `single_tube`, `reversal_chamber` and `tube_bank` gas-side flow (see below).
 
-### Tube-bank {#sec-gas-bank}
+### Tube bank {#sec-gas-bank}
 
 Stages `tube_bank` correspond to tube bundles inside the shell, ie. first and second passes. In this model, the gas side is still treated as internal flow inside the tubes:
 
@@ -399,12 +434,150 @@ These diagnostics are later integrated on a per-stage basis to quantify the shar
 
 ## Water side
 
-Water side heat transfer is modelled with geometry dependent correlations using local water properties from IAPWS97 (`WaterProps`), with stage specific geometry computed by `GeometryBuilder`. The total water side HTC computed at each marching step, is split into a convective and/or boiling, as water side radiation is neglected.
+Water side heat transfer is computed with geometry dependent correlations using local water properties from IAPWS97 (`WaterProps`), with stage specific geometry from the `GeometryBuilder`. The solver always works with a single effective water side heat transfer coefficient $h_w(x)$ per marching step, which may represent:
 
-Although the designed program is more general, containing a full Chen-type flow boiling formulation; in the present work, the water side model is used in two distinct regimes:
+- pure pool boiling at a saturated surface,
+- a Chen type combination of forced convection and nucleate boiling, or
+- single phase forced convection.
 
-- $\mathrm{HX_1}$–$\mathrm{HX_5}$ are treated as boiling surfaces in contact with a pool at saturation temperature. In these stages the bulk water temperature is forced to $\mathrm{T_{sat}(p)}$ and the heat transfer coefficient is obtained from a pure pool boiling correlation.
-- $\mathrm{HX_6}$ (economizer) is treated as a single phase / flow boiling tube bundle with water flowing inside the tubes and heated by the flue gas cross flow.
+In the implementation this logic is encapsulated in `water_htc`, which returns $(h_w)$ for each step.
+
+### General formulation and boiling treatment
+
+The six stages of the boiler are divided, from the water-side point of view, into:
+
+- $\mathrm{HX_1}$–$\mathrm{HX_5}$: pool-boiling stages  
+  (`pool_boiling = true` in the stage specification)
+- $\mathrm{HX_6}$: economizer stage  
+  (`pool_boiling = false`)
+
+The solver applies the following decision tree at each marching step:
+
+1. Pool-boiling stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$)
+
+   If the stage is flagged as `pool_boiling = true`, the bulk water temperature entering the wall-energy balance is fixed at the saturation temperature at the local pressure:
+
+   $$
+   T_w = T_\text{sat}(p_w),
+   $$
+
+   and the water-side HTC is computed from the Cooper pool boiling correlation for nucleate boiling correlation:
+
+   $$
+   h_\text{Cooper}
+   =
+   55\, p_r^{\,0.12 - 0.2\log_{10}(R_p)}
+   \; \bigl[-\log_{10}(p_r)\bigr]^{-0.55}
+   \; q''^{0.67}
+   $$
+
+   where
+
+   $$
+   p_r = \frac{p}{p_\text{crit}} = \text{reduced pressure}, \quad R_p = \text{surface roughness (μm)}, \quad q'' = \text{heat flux}.
+   $$
+
+   [@incropera]
+
+   This nucleate-boiling HTC is then used directly:
+
+   $$
+   h_w = h_{w,\text{nb}},
+   $$
+
+   and the step is always marked as boiling in the post processing.
+
+   In other words, the main boiling surfaces of the boiler (furnace, passes, reversal chambers) are represented as heated surfaces in a saturated pool, with the HTC governed by the local heat flux and surface roughness rather than by a detailed prediction of liquid velocity. This matches the natural circulation character of these sections.
+
+2. Non pool boiling stages ($\mathrm{HX_6}$, economizer)
+
+   For stages with `pool_boiling = false`, the model can represent both single phase convection and flow boiling via a Chen type formulation.
+
+   a. Boiling detection
+
+   A helper determines whether the local state is boiling based on the bulk enthalpy $h$ and, when needed, the wall temperature $T_\text{wall}$:
+
+   - if
+     $$
+     h_f(p_w) \le h \le h_g(p_w)
+     $$
+     the state is inside the saturation interval and is treated as two phase;
+   - if $h < h_f(p_w)$ (slightly subcooled liquid) but the wall superheat is sufficiently high,
+     $$
+     T_\text{wall} > T_\text{sat}(p_w) + \Delta T_\text{crit},
+     $$
+     the state is also treated as boiling;
+   - otherwise the flow is treated as single-phase liquid.
+
+   Here $h_f$ and $h_g$ are saturated-liquid and saturated vapor enthalpies at the local pressure, obtained via IAPWS97.
+
+   b. Single-phase regime
+
+   If boiling is not detected, the water side HTC is purely convective:
+
+   $$
+   h_w = h_{w,\text{conv}},
+   $$
+
+   with $h_{w,\text{conv}}$ obtained from a geometry dependent forced convection correlation (internal tube, external tube bank, or external single tube/bend) as detailed in Sections [\ref{sec-water-eco}]–[\ref{sec-water-single}].
+
+   c. Flow boiling regime (Chen model)
+
+   When boiling is detected in a non pool boiling stage, the HTC is constructed as a Chen type superposition of:
+
+   - a liquid only convective term $h_\text{lo}$, and
+   - a nucleate-boiling term $h_\text{nb}$ using the same Cooper correlation as in pool boiling.
+
+   The liquid only HTC is evaluated at the saturation temperature $T_\text{sat}(p)$ and using the appropriate geometry correlation:
+
+   $$
+   h_\text{lo} = h_\text{single-phase}\bigl(T_\text{sat}(p), \text{geometry}\bigr),
+   $$
+
+   while the nucleate-boiling term is
+
+   $$
+   h_\text{nb} = h_\text{Cooper}(p, q'').
+   $$
+
+   The Chen combination used in the code is:
+
+   $$
+   h_w = F\,h_\text{lo} + S\,h_\text{nb}.
+   $$
+
+   [@incropera]
+
+   The convection enhancement factor $F$ is based on a Martinelli type parameter $X_{tt}$,
+
+   $$
+   X_{tt}
+   = \left(\frac{1 - x}{x}\right)^{0.9}
+     \left(\frac{\mu_l}{\mu_g}\right)^{0.1}
+     \left(\frac{\rho_g}{\rho_l}\right)^{0.5},
+   $$
+
+   where $x$ is the local vapor quality and $\rho_l,\rho_g,\mu_l,\mu_g$ are liquid/vapor densities and viscosities at saturation. A bounded form of the Chen factor is then used:
+
+   $$
+   F = 1 + 0.12\,X_{tt}^{-0.8},
+   $$
+
+   The suppression factor $S$ modulating the nucleate boiling contribution is a function of mass flux and Reynolds number:
+
+   $$
+   S = \frac{1}{1 + C\,\mathrm{Re}_\text{lo}^{\,\alpha}},
+   $$
+
+   where $\mathrm{Re}_\text{lo}$ is a liquid only Reynolds number based on the mass flux
+
+   $$
+   G = \frac{\dot{m}_w}{A_\text{flow}},
+   $$
+
+   and the liquid properties at saturation. In the implementation the constants and bounds are chosen such that $S$ remains between about 0.1 and 1.0, reducing the nucleate boiling influence at very high mass flux (strong forced convection).
+
+   In the present thesis this Chen type flow boiling capability is only exercised in the economizer stage; the main boiling sections ($\mathrm{HX_1}$–$\mathrm{HX_5}$) use the pure pool boiling representation above.
 
 \begin{figure}[H]
 \centering
@@ -415,102 +588,113 @@ Although the designed program is more general, containing a full Chen-type flow 
 
 ### Economizer {#sec-water-eco}
 
-For the economizer stage (kind `"economiser"`, $\mathrm{HX_6}$), where water flows inside the tubes, the model uses standard internal flow correlations augmented with a viscosity ratio correction and, when needed, a Chen type flow boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
+In the economizer stage ($\mathrm{HX_6}$, `kind = "economiser"`), water flows inside the tubes and is heated by the flue gas flowing externally in cross flow. This stage is the only one where `pool_boiling = false` and where the full single phase/Chen type boiling formulation is used.
 
-#### Velocity and nondimensional groups
+#### Velocity and dimensionless groups {- .unlisted}
+
+The relevant geometric quantities for the water side are:
+
+- tube inner diameter: $D_i$,
+- tube length: $L$,
+- cold-side flow area: $A_{\text{cold,flow}}$.
+
+The bulk water velocity, Reynolds and Prandtl numbers are:
 
 $$
-V_w = \frac{\dot{m}_w}{\rho_w A_{\text{cold,flow}}}
+V_w = \frac{\dot{m}_w}{\rho_w A_{\text{cold,flow}}},
 $$
 
 $$
 \mathrm{Re}_w = \frac{\rho_w V_w D_i}{\mu_w},
 \qquad
-\mathrm{Pr}_w = \frac{c_{p,w}\,\mu_w}{k_w}
+\mathrm{Pr}_w = \frac{c_{p,w}\,\mu_w}{k_w},
 $$
 
-Local water-side properties $\rho_w, \mu_w, k_w, c_{p,w}$ are evaluated at the bulk water temperature.
+with $\rho_w, \mu_w, k_w, c_{p,w}$ evaluated from IAPWS97 at the film temperature. [@iapws1997]
 
-#### Laminar regime ($\mathrm{Re}<2300$)
+#### Single phase internal flow correlation {- .unlisted}
 
-For fully developed laminar internal flow in a circular tube:
+When no boiling is detected in the economizer, the Nusselt number is computed using a Gnielinski type internal flow correlation with a viscosity ratio correction:
 
-$$
-\mathrm{Nu}_w = 3.66
-$$
+- Laminar / developing regime ($\mathrm{Re}_w < 2300$): a Graetz type form is used
 
-[@incropera]
-For developing laminar flow, the same Graetz form used on the gas side is applied:
+  $$
+  \mathrm{Gz}_w = \mathrm{Re}_w\,\mathrm{Pr}_w\,\frac{D_i}{L},
+  $$
 
-$$
-\mathrm{Gz}_w = \mathrm{Re}_w \,\mathrm{Pr}_w\,\frac{D_i}{L}
-$$
+  $$
+  \mathrm{Nu}_w = 3.66 + \frac{0.0668\,\mathrm{Gz}_w}{1 + 0.04\,\mathrm{Gz}_w^{2/3}}.
+  $$
 
-$$
-\mathrm{Nu}_w = 3.66 + \frac{0.0668\,\mathrm{Gz}_w}{1 + 0.04\,\mathrm{Gz}_w^{2/3}}
-$$
+- Turbulent regime ($\mathrm{Re}\_w \ge 2300$): Gnielinski correlation with friction factor
+  $$
+  f_w = \left(0.79\ln\mathrm{Re}_w - 1.64\right)^{-2},
+  $$
+  [@munson]
+  $$
+  \mathrm{Nu}_w =
+  \frac{\frac{f_w}{8}(\mathrm{Re}_w - 1000)\,\mathrm{Pr}_w}
+  {1 + 12.7\sqrt{\frac{f_w}{8}}\left(\mathrm{Pr}_w^{2/3}-1\right)},
+  $$
+  [@incropera]
+  scaled by a viscosity-ratio correction:
+  $$
+  \mathrm{Nu}_w \leftarrow \mathrm{Nu}_w
+  \left(\frac{\mu_b}{\mu_w}\right)^{0.11},
+  $$
+  where $\mu_b$ is evaluated at the bulk temperature and $\mu_w$ at the wall temperature.
 
-[@incropera]
-
-#### Turbulent regime ($\mathrm{Re}\ge 2300$)
-
-The Gnielinski correlation is used:
-
-$$
-f_w = \left(0.79\ln\mathrm{Re}_w - 1.64\right)^{-2}
-$$
-
-[@munson]
-
-$$
-\mathrm{Nu}_w =
-\frac{\frac{f_w}{8}(\mathrm{Re}_w - 1000)\,\mathrm{Pr}_w}
-{1 + 12.7\sqrt{\frac{f_w}{8}}\left(\mathrm{Pr}_w^{2/3}-1\right)}
-$$
-
-[@incropera]
-In the implementation, the Nusselt number is multiplied by a viscosity-ratio correction $(\mu_b/\mu_w)^{0.11}$ evaluated at bulk and wall temperatures, following the common Gnielinski extension for heated internal flow.
-
-Finally:
+The single phase water side HTC in the economizer is then:
 
 $$
-h_{w,\text{conv}} = \frac{\mathrm{Nu}_w\,k_w}{D_i}
+h_{w,\text{conv}}^\text{(HX6)} = \frac{\mathrm{Nu}_w\,k_w}{D_i}.
 $$
 
 [@incropera]
 
-### Tube-bank {#sec-water-bank}
+#### Flow boiling in the economizer {- .unlisted}
 
-In the boiling sections ($\mathrm{HX_1}$–$\mathrm{HX_5}$) the water occupies the shell-side region around the heated tubes. When a crossflow description is needed (e.g. in HX_3 and HX_5), a Zukauskas-type correlation is applied for flow over a tube bundle on the water side, using the outer tube diameter $D_o$ and the cold-side flow area $A*{\text{cold,flow}}$ supplied by the geometry builder.
-
-#### Geometry inputs from `GeometryBuilder`
-
-- Tube outer diameter: $D_o$
-- Cold-side flow area: $A_{\text{cold,flow}}$
-
-- Water velocity:
-
-  $$
-  V_w = \frac{\dot{m}_w}{\rho_w A_{\text{cold,flow}}}
-  $$
-
-- Reynolds and Prandtl numbers:
-  $$
-  \mathrm{Re}_w = \frac{\rho_w V_w D_o}{\mu_w},
-  \qquad
-  \mathrm{Pr}_w = \frac{c_{p,w}\,\mu_w}{k_w}
-  $$
-
-#### Zukauskas banded correlation
+If boiling is detected in the economizer (according to the criteria in the general formulation), the same geometry and mass flux information are used to form the liquid only HTC $h_\text{lo}$ and the Cooper nucleate boiling HTC $h_\text{nb}$. The total water side HTC is then:
 
 $$
-\mathrm{Nu}_w = C\,\mathrm{Re}_w^m\,\mathrm{Pr}_w^n
+h_w = F\,h_\text{lo} + S\,h_\text{nb},
 $$
 
-Coefficient selection:
+with $F$ and $S$ given by the Chen type relations described above, using the local vapor quality, mass flux, and saturation properties. This provides a smooth transition between predominantly convective and predominantly nucleate boiling regimes in the economizer.
 
-- $C,m$ chosen based on the Reynolds band and bundle arrangement (`inline` or `staggered`).
-- Exponent $n$:
+### Tube bank stages {#sec-water-bank}
+
+For completeness, the water side model also includes correlations for cross flow over tube banks on the cold side (`kind = "tube_bank"`), although in the present thesis these stages are operated in pool boiling mode (so that only the Cooper correlation is used). When a tube bank description is required on the water side, the geometry is:
+
+- tube outer diameter: $D_o$,
+- cold-side flow area: $A_{\text{cold,flow}}$,
+- number of rows: $N_\text{rows}$,
+- transverse and longitudinal pitches: $S_T$, $S_L$,
+- bundle arrangement: `inline` or `staggered`.
+
+The water velocity, Reynolds and Prandtl numbers are:
+
+$$
+V_w = \frac{\dot{m}_w}{\rho_w A_{\text{cold,flow}}},
+$$
+
+$$
+\mathrm{Re}_w = \frac{\rho_w V_w D_o}{\mu_w},
+\qquad
+\mathrm{Pr}_w = \frac{c_{p,w}\,\mu_w}{k_w}.
+$$
+
+A Zukauskas-type banded correlation is then applied:
+
+$$
+\mathrm{Nu}_w = C\,\mathrm{Re}_w^m\,\mathrm{Pr}_w^n,
+$$
+
+[@incropera]
+where:
+
+- $C, m$ are selected from standard Zukauskas bands based on $\mathrm{Re}_w$ and the arrangement (`inline` or `staggered`),
+- the exponent $n$ is
   $$
   n =
   \begin{cases}
@@ -519,141 +703,76 @@ Coefficient selection:
   \end{cases}
   $$
 
-If the Reynolds number lies outside the valid Zukauskas range, the model falls back to Churchill–Bernstein:
+The raw Nusselt number is further modified by:
+
+- a row factor $f_\text{row}(N_\text{rows})$ that accounts for the finite number of tube rows, and
+- a spacing factor $\phi(S_T, S_L, D_o)$ that accounts for maximum velocity effects in the tube bank (greater constriction $\Rightarrow$ higher HTC).
+
+If $\mathrm{Re}_w$ falls outside the Zukauskas validity range, the model falls back to the Churchill Bernstein correlation for cross flow over a single cylinder:
 
 $$
 \mathrm{Nu}_w =
 0.3 +
 \frac{0.62\,\mathrm{Re}_w^{1/2}\,\mathrm{Pr}_w^{1/3}}
 {\left[1+(0.4/\mathrm{Pr}_w)^{2/3}\right]^{1/4}}
-\left[1 + \left(\frac{\mathrm{Re}_w}{282000}\right)^{5/8}\right]^{4/5}
+\left[1 + \left(\frac{\mathrm{Re}_w}{282000}\right)^{5/8}\right]^{4/5}.
 $$
 
 [@incropera]
 
-The external HTC is then:
+The corresponding water side HTC for a tube-bank configuration is:
 
 $$
-h_{w,\text{conv}} = \frac{\mathrm{Nu}_w\,k_w}{D_o}
+h_{w,\text{conv}}^\text{(bank)} = \frac{\mathrm{Nu}_w\,k_w}{D_o}.
 $$
 
-### Single-tube and reversal-chamber {#sec-water-single}
+[@incropera]
 
-### Treatment of boiling
+When such a tube bank model is used inside the Chen formulation, $h_\text{lo}$ is taken from this $h_{w,\text{conv}}^\text{(bank)}$.
 
-Boiling is treated differently in the pool-boiling stages (HX_1–HX_5) and in the economizer (HX_6).
+### Single tube and reversal chamber stages {#sec-water-single}
 
-#### Pool-boiling
+Stages of kind `single_tube` and `reversal_chamber` correspond, on the water side, to external flow around one or more tubes within the drum/shell region. In the current thesis these are also operated in pool boiling mode (`pool_boiling = true`), so the Cooper pool boiling correlation described in the general formulation dominates their behavior. Nevertheless, the implementation includes external forced convection correlations for completeness.
 
-For stages flagged as `pool_boiling = true` (HX_1–HX_5), the water side is deliberately simplified to a pure pool-boiling model:
+For these stages the characteristic length for the water side is the tube outer diameter $D_o$, and the cold side flow area $A_{\text{cold,flow}}$ is defined by the drum cross section minus the tube area(s). When a cross flow description is used for single-phase or liquid only HTC:
 
-- The bulk water temperature entering the wall-energy balance is fixed at the saturation temperature corresponding to the local pressure:
+- water velocity, Reynolds and Prandtl numbers:
   $$
-  T_w = T_\text{sat}(p_w).
+  V_w = \frac{\dot{m}_w}{\rho_w A_{\text{cold,flow}}},
   $$
-- The water-side heat-transfer coefficient is taken from a Cooper-type pool-boiling correlation:
-
   $$
-  h_{w,\text{nb}} = h_\text{Cooper}(p_w, q'')
+  \mathrm{Re}_w = \frac{\rho_w V_w D_o}{\mu_w},
+  \qquad
+  \mathrm{Pr}_w = \frac{c_{p,w}\,\mu_w}{k_w}.
   $$
 
-  [@incropera]
-  where $q''$ is the local heat flux on the water side and the roughness of the boiling surface enters through the correlation.
-
-- This nucleate-boiling coefficient is used directly as the water-side HTC:
-  $$
-  h_w = h_{w,\text{nb}},
-  $$
-  and the region is always tagged as “boiling” in the post-processing.
-
-In other words, HX_1–HX_5 are modelled as heated surfaces immersed in a saturated pool, with boiling controlled by the local heat flux and surface roughness rather than by a detailed prediction of the liquid velocity. This reflects the natural-circulation behavior of the boiler riser and furnace sections and follows the modelling simplification requested for the thesis.
-
-#### Economizer
-
-For the economizer stage HX_6 (`pool_boiling = false`), the model uses a more general internal-flow formulation that can represent both single-phase convection and flow boiling:
-
-1. Boiling detection.  
-   A helper function checks whether the local state falls into the saturation enthalpy interval $[h_f(p), h_g(p)]$ or, for slightly subcooled liquid, whether the wall superheat exceeds a threshold. If neither condition is met, the flow is treated as single-phase liquid.
-
-2. Single-phase regime.  
-   In single-phase operation, the water-side HTC is computed from an internal forced-convection correlation (Gnielinski with viscosity-ratio correction), as described in Section 5.3.1.
-
-3. Flow-boiling regime (Chen-type model).  
-    When boiling is detected, the HTC is assembled from a liquid-only contribution and a nucleate-boiling contribution:
-   $$
-   h_\text{lo} = \text{single-phase liquid HTC at } T_\text{sat}(p),
-   $$
-   $$
-   h_\text{nb} = h_\text{Cooper}(p, q''),
-   $$
-   $$
-   h_w = F\,h_\text{lo} + S\,h_\text{nb}.
-   $$
-   [@incropera]
-   The factor $F$ accounts for the effect of two-phase flow on the convective heat transfer (via a Martinelli-type parameter), while $S$ modulates the nucleate-boiling contribution as a function of Reynolds number and mass flux. Both are bounded to remain within reasonable engineering limits.
-
-In the present thesis, this full Chen-type flow-boiling capability is only exercised in the economizer stage. In the main boiling sections (HX_1–HX_5), where circulation is dominated by buoyancy and the flow pattern is closer to pool boiling, the simpler pool-boiling representation described above is preferred.
-
-## Per-step resistance insertion
-
-The water-side resistance per unit length used in the overall $UA'$ assembly is:
+For a single tube in cross flow (or, by approximation, a relatively open bundle) a Churchill Bernstein style correlation is used:
 
 $$
-R_c' = \frac{1}{h_w P_w}
+\mathrm{Nu}_w =
+0.3 +
+\frac{0.62\,\mathrm{Re}_w^{1/2}\,\mathrm{Pr}_w^{1/3}}
+{\left[1+(0.4/\mathrm{Pr}_w)^{2/3}\right]^{1/4}}
+\left[1 + \left(\frac{\mathrm{Re}_w}{282000}\right)^{5/8}\right]^{4/5},
 $$
 
-where the wetted perimeter is:
-
-- $P_w = \pi D_i$ when water is inside the tubes.
-- $P_w = N_{\text{tubes}} \pi D_o$ effective per bundle pitch when water is outside tubes, handled automatically by `GeometryBuilder`.
-
-Fouling is added in series:
+[@incropera]
+leading to
 
 $$
-R_{fc}' = \frac{\delta_{f,\text{water}}}{k_{f,\text{water}}\,P_w}
+h_{w,\text{conv}}^\text{(single)} = \frac{\mathrm{Nu}_w\,k_w}{D_o}.
 $$
 
-Total water-side contribution:
+In reversal chamber segments, the tubes are bent, and the model applies the same base correlation multiplied by a curvature (bend) factor:
 
 $$
-R_{w,\text{side}}' = R_{fc}' + R_c'
+h_{w,\text{conv}}^\text{(rev)} =
+\phi_\text{bend}(D_o, R_c)\,
+\frac{\mathrm{Nu}_w\,k_w}{D_o},
 $$
 
-This resistance is passed into the overall conductance formulation (Section 5.1.2).
+where $R_c$ is the bend radius and $\phi_\text{bend} \ge 1$ is a modest enhancement (up to roughly 1.25) for tight bends, reflecting locally increased turbulence around the bend region.
 
-## Wall-temperature update and thermal convergence
-
-The tube wall temperatures on the gas and water sides, $T_{gw}$ and $T_{ww}$, are updated using a two-node wall model in each marching step.
-
-Given $q'(x)$, the wall-side energy balances yield:
-
-$$
-T_{gw} = T_g - \frac{q'}{h_{g,\text{tot}}}
-$$
-
-$$
-T_{ww} = T_w + \frac{q'}{h_w}
-$$
-
-The wall conduction temperature drop is:
-
-$$
-\Delta T_\text{wall} = T_{gw} - T_{ww}
-$$
-
-which is also equal to:
-
-$$
-\Delta T_\text{wall}
-= q' \left[
-R_{fg}' + R_w' + R_{fc}'
-\right]
-$$
-
-A consistency check is applied; if the implied wall temperature difference from conduction differs from the one implied by convection, the marching solver iterates the HTC evaluation once with relaxed updates (default under-relaxation factor 0.35). Full Picard iteration is omitted for performance reasons.
-
-In the actual implementation this consistency check is performed by iterating on $T_{gw}$, $T_{ww}$, and $q'$ using the full resistance network (gas convection, gas fouling, wall, water fouling, water convection), with an under-relaxation factor applied to both wall temperatures and the linear heat flux.
-
-If temperature overshoot (negative film coefficient, reversed driving force) is detected within a step, the step is automatically halved and recomputed.
+In pool boiling operation these external convection correlations are only used implicitly inside the liquid only component $h_\text{lo}$ when the Chen type formulation is invoked. For the main boiling sections in this thesis, however, the water side is predominantly controlled by the Cooper pool boiling correlation with $T_w = T_\text{sat}(p)$.
 
 \newpage
