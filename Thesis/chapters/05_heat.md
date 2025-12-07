@@ -1,4 +1,4 @@
-# Heat-Transfer Calculations
+# Heat Transfer Model
 
 ## Fundamental heat-balance equations
 

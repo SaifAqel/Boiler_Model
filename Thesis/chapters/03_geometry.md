@@ -1,4 +1,4 @@
-# Boiler Geometry and Configuration
+# Configuration
 
 \begin{figure}[H]
 \centering
@@ -9,7 +9,7 @@
 
 The simulated unit is a three pass fire tube shell boiler with six distinct gas side heat transfer stages and a single common steam drum on the water/steam side. Hot flue gas from the burner traverses a radiative furnace, two reversal chambers, two convective tube banks, and a final economizer before leaving to the stack.
 
-## Overall layout
+## Layout
 
 The gas path is represented as:
 
@@ -52,19 +52,20 @@ with the following interpretation:
 \label{fig:boiler-with-economizer}
 \end{figure}
 
-## Drum configuration
+## Geometry and surface specification
+
+### Drum configuration
 
 The boiler has a single horizontal steam drum. Its inner diameter is $$D_{i,\text{drum}} = 4.5\ \text{m}$$ and its length $$L_{\text{drum}} = 5.0\ \text{m}$$.
 
 The drum is not modelled with internal separators or circulation hardware. It simply supplies the saturated water/steam state at boiler pressure, while all circulation effects are represented by the single 1-D water/steam stream used in the heat-transfer stages.
 
-## Consolidated geometry and surface specification
+### Flue gas passes
 
 All six pressure-part stages of the simulated boiler are represented with a consolidated geometric and surface specification.
 
 |     Element     | Kind         | Di [m] | L [m] | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
 | :-------------: | ------------ | :----: | :---: | :---------: | :---------: | :------------: | :--------------: |
-| $\mathrm{DRUM}$ | drum         |  4.50  | 5.00  |      –      |      –      |      0.5       |        –         |
 | $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276 |      1      |     2.9     |      0.5       |       true       |
 | $\mathrm{HX_2}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
 | $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975 |     118     |     2.9     |      0.5       |       true       |
@@ -94,3 +95,21 @@ Tube-bank stages define full shell-side layout: shell diameter, tube count and p
 These YAML entries are translated by the loader into the geometric and hydraulic quantities required for cross-flow areas, Reynolds numbers, and shell-side heat-transfer evaluation.
 
 \newpage
+
+## Assumptions and limitations
+
+The current hydraulic model is based on the following assumptions:
+
+- Gas side:
+
+  - 1D, steady, single–phase flow.
+  - Constant mass flow along each stage.
+  - Compressibility effects appear only through property variations $\rho(T,P)$ and $\mu(T,P)$ in $\mathrm{Re}$ and $\rho V^2 / 2$.
+  - Stage level minor loss coefficients are lumped and uniformly distributed along the stage.
+  - Gas side ΔP in economizer stage is neglected.
+
+- Water side:
+  - Pressure is fixed at the drum pressure (no distributed water side ΔP).
+  - Hydraulic diagnostics (velocity, Reynolds number) are computed and used in HTC models, but not in a pressure drop model.
+
+These assumptions should be kept in mind when interpreting gas side pressure drops and when comparing model predictions against detailed hydraulic measurements.
