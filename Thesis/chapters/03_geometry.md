@@ -98,18 +98,27 @@ These YAML entries are translated by the loader into the geometric and hydraulic
 
 ## Assumptions and limitations
 
-The current hydraulic model is based on the following assumptions:
+1. Combustion and flue gas
 
-- Gas side:
+   - Ideal complete combustion, with fixed excess air,
+   - Adiabatic flame temperature from equilibrium chemistry, using NASA polynomials.
+   - Ideal gas mixture $p = \rho R T$, with transport properties $\mu(T)$ $k(T)$ $c_p(T)$ from polynomial data.
+   - Steady state boiler operation, with fixed fuel air and feedwater.
+   - Boiler efficiency computed on HHV or LHV basis, using standard energy balance equations.
 
-  - 1D, steady, single–phase flow.
-  - Constant mass flow along each stage.
-  - Compressibility effects appear only through property variations $\rho(T,P)$ and $\mu(T,P)$ in $\mathrm{Re}$ and $\rho V^2 / 2$.
-  - Stage level minor loss coefficients are lumped and uniformly distributed along the stage.
-  - Gas side ΔP in economizer stage is neglected.
+2. Heat transfer
 
-- Water side:
-  - Pressure is fixed at the drum pressure (no distributed water side ΔP).
-  - Hydraulic diagnostics (velocity, Reynolds number) are computed and used in HTC models, but not in a pressure drop model.
+   - One dimensional steady heat transfer per stage.
+   - Uniform wall conductivity and thickness, radial conduction only.
+   - Gas side HTC from standard correlations properties **vary** with temperature pressure and composition.
+   - Gas radiation via band averaged grey model for $CO_2$ and $H_2O$, no spectral resolution, and no soot formation.
+   - Water side HTC uses IAPWS-IF97 properties, homogenized two phase model.
+   - Drum at fixed pressure, and perfect steam water separation (no carryover).
 
-These assumptions should be kept in mind when interpreting gas side pressure drops and when comparing model predictions against detailed hydraulic measurements.
+3. Hydraulic and thermal performance
+
+   - 1D, steady, single phase flow.
+   - Constant mass flow along each stage.
+   - Compressibility effects appear only through property variations $\rho(T,P)$ and $\mu(T,P)$ in $\mathrm{Re}$ and $\rho V^2 / 2$.
+   - Stage level minor loss coefficients are lumped, and uniformly distributed along the stage.
+   - Gas side ΔP in economizer stage is neglected.
