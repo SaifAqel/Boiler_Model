@@ -552,7 +552,7 @@ The scalar `T_ad` is passed forward and written into the boiler summary CSV
 (`*_boiler_summary.csv`) for reference and later comparison with non-adiabatic stack
 temperatures obtained from the full boiler simulation.
 
-## Flue-gas composition
+## Flue gas composition
 
 In the combustion model two different flue-gas streams are distinguished:
 

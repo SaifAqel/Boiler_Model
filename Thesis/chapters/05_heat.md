@@ -156,15 +156,22 @@ These integrated quantities are later used in the performance and efficiency eva
 \label{fig:TQ-diagram}
 \end{figure}
 
-## Gas-side
+## Gas side
 
-Gas-side heat transfer is computed with geometry-aware correlations based on local gas properties from Cantera (`GasProps`) and stage-specific geometry from the `GeometryBuilder`. For each marching step, the total gas-side HTC is split into a convective and a radiative contribution:
+Gas side heat transfer is computed with geometry aware correlations based on local gas properties from Cantera (`GasProps`) and stage specific geometry from the `GeometryBuilder`. For each marching step, the total gas side HTC is split into a convective and a radiative contribution:
 
 $$
 h_{g,\text{tot}} = h_{g,\text{conv}} + h_{g,\text{rad}}
 $$
 
 The implementation uses the helper `gas_htc_parts(g, spec, T_{gw})`, which returns $(h_{g,\text{conv}},\,h_{g,\text{rad}})$ in W/m²·K, and then sums them in `gas_htc`.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/gas_path.png}
+\caption{Path of flue gas through the 6 stages}
+\label{fig:gas_path}
+\end{figure}
 
 ### Single-tube and reversal-chamber {#sec-gas-single}
 
@@ -233,7 +240,7 @@ Stages `tube_bank` correspond to tube bundles inside the shell, ie. first and se
 
 - Hot side (gas): inside tubes (inner diameter $D_i$), using the same internal forced convection model as in Section 5.2.1.
 
-Thus the gas-side convective HTC in tube-bank stages is:
+Thus the gas side convective HTC in tube-bank stages is:
 
 $$
 h_{g,\text{conv}}^\text{(HX3,5)} = \frac{\mathrm{Nu}(\mathrm{Re},\mathrm{Pr})\,k_g}{D_i}
@@ -243,12 +250,12 @@ with $\mathrm{Nu}$ given by the Graetz/Gnielinski formulation above, and $\mathr
 
 ### Economizer {#sec-gas-eco}
 
-The economizer `economiser` stage reverses the roles: gas flows outside the tubes in crossflow, while water flows inside. The gas-side convection is then modelled as external crossflow over a tube bank.
+The economizer `economiser` stage reverses the roles: gas flows outside the tubes in cross flow, while water flows inside. The gas side convection is then modelled as external cross flow over a tube bank.
 
 Key geometry quantities (from `GeometryBuilder` for the economizer):
 
 - Tube outer diameter: $D = D_o$
-- Gas-side crossflow area: $A_\text{bulk} = A_\text{hot,flow}$
+- Gas side cross flow area: $A_\text{bulk} = A_\text{hot,flow}$
 
 - Optional maximum/mean velocity factor:
 
@@ -267,7 +274,7 @@ Key geometry quantities (from `GeometryBuilder` for the economizer):
   \mathrm{Pr} = \frac{c_{p,g}\,\mu_g}{k_g}
   $$
 
-For `"economiser"` stages the primary correlation is a banded Zukauskas form for crossflow over tube banks:
+For `"economiser"` stages the primary correlation is a banded Zukauskas form for cross flow over tube banks:
 
 $$
 \mathrm{Nu} = C\,\mathrm{Re}^{m}\,\mathrm{Pr}^{n}
@@ -285,7 +292,7 @@ n =
 \end{cases}
 $$
 
-If $\mathrm{Re}$ falls outside the tabulated bands, the model falls back to the Churchill–Bernstein correlation for crossflow over a single cylinder:
+If $\mathrm{Re}$ falls outside the tabulated bands, the model falls back to the Churchill–Bernstein correlation for cross flow over a single cylinder:
 
 $$
 \mathrm{Nu} = 0.3 \;+\;
@@ -305,7 +312,7 @@ $$
 
 ### Radiation model
 
-Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating-medium model for the $H₂O$/$CO₂$ mixture. The implementation follows a simplified Smith–Shen–Friedman style four-gray model.
+Radiative heat transfer from the flue gas to the furnace surfaces is explicitly accounted for by a participating medium model for the $H₂O$/$CO₂$ mixture. The implementation follows a simplified Smith–Shen–Friedman style four gray model.
 
 For each step, the gas emissivity is computed as:
 
@@ -390,31 +397,25 @@ $$
 
 These diagnostics are later integrated on a per-stage basis to quantify the share of convective vs radiative heat transfer in each section of the boiler.
 
-## Water-side
+## Water side
 
-Water-side heat transfer is modelled with geometry-dependent correlations using local water properties from the `WaterProps` helper. The water side appears in two configurations:
+Water side heat transfer is modelled with geometry dependent correlations using local water properties from IAPWS97 (`WaterProps`), with stage specific geometry computed by `GeometryBuilder`. The total water side HTC computed at each marching step, is split into a convective and/or boiling, as water side radiation is neglected.
 
-1. Water inside tubes (economizer)
-2. Water outside tubes in crossflow ($\mathrm{HX_1}$-$\mathrm{HX_5}$)
+Although the designed program is more general, containing a full Chen-type flow boiling formulation; in the present work, the water side model is used in two distinct regimes:
 
-The total water-side HTC is computed at each marching step as:
+- $\mathrm{HX_1}$–$\mathrm{HX_5}$ are treated as boiling surfaces in contact with a pool at saturation temperature. In these stages the bulk water temperature is forced to $\mathrm{T_{sat}(p)}$ and the heat transfer coefficient is obtained from a pure pool boiling correlation.
+- $\mathrm{HX_6}$ (economizer) is treated as a single phase / flow boiling tube bundle with water flowing inside the tubes and heated by the flue gas cross flow.
 
-$$
-h_w = h_{w,\text{conv}}
-$$
-
-Water-side radiation is neglected.
-
-In the present work, the water-side model is used in two distinct regimes:
-
-- HX*1–HX_5 are treated as boiling surfaces in contact with a pool at saturation temperature. In these stages the bulk water temperature is forced to $T*\text{sat}(p)$ and the heat-transfer coefficient is obtained from a pure pool-boiling correlation.
-- HX_6 (economizer) is treated as a single-phase / flow-boiling tube bundle with water flowing inside the tubes and heated by the flue-gas crossflow.
-
-The underlying implementation is more general (it contains a full Chen-type flow-boiling formulation valid for internal forced convection), but for the final boiler calculations this capability is only used in the economizer; in HX_1–HX_5 the water side is deliberately simplified to a pool-boiling model.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/water_path.pdf}
+\caption{Path of water/steam through the 6 stages}
+\label{fig:water_path}
+\end{figure}
 
 ### Economizer {#sec-water-eco}
 
-For the economiser stage (kind `"economiser"`, $\mathrm{HX_6}$), where water flows inside the tubes, the model uses standard internal-flow correlations augmented with a viscosity-ratio correction and, when needed, a Chen-type flow-boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
+For the economizer stage (kind `"economiser"`, $\mathrm{HX_6}$), where water flows inside the tubes, the model uses standard internal flow correlations augmented with a viscosity ratio correction and, when needed, a Chen type flow boiling enhancement. The tube inner diameter $D_i$ is used as characteristic length.
 
 #### Velocity and nondimensional groups
 
