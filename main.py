@@ -68,12 +68,12 @@ def run_fuel_flow_sensitivity() -> None:
 def main() -> None:
     setup_logging("INFO")
 
-    # Choose exactly one of these to run at a time:
 
+    
     run_default_case()
-    # run_excess_air_sensitivity()
-    # run_water_pressure_sensitivity()
-    # run_fuel_flow_sensitivity()
+    run_excess_air_sensitivity()
+    run_water_pressure_sensitivity()
+    run_fuel_flow_sensitivity()
 
 
 

@@ -24,8 +24,11 @@ header-includes:
   - \usepackage{float}
   - \usepackage{graphicx}
   - \usepackage{amsmath}
+  - \numberwithin{equation}{chapter}
   - \usepackage{caption}
   - \captionsetup[table]{font=small}
+filters:
+  - pandoc-crossref
 ---
 
 \newpage

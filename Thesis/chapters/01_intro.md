@@ -2,7 +2,7 @@
 
 Industrial shell boilers remain one of the most widely deployed technologies for producing saturated steam and hot water in small to medium industrial plants. Their popularity arises from their compact construction, robust heat transfer surfaces, straightforward operation, and comparatively low installation and maintenance requirements. Typical applications span food and beverage processing, chemicals and pharmaceuticals, textiles, healthcare, and general manufacturing sectors where steady, reliable steam generation is essential for heating, processing, and auxiliary services.
 
-Despite their apparent simplicity, the thermal behaviour of shell boilers is governed by tightly coupled processes: multi stage radiative and convective heat transfer, natural circulation boiling inside the pressure parts, complex flue gas property variations, and geometry dependent hydraulic losses. Modern operation demands higher efficiency, reduced emissions, increased reliability, and improved control.
+Despite their apparent simplicity, the thermal behavior of shell boilers is governed by tightly coupled processes: multi stage radiative and convective heat transfer, natural circulation boiling inside the pressure parts, complex flue gas property variations, and geometry dependent hydraulic losses. Modern operation demands higher efficiency, reduced emissions, increased reliability, and improved control.
 
 This thesis develops a physics based model for a three pass fire tube shell boiler that integrates combustion calculations, detailed flue gas thermophysical properties, multi stage heat transfer modelling, and hydraulic loss estimation. The model is implemented as a one dimensional marching solver applied to six sequential heat exchange stages:
 
@@ -11,7 +11,7 @@ $$
 \rightarrow \mathrm{HX_4} \rightarrow \mathrm{HX_5} \rightarrow \mathrm{HX_6},
 $$
 
-representing the furnace, reversal chambers, convective tube banks, and the economiser, see figure \ref{fig:labeled_stages}. On the water side, the boiler drum provides a saturated interface for nucleate boiling in the pressure parts, while the economiser section is treated as a single phase internal flow. Gas side properties are supplied by Cantera, enabling temperature dependent transport, specific heat, thermal conductivity, and radiative behaviour to be modelled.
+representing the furnace, reversal chambers, convective tube banks, and the economizer, see figure \ref{fig:labeled_stages}. On the water side, the boiler drum provides a saturated interface for nucleate boiling in the pressure parts, while the economizer section is treated as a single phase internal flow. Gas side properties are supplied by Cantera, enabling temperature dependent transport, specific heat, thermal conductivity, and radiative behavior to be modelled.
 
 \begin{figure}[H]
 \centering
@@ -34,6 +34,6 @@ The overall objectives of the study are:
 
 The numerical framework is structured such that the water/steam mass flow is determined iteratively from the global energy balance. For each operating condition, a fixed point loop between assumed efficiency and resulting steam flow is solved until convergence, ensuring consistency between combustion input, heat transfer output, and steam generation.
 
-The remainder of this thesis is organised as follows. Chapter 2 identifies typical industrial applications of shell boilers and introduces key design features. Chapter 3 describes the boiler geometry and outlines the six heat transfer stages. Chapter 4 develops the combustion and flue gas model, including stoichiometry and adiabatic flame temperature prediction. Chapter 5 covers the heat transfer framework, combining convection and radiation on the gas side with pool boiling and single phase correlations on the water side. Chapter 6 presents the hydraulic model. Chapter 7 reports the resulting boiler performance, while Chapter 8 examines the sensitivity of the system to variations in $\lambda$, pressure, and firing rate. Chapter 9 concludes with a summary of findings.
+The remainder of this thesis is organized as follows. Chapter 2 identifies typical industrial applications of shell boilers and introduces key design features. Chapter 3 describes the boiler geometry and outlines the six heat transfer stages. Chapter 4 develops the combustion and flue gas model, including stoichiometry and adiabatic flame temperature prediction. Chapter 5 covers the heat transfer framework, combining convection and radiation on the gas side with pool boiling and single phase correlations on the water side. Chapter 6 presents the hydraulic model. Chapter 7 reports the resulting boiler performance, while Chapter 8 examines the sensitivity of the system to variations in $\lambda$, pressure, and firing rate. Chapter 9 concludes with a summary of findings.
 
 \newpage

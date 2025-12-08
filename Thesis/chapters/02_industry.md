@@ -3,13 +3,13 @@
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/fire_tube_boiler_photo.png}
-\caption{Example of a packaged three-pass fire-tube shell boiler in industrial service.}
+\caption{Example of a packaged fire tube shell boiler in industrial service.}
 \label{fig:fire-tube-photo}
 \end{figure}
 
 ## Typical Industries
 
-Shell (fire-tube) boilers are widely used in small to medium steam and hot water duties where compactness, robustness, and simple operation are prioritized over very high pressure or very large throughput. Typical sectors include:
+Shell (fire tube) boilers are widely used in small to medium steam and hot water duties where compactness, robustness, and simple operation are prioritized over very high pressure or very large throughput. Typical sectors include:
 
 - Food and beverage
 
@@ -107,13 +107,13 @@ Industrial shell boilers typically adopt multi-pass fire-tube configurations to 
 
 - Two-pass layout
 
-  - First pass: large diameter furnace tube running from burner front to rear tubeplate.
-  - Second pass: return of flue gas through banks of small-diameter fire-tubes back to the front tubeplate and flue outlet.
+  - First pass: large diameter furnace tube running from burner front to rear reversal chamber.
+  - Second pass: return of flue gas through banks of small-diameter fire-tubes back to the front reversal chamber and flue outlet.
   - Simpler construction but lower total heat-transfer surface compared with three-pass designs.
 
 - Three-pass layout (most common for industrial shell boilers)
 
-  - Pass 1: large diameter furnace tube running from burner front to rear tubeplate.
+  - Pass 1: large diameter furnace tube running from burner front to rear reversal chamber.
   - Pass 2: First bank of smoke-tubes (typically reversing at the rear turnaround chamber).
   - Pass 3: Second bank of smoke-tubes.
   - Provides higher overall heat-transfer surface, more uniform gas cooling, and lower exit-gas temperatures.

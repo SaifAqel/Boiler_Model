@@ -8,18 +8,18 @@ The boiler is fired with a natural-gas–type fuel defined in the simulation inp
 The fuel is supplied at $300 K$ and $1.013×10⁵ Pa$ with a mass flow rate of $0.1 kg/s$.  
 Its composition is specified on a mass-fraction basis and converted internally to mole fractions for all stoichiometric and thermodynamic calculations.
 
-Table 4-1 summarizes the fuel composition in both mass and mole fraction form.
+Table: Fuel composition in both mass and mole fractions.
 
-| Component        | Formula                         | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] | Comment                                                             |
-| ---------------- | ------------------------------- | -------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
-| Methane          | $\mathrm{CH_4}$                 | 0.80                             | 0.8895                           | Main combustible, dominant contributor to LHV                       |
-| Ethane           | $\mathrm{C_2}$$\mathrm{H_6}$    | 0.10                             | 0.0593                           | Heavier hydrocarbon, increases LHV and required $\mathrm{O_2}$      |
-| Propane          | $\mathrm{C_3}$$\mathrm{H_8}$    | 0.04                             | 0.0162                           | Heavier hydrocarbon, raises flame temperature                       |
-| n-Butane         | $\mathrm{C_4}$$\mathrm{H_{10}}$ | 0.01                             | 0.00307                          | Minor heavy hydrocarbon fraction                                    |
-| Hydrogen sulfide | $\mathrm{H_2}$$\mathrm{S}$      | 0.01                             | 0.00523                          | Sulfur-bearing contaminant → $\mathrm{S}$$\mathrm{O_2}$ in flue gas |
-| Nitrogen         | $\mathrm{N_2}$                  | 0.02                             | 0.0127                           | Inert ballast in the fuel stream                                    |
-| Carbon dioxide   | $\mathrm{C}$$\mathrm{O_2}$      | 0.01                             | 0.00405                          | Inert (already fully oxidized)                                      |
-| Water vapour     | $\mathrm{H_2}$$\mathrm{O}$      | 0.01                             | 0.00990                          | Moisture carried with the fuel                                      |
+| Component        | Formula              | Mass fraction $\mathrm{w_i}$ [-] | Mole fraction $\mathrm{x_i}$ [-] |
+| ---------------- | -------------------- | -------------------------------- | -------------------------------- |
+| Methane          | $\mathrm{CH_4}$      | 0.80                             | 0.8895                           |
+| Ethane           | $\mathrm{C_2H_6}$    | 0.10                             | 0.0593                           |
+| Propane          | $\mathrm{C_3H_8}$    | 0.04                             | 0.0162                           |
+| n-Butane         | $\mathrm{C_4H_{10}}$ | 0.01                             | 0.00307                          |
+| Hydrogen sulfide | $\mathrm{H_2S}$      | 0.01                             | 0.00523                          |
+| Nitrogen         | $\mathrm{N_2}$       | 0.02                             | 0.0127                           |
+| Carbon dioxide   | $\mathrm{CO_2}$      | 0.01                             | 0.00405                          |
+| Water vapour     | $\mathrm{H_2O}$      | 0.01                             | 0.00990                          |
 
 The mass fractions sum to 1.0 by definition. The mole fractions $\mathrm{x_i}$ are obtained from
 
@@ -409,6 +409,19 @@ tens of kW versus tens of MW). Therefore, numerically:
 The quantity `Q_in` in the `CombustionResult` object is thus interpreted in the rest of the
 boiler model as the total LHV-based heat release available to be transferred to the
 water/steam side.
+
+Table: Firing rates based on mixture heating values.
+
+| Quantity                       | Value                    |
+| ------------------------------ | ------------------------ |
+| $ \mathrm{HHV}\_\mathrm{mix} $ | $52\,\text{MJ\,kg^{-1}}$ |
+| $ \mathrm{LHV}\_\mathrm{mix} $ | $47\,\text{MJ\,kg^{-1}}$ |
+| $ P\_\mathrm{HHV} $            | $26\,\text{MW}$          |
+| $ P\_\mathrm{LHV} $            | $23.6\,\text{MW}$        |
+
+compute firing rate as:
+
+$P = \dot{m}_f \, \mathrm{HV}_{\text{mix}} \;\;\text{where}\;\; \mathrm{HV}_{\text{mix}} \in \{\mathrm{HHV}_\mathrm{mix},\, \mathrm{LHV}_\mathrm{mix}\}.$
 
 ## Adiabatic flame temperature
 
