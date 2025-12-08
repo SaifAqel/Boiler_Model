@@ -54,15 +54,17 @@ with the following interpretation:
 
 ## Geometry and surface specification
 
-### Drum configuration
+### Drum configuration {- .unlisted}
 
 The boiler has a single horizontal steam drum. Its inner diameter is $$D_{i,\text{drum}} = 4.5\ \text{m}$$ and its length $$L_{\text{drum}} = 5.0\ \text{m}$$.
 
 The drum is not modelled with internal separators or circulation hardware. It simply supplies the saturated water/steam state at boiler pressure, while all circulation effects are represented by the single 1-D water/steam stream used in the heat-transfer stages.
 
-### Flue gas passes
+### Flue gas passes {- .unlisted}
 
-All six pressure-part stages of the simulated boiler are represented with a consolidated geometric and surface specification.
+All six pressure part stages of the simulated boiler are represented with a consolidated geometric and surface specification.
+
+Table: Flue gas stages key parameters
 
 |     Element     | Kind         | Di [m] | L [m] | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
 | :-------------: | ------------ | :----: | :---: | :---------: | :---------: | :------------: | :--------------: |
@@ -73,7 +75,7 @@ All six pressure-part stages of the simulated boiler are represented with a cons
 | $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620 |     100     |     2.9     |      0.5       |       true       |
 | $\mathrm{HX_6}$ | economizer   | 0.076  | 7.50  |     160     |     2.5     |      0.5       |      false       |
 
-The input files `drum.yaml` and `stages.yaml`, provided in Annex A, contain the complete detailed specifications and are parsed at runtime by the configuration loader (`new_loader.py`). This separates numerical solution algorithms from geometry and surface data, and allows different boiler variants to be simulated by simply modifying the YAML files.
+The input file `stages.yaml`, provided in Annex A, contain the complete detailed specifications and is parsed at runtime by the configuration loader (`new_loader.py`). This separates numerical solution algorithms from geometry and surface data, and allows different boiler variants to be simulated by simply modifying the YAML files.
 
 \begin{figure}[H]
 \centering

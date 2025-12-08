@@ -451,6 +451,13 @@ The six stages of the boiler are divided, from the water-side point of view, int
 - $\mathrm{HX_6}$: economizer stage  
   (`pool_boiling = false`)
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/boiler_T-S_chart.png}
+\caption{Temperature–entropy ($T$–$s$) representation of the feedwater heating and evaporation process across economiser and boiler at the operating pressure.}
+\label{fig:boiler-TS}
+\end{figure}
+
 The solver applies the following decision tree at each marching step:
 
 1. Pool-boiling stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$)

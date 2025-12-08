@@ -38,7 +38,7 @@ Shell (fire-tube) boilers are widely used in small to medium steam and hot water
   - Rubber and plastics processing
   - Laundry services and commercial dry-cleaning
 
-## Typical Steam Duties
+## Standard Steam Duties
 
 Shell boilers are normally applied in low to medium pressure ranges and moderate steam capacities:
 
@@ -101,7 +101,7 @@ Shell boilers are normally applied in low to medium pressure ranges and moderate
   - Shell diameter and weight can be limited by route and lifting capacity.
   - Retrofitting within existing boiler houses may be constrained by overall envelope.
 
-## Typical Multi-Pass Layout
+## Multi-Pass Layout
 
 Industrial shell boilers typically adopt multi-pass fire-tube configurations to enhance convective heat transfer and maintain acceptable gas-side velocities:
 
