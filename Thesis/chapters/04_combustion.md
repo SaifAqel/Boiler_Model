@@ -554,10 +554,10 @@ temperatures obtained from the full boiler simulation.
 
 ## Flue gas composition
 
-In the combustion model two different flue-gas streams are distinguished:
+In the combustion model two different flue gas streams are distinguished:
 
-1. An **equilibrium flue gas at adiabatic flame conditions** (`flue_ad`), obtained from high-temperature HP equilibrium in Cantera.
-2. A **fully burnt boiler flue gas** (`flue`), obtained from pure stoichiometry with excess air and no dissociation, used throughout the heat-exchanger network.
+1. An equilibrium flue gas at adiabatic flame conditions (`flue_ad`), obtained from high temperature HP equilibrium in Cantera.
+2. A fully burnt boiler flue gas (`flue`), obtained from pure stoichiometry with excess air and no dissociation, used throughout the heat-exchanger network.
 
 Both are represented as `GasStream` objects and stored in the `CombustionResult`, but they serve different purposes in the boiler calculation.
 
@@ -565,7 +565,7 @@ Both are represented as `GasStream` objects and stored in the `CombustionResult`
 
 - **Equilibrium flue gas (`flue_ad`)**
 
-  - Thermodynamic state: high-temperature HP equilibrium at the adiabatic flame temperature.
+  - Thermodynamic state: high temperature HP equilibrium at the adiabatic flame temperature.
   - Contains all equilibrium species allowed by the mechanism (major products + dissociation products + radicals).
   - Used only to:
     - determine the adiabatic flame temperature $T_\mathrm{ad}$,
@@ -582,7 +582,7 @@ Hence, equilibrium chemistry is confined to the flame-temperature calculation, w
 
 The adiabatic flame calculation is performed in `combustion/adiabatic_flame_temperature.py` via the function `adiabatic_flame_T(air, fuel)`:
 
-- The inlet **air** and **fuel** streams are:
+- The inlet air and fuel streams are:
 
   - represented as `GasStream` objects (mass flow, $T$, $P$, mass fractions),
   - converted to mole fractions (`to_mole`) and set into separate Cantera `Solution` objects (`gas_air`, `gas_fuel`) based on `config/flue_cantera.yaml`.
@@ -656,9 +656,9 @@ This composition is physically consistent with high-temperature equilibrium at $
 The object `flue_ad` is stored in `CombustionResult` and is only used to:
 
 - provide $T_\mathrm{ad}$ and equilibrium composition to the boiler summary CSV,
-- support diagnostic post-processing.
+- support diagnostic post processing.
 
-It is **not** used directly in the heat-exchanger network.
+It is **not** used in the heat exchanger network.
 
 ### Fully burnt boiler flue gas
 

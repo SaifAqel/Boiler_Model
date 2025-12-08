@@ -1,0 +1,104 @@
+
+## Excess Air Ratio
+
+### Observed trends {#sec-lambda-observed}
+
+The simulation results are consistent with textbook expectations for gas fired boilers:
+
+- As $\lambda$ increases above stoichiometric conditions, the adiabatic flame temperature decreases due to the additional inert air mass that must be heated. This reduces the radiative heat transfer in the furnace (HX$_1$) and, to a lesser extent, the convective temperature differences in subsequent passes.
+- At the same time, the larger air and flue-gas mass flow raise the stack loss $Q_\text{loss,stack}$, because more mass leaves the boiler at high temperature even if the temperature itself decreases moderately.
+
+In terms of efficiency:
+
+- The indirect efficiency $\eta_\text{indirect}(\lambda)$ typically exhibits a shallow maximum in the vicinity of the design excess air ratio specified for the control case (here $\lambda \approx 1.1$). For $\lambda$ significantly below this value, incomplete combustion would start to appear in a real boiler; in the present model, which assumes complete burnout, this is manifested mainly as a reduction in available excess $O_2$ and higher $T_\text{ad}$.
+- For $\lambda$ increased from the base value towards 1.3, the simulations show a gradual decrease in both $\eta_\text{direct}$ and $\eta_\text{indirect}$, reflecting the growing stack loss.
+
+Regarding stack temperature and pressure drop:
+
+- The stack temperature $T_\text{stack}(\lambda)$ changes more mildly than the efficiency. The dominant effect of excess air on efficiency comes from the increased flue-gas mass flow rather than a large change in exit temperature.
+- The total gas-side pressure drop $\Delta P_\text{boiler}$ increases with $\lambda$ because the flue-gas density and velocity change: higher volumetric flow rates in the same geometry yield higher dynamic pressures and thus larger frictional losses.
+
+### Interpretation {#sec-lambda-interpretation}
+
+Operationally, the excess air ratio is adjusted to reconcile three competing objectives:
+
+1. Complete combustion with sufficiently low CO and unburned hydrocarbons.
+2. Acceptable NO$_x$ emissions (not explicitly modelled here but strongly linked to $T_\text{ad}$).
+3. High boiler efficiency (low stack loss).
+
+The present simulations quantify how sensitive the boiler efficiency and stack conditions are to realistic variations in $\lambda$ around the design value. They confirm that modest deviations in excess air lead to measurable, but not catastrophic, efficiency penalties and provide a basis for selecting control set-points in practice.
+
+## Drum pressure
+
+### Observed trends {#sec-pressure-observed}
+
+The simulation series highlights the following qualitative effects:
+
+- As pressure increases, the saturation temperature rises. Consequently, the mean water/steam temperature in the boiling sections (HX$_1$–HX$_5$) increases, and the temperature difference between flue gas and boiling surfaces is reduced, especially towards the cooler end of the gas path.
+- The latent heat of vaporisation per unit mass decreases with pressure. For the same useful heat duty $Q_\text{useful}$, a higher-pressure boiler therefore requires a larger enthalpy rise in the feedwater but a smaller contribution from phase change.
+
+For the converged performance measures:
+
+- The steam mass flow $\dot{m}_w(P)$ produced for a given $Q_\text{in}$ decreases with increasing pressure, as expected from
+
+  $$
+  \dot{m}_w(P) =
+  \frac{\eta_\text{indirect}(P)\,Q_\text{in}}{\Delta h(P)}.
+  $$
+
+  Even if $\eta_\text{indirect}$ remains nearly constant, the reduction in $\Delta h(P)$ with pressure leads to a lower steam capacity in $\text{t/h}$.
+
+- The indirect efficiency $\eta_\text{indirect}(P)$ generally varies only weakly across the investigated pressure range, because the global energy balance is dominated by the same firing rate and similar overall gas-to-water temperature profiles. Small changes arise from the altered water-side heat-transfer coefficients and the different mean temperature levels in each stage.
+- The stack temperature $T_\text{stack}(P)$ is influenced by two competing mechanisms:
+  - at higher pressures, the water/steam is hotter, which tends to extract more sensible heat from the flue gas;
+  - however, the reduced steam mass flow and altered boiling behaviour modify the stage-wise duties and may slightly increase or decrease $T_\text{stack}$ depending on the detailed balance.
+
+In the simulated cases the net impact on both efficiency and stack temperature is moderate compared with the effect of excess air.
+
+### Interpretation {#sec-pressure-interpretation}
+
+From a design and operational viewpoint, the pressure sensitivity study illustrates that:
+
+- The primary effect of increasing drum pressure at fixed firing rate is a change in steam _quantity_ rather than a dramatic change in boiler _efficiency_.
+- Higher-pressure operation delivers steam at higher temperature and higher specific exergy but at lower mass flow for the same $Q_\text{in}$. This is consistent with the thermodynamic trade-offs discussed in Chapter&nbsp;2.
+- For medium-pressure shell boilers in the investigated range, the model suggests that efficiency penalties associated purely with pressure changes are relatively small, provided that other parameters (notably excess air and heat-transfer surface cleanliness) are kept under control.
+
+## Fuel mass-flow rate (firing rate)
+
+### Observed trends {#sec-fuel-observed}
+
+The fuel-flow sweep explores a range from very low to comparatively high firing rates. The main qualitative trends observed in the simulations are:
+
+- The useful duty $Q_\text{useful}(\dot{m}_f)$ scales approximately linearly with the firing rate, as long as the boiler remains within its designed heat-transfer capacity and no severe pinch in temperature difference occurs at either end of the flue-gas path.
+- The converged water/steam mass flow $\dot{m}_w(\dot{m}_f)$ also increases roughly proportionally with $\dot{m}_f$, according to
+
+  $$
+  \dot{m}_w(\dot{m}_f) \approx
+  \frac{\eta_\text{indirect}(\dot{m}_f)\,Q_\text{in}(\dot{m}_f)}{\Delta h},
+  $$
+
+  with $\Delta h$ fixed by the pressure and feedwater enthalpy.
+
+- The boiler efficiencies $\eta_\text{direct}$ and $\eta_\text{indirect}$ remain relatively flat across the central part of the firing-range, with mild degradation at very low loads. This behaviour is typical:
+
+  - at low firing rates the gas-side convective coefficients decrease (lower Reynolds numbers), and a larger fraction of the surface area operates at small temperature differences, which increases relative losses;
+  - at high firing rates, gas-side heat-transfer coefficients improve, but the approach to pinch points and increased stack temperatures can offset some of the gains.
+
+- The total gas-side pressure drop $\Delta P_\text{boiler}(\dot{m}_f)$ increases significantly with firing rate due to the quadratic dependence on velocity:
+
+  $$
+  \Delta P_{\mathrm{fric}} \propto f \frac{L}{D_h}\left(\frac{\rho V^2}{2}\right),
+  $$
+
+  where the mass flux and velocity grow approximately in proportion to $\dot{m}_f$. This is particularly noticeable in the furnace and tube-bank stages (HX$_1$, HX$_3$, HX$_5$).
+
+- Stack temperature $T_\text{stack}(\dot{m}_f)$ tends to rise slightly with firing rate once the boiler surfaces approach their design heat flux limits, because a smaller fraction of the additional heat input can be absorbed before the gas reaches the stack.
+
+### Interpretation {#sec-fuel-interpretation}
+
+From an operational standpoint, the firing-rate sensitivity highlights the practical load range of the modeled boiler:
+
+- In the mid-load region the boiler behaves nearly “proportionally”: steam capacity and useful duty increase roughly linearly with fuel input, and efficiency remains close to the control-case value.
+- At very low loads the model indicates a deterioration of heat-transfer effectiveness and efficiency, consistent with the well-known part-load penalties of shell boilers (more cycling, lower gas velocities, increased relative losses).
+- At the upper end of the firing range, the rising pressure drop and stack temperature suggest that fan capacity and allowable stack losses will ultimately limit further increases in $\dot{m}_f$, even if the geometry could accommodate higher heat fluxes.
+
