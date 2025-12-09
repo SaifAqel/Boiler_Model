@@ -56,7 +56,7 @@ with the following interpretation:
 
 ### Drum configuration {- .unlisted}
 
-The boiler has a single horizontal steam drum. Its inner diameter is $$D_{i,\text{drum}} = 4.5\ \text{m}$$ and its length $$L_{\text{drum}} = 5.0\ \text{m}$$.
+The boiler has a single horizontal steam drum. Its inner diameter is $D_{i,\text{drum}} = 4.5\ \text{m}$ and its length $L_{\text{drum}} = 5.0\ \text{m}$.
 
 The drum is not modelled with internal separators or circulation hardware. It simply supplies the saturated water/steam state at boiler pressure, while all circulation effects are represented by the single 1-D water/steam stream used in the heat-transfer stages.
 
@@ -84,7 +84,7 @@ The input file `stages.yaml`, provided in Annex A, contain the complete detailed
 \label{fig:boiler-cross-section-2}
 \end{figure}
 
-All pressure-part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 16$ $\text{W/m/K}$. The economizer ($\mathrm{HX_6}$) is modelled with a higher wall conductivity $\mathrm{k_{wall}} = 30$ $\text{W/m/K}$ and a clean surface (zero fouling thickness) to represent a best-case heat-recovery configuration.
+All pressure part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 16$ $\text{W/m/K}$. The economizer ($\mathrm{HX_6}$) is modelled with a higher wall conductivity $\mathrm{k_{wall}} = 30$ $\text{W/m/K}$ and a clean surface (zero fouling thickness) to represent a best-case heat-recovery configuration.
 
 The YAML configuration supplies wall, surface, and hydraulic properties not captured in the tabulated geometry. Each pressure-part exchanger defines wall thickness, wall conductivity, surface roughness, emissivity, and optional fouling layers with specified thickness and conductivity. Most stages use a uniform carbon-steel wall with smooth surfaces and thin fouling layers, while the economizer uses a thinner, higher-conductivity wall and no fouling to reflect a cleaned section.
 

@@ -27,6 +27,7 @@ header-includes:
   - \numberwithin{equation}{chapter}
   - \usepackage{caption}
   - \captionsetup[table]{font=small}
+autoEqnLabels: true
 filters:
   - pandoc-crossref
 ---
