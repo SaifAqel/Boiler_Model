@@ -1,5 +1,7 @@
 # Heat Transfer Model
 
+This model simulates heat transfer from hot flue gas to the water/steam mixture in the drum, flue gas entering first pass, is specified by the results of the combustion model as fully burnt gas at adiabatic temperature with known mass flow rate, and water entering the economizer, specified by user at $10 bar$ pressure and $105^{\circ}\text{C}$ temperature with the mass flow to be calculated iteratively until convergence of water in and steam produced.
+
 ## Fundamental heat-balance equations
 
 The boiler is modelled as a one-dimensional counter-current heat exchanger composed of six stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.

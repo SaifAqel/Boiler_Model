@@ -119,6 +119,8 @@ Stage level performance table returned by the post processor `heat/postproc.py`.
 - Gas side pressure drops: `ΔP_stage_fric[Pa]`, `ΔP_stage_minor[Pa]`, `ΔP_stage_total[Pa]`
 - Decomposition of duty into convection and radiation: `Q_conv_stage[MW]`, `Q_rad_stage[MW]`
 
+Table: Stages summary results.
+
 | Kind         | $T_{g,\text{in}}$ [°C] | $T_{g,\text{out}}$ [°C] | $T_{w,\text{in}}$ [°C] | $T_{w,\text{out}}$ [°C] | $Q_\text{stage}$ [MW] | $UA_\text{stage}$ [MW/K] | $\Delta P_\text{stage}$ [Pa] |
 | ------------ | ---------------------- | ----------------------- | ---------------------- | ----------------------- | --------------------- | ------------------------ | ---------------------------- |
 | single tube  | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
@@ -131,6 +133,8 @@ Stage level performance table returned by the post processor `heat/postproc.py`.
 ## Boiler performance
 
 The overall boiler performance is summarized using the boiler summary table, supplied by `heat/postproc.py`:
+
+Table: Boiler summary results.
 
 | Quantity                       | Symbol                  | Value |
 | ------------------------------ | ----------------------- | ----- |

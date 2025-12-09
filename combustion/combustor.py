@@ -47,5 +47,6 @@ class Combustor:
             fuel_P_LHV     = P_LHV,
             fuel_mass_flow = fuel.mass_flow,
             excess_air_ratio=self.excess_air_ratio,
+            air_mass_flow  = air.mass_flow,
         )
 

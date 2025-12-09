@@ -17,7 +17,9 @@ class CombustionResult:
     fuel_LHV_mass: Q_ | None = None
     fuel_P_LHV: Q_ | None = None
     fuel_mass_flow: Q_ | None = None
+    air_mass_flow: Q_ | None = None
     excess_air_ratio: Q_ | None = None
+
 
 
 # ---------------- Streams are imported from common.models ----------------
@@ -211,17 +213,18 @@ def write_results_csvs(
             # gas side (Pa, °C, kJ/kg)
             "gas in pressure[pa]": df_stages["gas_in_P[Pa]"],
             "gas in temp[°C]": df_stages["gas_in_T[°C]"],
-            "gas in enthalpy[h]": df_stages["gas_in_h[kJ/kg]"],
+            "gas in enthalpy[kJ/kg]": df_stages["gas_in_h[kJ/kg]"],
             "gas out pressure[pa]": df_stages["gas_out_P[Pa]"],
             "gas out temp[°C]": df_stages["gas_out_T[°C]"],
-            "gas out enthalpy[h]": df_stages["gas_out_h[kJ/kg]"],
+            "gas out enthalpy[kJ/kg]": df_stages["gas_out_h[kJ/kg]"],
 
             # water side (water pressure taken at inlet)
             "water pressure[pa]": df_stages["water_in_P[Pa]"],
-            "water in temp[°C]": df_stages["water_in_T[°C]"],
-            "water in enthalpy[h]": df_stages["water_in_h[kJ/kg]"],
-            "water out temp[°C]": df_stages["water_out_T[°C]"],
-            "water out enthalpy[h]": df_stages["water_out_h[kJ/kg]"],
+            "water in temp[°C]": df_stages["water_out_T[°C]"],
+            "water in enthalpy[kJ/kg]": df_stages["water_out_h[kJ/kg]"],
+            "water out temp[°C]": df_stages["water_in_T[°C]"],
+            "water out enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
+
 
             "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
             "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],
@@ -291,11 +294,17 @@ def write_results_csvs(
             else:
                 boiler_row["excess_air_ratio[-]"] = ""
 
+            if combustion.air_mass_flow is not None:
+                boiler_row["air_mass_flow[kg/s]"] = combustion.air_mass_flow.to("kg/s").magnitude
+            else:
+                boiler_row["air_mass_flow[kg/s]"] = ""
+
         else:
             boiler_row["T_ad[°C]"] = ""
             boiler_row["fuel_LHV_mass[kJ/kg]"] = ""
             boiler_row["fuel_P_LHV[MW]"] = ""
             boiler_row["fuel_mass_flow[kg/s]"] = ""
+            boiler_row["air_mass_flow[kg/s]"] = ""
             boiler_row["excess_air_ratio[-]"] = ""
 
         # Single-row boiler summary CSV
@@ -308,6 +317,7 @@ def write_results_csvs(
         # New row labels (index) and corresponding source columns:
         summary_mapping = [
             ("fuel mass flow[kg/s]",            "fuel_mass_flow[kg/s]"),
+            ("air flow[kg/s]",                  "air_mass_flow[kg/s]"),
             ("excess air ratio[-]",             "excess_air_ratio[-]"),
             ("water flow[kg/s]",                "water_mass_flow[kg/s]"),
             ("steam capacity[t/h]",             "steam_capacity[t/h]"),
@@ -347,6 +357,7 @@ def write_results_csvs(
             "fuel_LHV_mass[kJ/kg]",
             "fuel_P_LHV[MW]",
             "fuel_mass_flow[kg/s]",
+            "air_mass_flow[kg/s]",
             "excess_air_ratio[-]", 
         ]
         pd.DataFrame(columns=empty_cols).to_csv(boiler_summary_path, index=False)

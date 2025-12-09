@@ -71,9 +71,9 @@ def main() -> None:
 
     
     run_default_case()
-    run_excess_air_sensitivity()
-    run_water_pressure_sensitivity()
-    run_fuel_flow_sensitivity()
+    # run_excess_air_sensitivity()
+    # run_water_pressure_sensitivity()
+    # run_fuel_flow_sensitivity()
 
 
 

@@ -2,11 +2,12 @@ T: { value: 300.0, unit: kelvin }
 P: { value: 101325, unit: Pa }
 mass_flow: { value: 0.1, unit: kg/s }
 composition:
-  CH4: { value: 0.80, unit: dimensionless }
-  C2H6: { value: 0.10, unit: dimensionless }
-  C3H8: { value: 0.04, unit: dimensionless }
-  C4H10: { value: 0.01, unit: dimensionless }
-  H2S: { value: 0.01, unit: dimensionless }
-  N2: { value: 0.02, unit: dimensionless }
-  CO2: { value: 0.01, unit: dimensionless }
-  H2O: { value: 0.01, unit: dimensionless }
+  CH4: { value: 0.8548, unit: dimensionless }
+  C2H6: { value: 0.0622, unit: dimensionless }
+  C3H8: { value: 0.0207, unit: dimensionless }
+  C4H10: { value: 0.00518, unit: dimensionless }
+  H2S: { value: 0.000104, unit: dimensionless }
+  N2: { value: 0.0414, unit: dimensionless }
+  CO2: { value: 0.0155, unit: dimensionless }
+  H2O: { value: 0.0, unit: dimensionless }
+  Ar: { value: 0.0, unit: dimensionless }

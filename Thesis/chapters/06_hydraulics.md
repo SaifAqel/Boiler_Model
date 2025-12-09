@@ -82,68 +82,28 @@ The friction factor is computed from Reynolds number and relative roughness via 
 
 ## Minor losses
 
-Minor losses are applied using per–stage catalogue $K$ values. For each stage, a total loss coefficient $K_{\mathrm{sum}}$ is assembled from geometry and user inputs:
+Minor losses are applied using per stage catalogue $K$ values. For each stage, a total loss coefficient $K_{\mathrm{sum}}$ is assembled from geometry and user inputs:
 
-- `economiser`  
-  Minor losses are neglected:
+$$
+K_{\mathrm{sum}} = K_{\mathrm{contraction}} + K_{\mathrm{expansion}} + K_{\mathrm{bend}}
+$$
 
-  $$
-  K_{\mathrm{sum}} = 0
-  $$
+Where:
 
-- `reversal_chamber`  
-  Includes nozzle and bend losses:
+- $K_{\mathrm{contraction}}$:
+  accounts for sudden expansion of flow area, such as $\mathrm{HX_2} \rightarrow \mathrm{HX_3}$, $\text{default value} = 0.5$.
+- $K_{\mathrm{expansion}}$ (Borda-Carnot):
+  represents the losses caused by sudden expansion of flow area $\mathrm{HX_1} \rightarrow \mathrm{HX_2}$, $\text{default value} = 1$.
+- $K_{\mathrm{bend}}$:
+  applied to reversal chambers to account for pressure losses cause by the rotation of the gas stream, $\text{default value} = 0$.
 
-  - Inlet/outlet: `nozzle_k_in` + `nozzle_k_out` (if provided),
-  - Bend loss $K_{\mathrm{bend}}$ based on curvature ratio:
-
-    $$
-    K_{\mathrm{bend}} = R_c / D_o
-    $$
-
-    with a fallback $K_{\mathrm{bend}} = 0.5$ if geometry is missing.
-
-- `single_tube`  
-  Defaults are used if not overridden in the spec:
-
-  $$
-  K_{\mathrm{contraction}} = 0.5,\quad
-  K_{\mathrm{expansion}}  = 1.0,\quad
-  K_{\mathrm{exit}}       = 1.0
-  $$
-
-  so that
-
-  $$
-  K_{\mathrm{sum}} = K_{\mathrm{contraction}} + K_{\mathrm{expansion}} + K_{\mathrm{exit}}
-  $$
-
-- `tube_bank`  
-  Defaults to zero for all minor loss coefficients unless explicitly provided:
-
-  $$
-  K_{\mathrm{contraction}},\; K_{\mathrm{expansion}},\; K_{\mathrm{exit}} \to 0
-  $$
-
-Once $K_{\mathrm{sum}}$ is known, it is uniformly distributed over the $N$ marching steps of that stage:
-
-Minor-loss pressure drop is given by:
+Once $K_{\mathrm{sum}}$ is known, minor loss pressure drop is given by:
 
 $$
 \Delta P_{\text{minor}} = K \left( \frac{\rho V^{2}}{2} \right)
 $$
 
 [@crane_tp410]
-
-$$
-K_{\mathrm{per\,step}} = \frac{K_{\mathrm{sum}}}{N}
-$$
-
-The per–step minor loss is then
-
-$$
-\Delta P_{\mathrm{minor}} = - K_{\mathrm{per\,step}} \left( \frac{\rho V^2}{2} \right)
-$$
 
 ## Total gas side pressure drop
 
