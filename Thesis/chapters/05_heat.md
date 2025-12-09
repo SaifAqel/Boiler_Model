@@ -475,9 +475,11 @@ The solver applies the following decision tree at each marching step:
    $$
    h_\text{Cooper}
    =
-   55\, p_r^{\,0.12 - 0.2\log_{10}(R_p)}
-   \; \bigl[-\log_{10}(p_r)\bigr]^{-0.55}
-   \; q''^{0.67}
+   55\,
+   p_r^{0.12}\,
+   R_p^{-0.55}\,
+   M_\mathrm{w}^{-0.5}\,
+   \bigl(q''\bigr)^{0.67}
    $$
 
    where

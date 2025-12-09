@@ -203,7 +203,7 @@ def _h_water_boil_cooper(P: Q_, qpp: Q_, Rp: Q_) -> Q_:
     p_r = (P.to("MPa") / P_CRIT_WATER).magnitude
     Rp_um = Rp.to("micrometer").magnitude
     q_kWm2 = qpp.to("kW/m^2").magnitude
-    h_kWm2K = 55.0 * (p_r**0.12) * ((-log10(Rp_um))**-0.55) * (MW_WATER**-0.5) * (q_kWm2**0.67)
+    h_kWm2K = 55.0 * (p_r**0.12) * (((Rp_um))**-0.55) * (MW_WATER**-0.5) * (q_kWm2**0.67)
     return Q_(h_kWm2K, "kW/m^2/K").to("W/m^2/K")
 
 def water_htc(w: WaterStream, stage: HXStage, T_wall: Q_, qpp: Q_) -> tuple[Q_, bool]:
