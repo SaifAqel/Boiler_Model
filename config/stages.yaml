@@ -132,13 +132,13 @@ HX_6:
   kind: "economiser"
   pool_boiling: false
   inner_diameter: { value: 0.0337, unit: m } # unchanged
-  inner_length: { value: 1, unit: m } # was 5.620
-  tubes_number: { value: 120, unit: dimensionless } # was 100
-  arrangement: "inline"
+  inner_length: { value: 4, unit: m } # was 5.620
+  tubes_number: { value: 180, unit: dimensionless } # was 100
+  arrangement: "staggered"
   N_rows: { value: 6, unit: dimensionless }
   ST: { value: 0.09, unit: m } # keep pitch
   SL: { value: 0.1, unit: m }
-  baffle_spacing: { value: 0.45, unit: m } # was 0.105 → higher h
+  baffle_spacing: { value: 0.25, unit: m } # was 0.105 → higher h
   shell_inner_diameter: { value: 1.80, unit: m }
   baffle_cut: { value: 0.25, unit: dimensionless }
   bundle_clearance: { value: 0.010, unit: m }
