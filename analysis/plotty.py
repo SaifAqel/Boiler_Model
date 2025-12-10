@@ -44,16 +44,42 @@ def set_thesis_style():
         }
     )
 
+# Fixed order so param groups keep consistent colors across figures
+PARAM_GROUP_ORDER = ["excess_air", "fuel_flow", "water_pressure", "control"]
+
+
+def get_param_color_map(param_groups):
+    """
+    Return a dict param_group -> color, consistent across all plots.
+
+    Uses a fixed logical order (PARAM_GROUP_ORDER), then any remaining groups.
+    Colors are taken from the Matplotlib default color cycle.
+    """
+    colors = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+    if not colors:
+        # Fallback if prop_cycle not available
+        colors = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
+
+    ordered_groups = [
+        g for g in PARAM_GROUP_ORDER if g in param_groups
+    ] + [
+        g for g in param_groups if g not in PARAM_GROUP_ORDER
+    ]
+
+    color_map = {}
+    for i, g in enumerate(ordered_groups):
+        color_map[g] = colors[i % len(colors)]
+    return color_map
+
 
 def save_figure(fig: plt.Figure, out_dir: Path, filename: str):
-    """Save figure as PNG and PDF in the given directory."""
+    """Save figure as PNG only in the given directory."""
     out_dir.mkdir(parents=True, exist_ok=True)
     png_path = out_dir / f"{filename}.png"
-    pdf_path = out_dir / f"{filename}.pdf"
     fig.tight_layout()
     fig.savefig(png_path, bbox_inches="tight")
-    fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
+
 
 
 def to_numeric_columns(df: pd.DataFrame, exclude=None) -> pd.DataFrame:
@@ -94,6 +120,8 @@ def create_boiler_plots(df: pd.DataFrame, out_dir: Path):
     markers = ["o", "s", "D", "^", "v", "P", "X", "*"]
     marker_map = {g: markers[i % len(markers)] for i, g in enumerate(param_groups)}
 
+    color_map = get_param_color_map(param_groups)
+
     # Human-readable parameter label by group
     param_label_map = {
         "excess_air": "Excess air ratio [-]",
@@ -131,6 +159,7 @@ def create_boiler_plots(df: pd.DataFrame, out_dir: Path):
                 linestyle="-",
                 label=group,
                 alpha=0.9,
+                color=color_map[group],
             )
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -177,6 +206,7 @@ def create_boiler_plots(df: pd.DataFrame, out_dir: Path):
                 linestyle="-",
                 label=group,
                 alpha=0.9,
+                color=color_map[group],
             )
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -221,6 +251,7 @@ def create_boiler_plots(df: pd.DataFrame, out_dir: Path):
                 linestyle="-",
                 label=group,
                 alpha=0.9,
+                color=color_map[group],
             )
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -270,7 +301,7 @@ def create_boiler_plots(df: pd.DataFrame, out_dir: Path):
     x_positions = range(len(key_cols))
 
     for _, row in norm.iterrows():
-        ax.plot(x_positions, row[key_cols].values, alpha=0.4, linewidth=1.0)
+        ax.plot(x_positions, row[key_cols].values, alpha=0.4, linewidth=1.0,color=color_map[group],)
 
     ax.set_xticks(list(x_positions))
     ax.set_xticklabels(
@@ -321,9 +352,18 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
         df["stage"].astype(str).str.extract(r"HX_(\d+)")[0].astype(int)
     )
 
+    # Color by param_group, consistent with boiler plots
+    param_groups = df["param_group"].unique()
+    color_map = get_param_color_map(param_groups)
+
+    # Map each run to its dominant param_group (in case of duplicates, use mode)
+    run_to_group = df.groupby("run")["param_group"].agg(lambda x: x.mode()[0])
+
+    # One marker per run; same run keeps same marker in all HX plots
     runs = df["run"].unique()
     markers = ["o", "s", "D", "^", "v", "P", "X", "*", "h", "d"]
     marker_map = {r: markers[i % len(markers)] for i, r in enumerate(runs)}
+
 
     # --------------------------------------------------------------
     # 1) Temperatures vs stage (gas + water)
@@ -341,12 +381,14 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     for ax, (col, ylabel) in zip(axes, temp_cols):
         for run in runs:
             d = df[df["run"] == run].sort_values("stage_index")
+            group = run_to_group[run]
             ax.plot(
                 d["stage_index"],
                 d[col],
                 marker=marker_map[run],
                 linestyle="-",
                 alpha=0.8,
+                color=color_map[group],
             )
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -354,8 +396,17 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     for ax in axes[2:]:
         ax.set_xlabel("HX stage index [-]")
 
-    # One legend for runs
-    handles = [plt.Line2D([], [], marker=marker_map[r], linestyle="-", label=r) for r in runs]
+    # Legend: show runs with their marker and color (group color)
+    handles = [
+        plt.Line2D(
+            [], [],
+            marker=marker_map[r],
+            linestyle="-",
+            label=r,
+            color=color_map[run_to_group[r]],
+        )
+        for r in runs
+    ]
     fig.legend(
         handles,
         [r for r in runs],
@@ -366,6 +417,7 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     )
     fig.suptitle("HX Train: Gas/Water Temperatures vs Stage", y=1.05)
     save_figure(fig, out_dir, "hx_temperatures_vs_stage")
+
 
     # --------------------------------------------------------------
     # 2) Enthalpies vs stage (gas + water)
@@ -383,12 +435,14 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     for ax, (col, ylabel) in zip(axes, h_cols):
         for run in runs:
             d = df[df["run"] == run].sort_values("stage_index")
+            group = run_to_group[run]
             ax.plot(
                 d["stage_index"],
                 d[col],
                 marker=marker_map[run],
                 linestyle="-",
                 alpha=0.8,
+                color=color_map[group],
             )
         ax.set_ylabel(ylabel)
         ax.grid(True)
@@ -396,7 +450,16 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     for ax in axes[2:]:
         ax.set_xlabel("HX stage index [-]")
 
-    handles = [plt.Line2D([], [], marker=marker_map[r], linestyle="-", label=r) for r in runs]
+    handles = [
+        plt.Line2D(
+            [], [],
+            marker=marker_map[r],
+            linestyle="-",
+            label=r,
+            color=color_map[run_to_group[r]],
+        )
+        for r in runs
+    ]
     fig.legend(
         handles,
         [r for r in runs],
@@ -408,11 +471,10 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
     fig.suptitle("HX Train: Gas/Water Enthalpies vs Stage", y=1.05)
     save_figure(fig, out_dir, "hx_enthalpies_vs_stage")
 
+
     # --------------------------------------------------------------
     # 3) Pressures, velocities, and pressure drops vs stage
     # --------------------------------------------------------------
-    # 2x2 layout:
-    #   gas pressures, water pressure, velocities, pressure drops
     fig, axes = plt.subplots(2, 2, figsize=(7.0, 5.5), sharex=True)
     ax_p_gas = axes[0, 0]
     ax_p_water = axes[0, 1]
@@ -421,70 +483,82 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
 
     for run in runs:
         d = df[df["run"] == run].sort_values("stage_index")
+        group = run_to_group[run]
+        c = color_map[group]
+        m = marker_map[run]
 
         # Gas pressures in/out
         ax_p_gas.plot(
             d["stage_index"],
             d["gas in pressure[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
         ax_p_gas.plot(
             d["stage_index"],
             d["gas out pressure[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="--",
             alpha=0.8,
+            color=c,
         )
 
         # Water pressure
         ax_p_water.plot(
             d["stage_index"],
             d["water pressure[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
 
         # Velocities
         ax_v.plot(
             d["stage_index"],
             d["gas avg velocity[m/s]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
         ax_v.plot(
             d["stage_index"],
             d["water avg velocity[m/s]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="--",
             alpha=0.8,
+            color=c,
         )
 
         # Pressure drops
         ax_dp.plot(
             d["stage_index"],
             d["pressure drop fric[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
         ax_dp.plot(
             d["stage_index"],
             d["pressure drop minor[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="--",
             alpha=0.8,
+            color=c,
         )
         ax_dp.plot(
             d["stage_index"],
             d["pressure drop total[pa]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle=":",
             alpha=0.8,
+            color=c,
         )
+
 
     ax_p_gas.set_ylabel("Gas pressure [Pa]")
     ax_p_water.set_ylabel("Water pressure [Pa]")
@@ -521,7 +595,6 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
 
     # --------------------------------------------------------------
     # 4) Heat transfer and UA vs stage
-    # --------------------------------------------------------------
     fig, axes = plt.subplots(2, 2, figsize=(7.0, 5.5), sharex=True)
     ax_qconv = axes[0, 0]
     ax_qrad = axes[0, 1]
@@ -530,36 +603,42 @@ def create_hx_plots(df: pd.DataFrame, out_dir: Path):
 
     for run in runs:
         d = df[df["run"] == run].sort_values("stage_index")
+        group = run_to_group[run]
+        c = color_map[group]
+        m = marker_map[run]
 
         ax_qconv.plot(
             d["stage_index"],
             d["Q conv[MW]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
         ax_qrad.plot(
             d["stage_index"],
             d["Q rad[MW]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
         ax_qtot.plot(
             d["stage_index"],
             d["Q total[MW]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
+            color=c,
         )
 
         ax_ua_steam.plot(
             d["stage_index"],
             d["UA[MW/K]"],
-            marker=marker_map[run],
+            marker=m,
             linestyle="-",
             alpha=0.8,
-            label=None,
+            color=c,
         )
 
     ax_qconv.set_ylabel("Convective heat $Q_\\mathrm{conv}$ [MW]")

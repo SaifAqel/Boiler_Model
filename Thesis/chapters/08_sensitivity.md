@@ -1,509 +1,385 @@
-# Sensitivity Analysis
+# Sensitivity analysis
 
-This chapter evaluates how the coupled combustion boiler model responds to variations in three operating parameters:
-
-- excess air ratio $\lambda$
-- drum pressure
-- fuel mass flow rate (firing rate)
-
-The goal is to quantify how these parameters influence the boiler level quantities defined in Chapter 7:
-
-- total useful heat transferred to the water and steam side $Q_\text{useful}$
-- total heat input from combustion $Q_\text{in}$
-- direct and indirect efficiencies $\eta_{\text{direct}}$, $\eta_{\text{indirect}}$
-- stack gas temperature $T_\text{stack}$
-- overall gas side pressure drop $\Delta P_\text{boiler}$
-- converged water and steam mass flow $\dot{m}_w$
-
-All sensitivity cases reuse the same geometry, combustion model and heat transfer model as in Chapters 3–6. Only the selected operating variable changes in each series, while the remaining inputs are kept at the control values.
-
-All results in Chapters 4 and 7 correspond to the control case.
-
-## Methodology
-
-All sensitivity studies use the same numerical procedure as the control case and differ only in one input parameter. The helper function `run_boiler_case()` accepts optional override dictionaries for
-
-- `operation_overrides` (for example `{"excess_air_ratio": Q_(ea, "")}`)
-- `water_overrides` (for example `{"P": Q_(P_bar, "bar")}`)
-- `fuel_overrides` (for example `{"mass_flow": Q_(mdot, "kg/s")}`)
-
-which modify the corresponding YAML derived objects before each run.
-
-For each value in a parameter sweep:
-
-1. The relevant override is applied.
-2. Combustion is recomputed for the new condition.
-3. The water flow and efficiency iteration is executed until convergence.
-4. Three CSV files are written to disk for later post processing:
-
-   - `<run_id>_steps.csv` – per step marching data
-   - `<run_id>_stages_summary.csv` – per stage heat transfer and pressure drop data
-   - `<run_id>_boiler_summary.csv` – boiler level performance summary
-
-The analysis in this chapter is based on plots and tables generated from the boiler summary and stage summary CSVs of these runs.
+This section summarizes how key operating parameters move the boiler away from a single reference case. Each sensitivity run changes exactly one parameter and reruns the full coupled model until convergence. All results are interpreted relative to the control case.
 
 ## Control case
 
-The control case is the reference operating point against which all sensitivity results are compared. It corresponds to the unmodified configuration in the YAML input files, and is executed by
+The control case corresponds to all configurations and results discusses in previous chapters, defining the reference results profiles .At this point the model predicts:
+
+Table: Key results of control case
+
+| Parameter                      | Symbol                     | Value      |
+| ------------------------------ | -------------------------- | ---------- |
+| Steam capacity                 | $\dot m_{\mathrm{steam}}$  | 7.45 t h⁻¹ |
+| Direct efficiency              | $\eta_{\mathrm{direct}}$   | 0.887      |
+| Indirect efficiency            | $\eta_{\mathrm{indirect}}$ | 0.886      |
+| Total heat input               | $Q_{\mathrm{in}}$          | 4.70 MW    |
+| Useful heat input              | $Q_{\mathrm{useful}}$      | 4.17 MW    |
+| Adiabatic flame temperature    | $T_{\mathrm{ad}}$          | 1900 °C    |
+| Stack temperature              | $T_{\mathrm{stack}}$       | 181 °C     |
+| Overall gas-side pressure loss | $\Delta p_{\mathrm{gas}}$  | 75 Pa      |
+
+A global overview of flow rates and thermal performance over all runs is provided by the boiler level plots
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/boiler_flows_and_capacity_vs_param.png}
+\caption{Boiler fuel air and water mass flows and steam capacity as functions of the varied parameter for each sensitivity group}
+\label{fig:boiler_flows_and_capacity_vs_param}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/boiler_thermal_performance_vs_param.png}
+\caption{Boiler thermal performance metrics as functions of the varied parameter}
+\label{fig:boiler_thermal_performance_vs_param}
+\end{figure}
+
+Stage wise temperatures duties and hydraulic behavior for all runs are summarized in the heat exchanger overview
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/hx_temperatures_vs_stage.png}
+\caption{Gas and water inlet and outlet temperatures along the heat exchanger train for all simulated runs}
+\label{fig:hx_temperatures_vs_stage}
+\end{figure}
 
-- `run_default_case()` in `main.py` which calls
-- `run_boiler_case()` in `boiler_loop.py` with no overrides
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/hx_heat_transfer_and_UA_vs_stage.png}
+\caption{Convective radiative and total heat duties together with overall conductance $UA$ as functions of heat exchanger stage index for all runs}
+\label{fig:hx_heat_transfer_and_UA_vs_stage}
+\end{figure}
 
-The control case thus uses
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/hx_pressures_velocities_dp_vs_stage.png}
+\caption{Gas and water pressures velocities and frictional minor and total gas side pressure drops along the heat exchanger stages}
+\label{fig:hx_pressures_velocities_dp_vs_stage}
+\end{figure}
 
-- geometry from `config/drum.yaml` and `config/stages.yaml`
-- fuel stream from `config/fuel.yaml`
-- air stream from `config/air.yaml`
-- excess air ratio from `config/operation.yaml`
-- feedwater stream from `config/water.yaml`
+Additional per run diagnostic plots for the control case and for each sensitivity run are used later in the chapter for detailed interpretation of individual stages
 
-Unless stated otherwise, all values and results in preceding chapters refer to this control case.
+## Sensitivity parameters
 
----
+Each sensitivity series changes only one input while all other boundary conditions and geometry remain fixed. The three groups are excess air ratio $\lambda$, drum pressure $p_{\mathrm{drum}}$ and fuel mass flow $\dot m_{\mathrm f}$.
 
-## Excess Air Ratio
+A compact global view of how key boiler level indicators respond to the varied parameters is given by
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/plotty/boiler_temperatures_and_pressure_drops_vs_param.png}
+\caption{Adiabatic flame temperature stack temperature and gas side pressure drops as functions of the varied parameter across all sensitivity groups}
+\label{fig:boiler_temperatures_and_pressure_drops_vs_param}
+\end{figure}
 
-### Simulation setup {#sec-lambda-setup} {- .unlisted}
+### Excess air ratio
+
+The excess air series modifies the combustion air flow around the control point while keeping fuel mass flow constant. This changes the excess air ratio $\lambda$ in the approximate range from $1.0$ to $1.3$ and primarily affects gas composition dilution and flue gas mass flow.
 
-The effect of excess air on boiler performance is investigated by `run_excess_air_sensitivity()` in `main.py`. The following values of the excess air ratio $\lambda$ are considered
+Boiler level effects
 
-$$
-\lambda = 1.0,\ 1.1,\ 1.2,\ 1.3
-$$
+At constant firing rate the total chemical energy input is unchanged so changes in efficiency mainly reflect stack and other losses. The main trends with increasing $\lambda$ are
 
-Each case is run as
+- direct and indirect efficiencies $\eta_{\mathrm{direct}}$ and $\eta_{\mathrm{indirect}}$ decrease as colder combustion with higher dry flue gas loss offsets slightly reduced moisture loss
+- useful heat $Q_{\mathrm{useful}}$ decreases modestly relative to $Q_{\mathrm{in}}$
+- stack temperature $T_{\mathrm{stack}}$ increases due to the larger flue gas flow that must be cooled through the same heat transfer surface
+- gas side pressure loss magnitude $\lvert \Delta p_{\mathrm{gas}} \rvert$ increases almost proportionally to flue gas mass flow
 
-```python
-run_boiler_case(
-    operation_overrides={"excess_air_ratio": Q_(ea, "")},
-    eta_guess=Q_(0.90, ""),
-    tol_m=Q_(1e-3, "kg/s"),
-    max_iter=20,
-    write_csv=True,
-    run_id=f"excess_air_{ea}",
-)
-```
+These tendencies are summarized in the boiler level sensitivity plots
 
-The fuel mass flow is kept constant, so the chemical heat input $P_\text{LHV}$ remains fixed. With increasing $\lambda$:
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_boiler_overview.png}
+\caption{Boiler level performance indicators as a function of excess air ratio $\lambda$ including total and useful heat input efficiencies stack temperature water flow and overall gas side pressure loss}
+\label{fig:lambda_boiler_overview}
+\end{figure}
 
-- air mass flow and total flue gas mass flow increase
-- flue gas composition shifts to higher $\mathrm{O_2}$ and slightly lower $CO_2$ and $H_2O$
-- adiabatic flame temperature $T_\text{ad}$ decreases
-- gas side convective and radiative driving forces change in all stages
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_compact_summary.png}
+\caption{Compact summary of boiler efficiency stack temperature steam capacity and gas side pressure drop as a function of excess air ratio $\lambda$}
+\label{fig:lambda_compact_summary}
+\end{figure}
 
----
+Stage wise temperatures and duties
 
-### Observed trends {#sec-lambda-observed} {- .unlisted}
+Dilution by additional air lowers flame temperature and early stage gas temperatures but increases gas mass flow through the entire train. The model predicts that
 
-Boiler level quantities
+- gas outlet temperature from $\mathrm{HX}_1$ decreases with $\lambda$
+- downstream stages see slightly higher inlet and outlet temperatures because of increased gas flow and reduced approach to the water side
+- water outlet temperatures change only mildly since the water side duty is limited by saturation and approach temperatures
 
-- $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$ show a clear maximum close to $\lambda = 1.0$ to $1.1$.  
-  For $\lambda = 1.0 \to 1.3$  
-  $\eta_{\text{direct}}$ decreases from about $0.891$ to $0.876$.  
-  $\eta_{\text{indirect}}$ follows the same trend.
+These patterns are visible in the stage temperature plot
 
-- $Q_\text{useful}$ is almost constant but decreases slightly with excess air.  
-  The useful duty drops by roughly $1\ \%$ between $\lambda = 1.0$ and $\lambda = 1.3$.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_stage_temperatures.png}
+\caption{Stage wise gas and water outlet temperature profiles along the heat exchanger train for different excess air ratios $\lambda$}
+\label{fig:lambda_stage_temperatures}
+\end{figure}
 
-- Stack temperature $T_\text{stack}$ increases monotonically with $\lambda$  
-  from about $176^\circ\text{C}$ at $\lambda = 1.0$ to about $192^\circ\text{C}$ at $\lambda = 1.3$.
+Radiative duty in the furnace dominated stage decreases with $\lambda$ due to lower gas temperature and emissivity while convective duty in later tube banks gains relative importance. The combination is shown by
 
-- Total gas side pressure drop magnitude increases with $\lambda$  
-  as higher flue gas flow raises velocities and friction losses.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_stage_duties.png}
+\caption{Variation of stage heat duties and overall conductance $UA$ with excess air ratio $\lambda$ for each heat exchanger stage}
+\label{fig:lambda_stage_duties}
+\end{figure}
 
-- Water mass flow and steam capacity decrease slightly with $\lambda$  
-  because lower gas side temperatures reduce the mean temperature difference.
+Hydraulics
 
-Stage level quantities
+Higher flue gas flow causes increased frictional pressure losses particularly in tube banks $\mathrm{HX}_3$ and $\mathrm{HX}_5$. Minor losses in reversal chambers scale similarly but contribute less to the total. The trend is documented in
 
-- Gas inlet temperature to the first convective bank (HX_3) decreases with $\lambda$  
-  due to lower flame temperature and stronger dilution by air.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_stage_dp.png}
+\caption{Gas side pressure loss per heat exchanger stage as a function of excess air ratio $\lambda$}
+\label{fig:lambda_stage_dp}
+\end{figure}
 
-- Along the convective pass the gas temperature profiles for different $\lambda$ remain almost parallel  
-  but shifted downwards for low $\lambda$ and upwards for high $\lambda$.
+### Drum pressure
 
-- The economiser contribution $Q_\text{HX6}$ changes modestly with $\lambda$,  
-  but the main sensitivity is in the radiant and first convective surfaces (HX_1 and HX_3).
+The drum pressure series changes the saturation pressure on the water side at fixed firing rate and air supply and thus modifies saturation temperature thermodynamic properties and steam capacity.
 
----
+Boiler level effects
 
-### Interpretation {#sec-lambda-interpretation} {- .unlisted}
+Increasing drum pressure raises saturation temperature and enthalpy of evaporation which has two main consequences
 
-- Lower excess air (around $\lambda = 1.0$ to $1.1$) yields higher flame temperature and stronger driving force for both radiation and convection.  
-  This improves $Q_\text{useful}$ and reduces stack losses at essentially unchanged $Q_\text{in}$.
+- steam mass flow $\dot m_{\mathrm{steam}}$ decreases when moving from low to high pressure because more energy per unit mass is required to reach the higher saturation state
+- indirect efficiency $\eta_{\mathrm{indirect}}$ changes only slightly since the total heat absorbed remains close to the control case and stack temperature varies modestly
 
-- At very low $\lambda$ the improvement is limited by approach to stoichiometric conditions and the need for safe operation with sufficient $\mathrm{O_2}$ in the stack.  
-  The current range does not yet show a sharp efficiency penalty at $\lambda = 1.0$.
+These effects are summarized in the pressure sensitivity overview and compact plots
 
-- Higher excess air ($\lambda \geq 1.2$) cools the flame, increases flue gas mass flow and raises stack temperature.  
-  More sensible heat leaves with the stack, so indirect efficiency drops.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_pressure_boiler_overview.png}
+\caption{Boiler level performance indicators as a function of drum pressure including heat input efficiencies water flow rate steam capacity stack temperature and gas side pressure drop}
+\label{fig:pressure_boiler_overview}
+\end{figure}
 
-- Pressure drop grows with $\lambda$ mainly because of the higher gas mass flow through all passes.  
-  The effect is approximately quadratic in mass flow, with the furnace pass and tube banks dominating.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_pressure_compact_summary.png}
+\caption{Summary of boiler efficiency stack temperature steam capacity and steam enthalpy as a function of drum pressure}
+\label{fig:pressure_compact_summary}
+\end{figure}
 
-Overall the model predicts an efficiency optimum in the range
+The trade off between steam flow and steam specific enthalpy is highlighted explicitly in
 
-$$
-1.0 \lesssim \lambda \lesssim 1.1
-$$
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_pressure_steam_tradeoff.png}
+\caption{Trade off between steam mass flow rate and steam specific enthalpy as drum pressure is varied}
+\label{fig:pressure_steam_tradeoff}
+\end{figure}
 
-with a shallow sensitivity, and a clear penalty toward richer air operation.
+Stage wise duties and economizer behavior
 
----
+Because the gas side boundary conditions are almost unchanged, gas temperatures and pressure drops along the stages show only minor variation with drum pressure. Instead the redistribution happens largely on the water side
 
-### Suggested plots for excess air
+- early radiant and convective stages adjust their outlet water temperatures according to the new saturation level
+- the economizer duty becomes more sensitive to pressure because it heats subcooled water up to a pressure dependent approach to saturation
 
-Boiler level overview
+These effects are captured in
 
-```markdown
-![Excess air sweep boiler level](figs/excess_air/fig_lambda_boiler_overview.png)
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_pressure_stage_duties.png}
+\caption{Stage wise total heat duties as a function of drum pressure for each heat exchanger stage}
+\label{fig:pressure_stage_duties}
+\end{figure}
 
-Figure X.1 Excess air sweep boiler level quantities.  
-Top left: $Q_\text{useful}$ and $Q_\text{in}$ versus $\lambda$.  
-Top right: $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$ versus $\lambda$.  
-Bottom left: stack temperature $T_\text{stack}$ and water mass flow $/dot{m}_w$ versus $\lambda$.  
-Bottom right: total gas side pressure drop $\Delta P_\text{boiler}$ versus $\lambda$.
-```
-
-Stage temperatures
-
-```markdown
-![Excess air gas water temperature profile](figs/excess_air/fig_lambda_stage_temperatures.png)
-
-Figure X.2 Gas and water temperature profile per heat exchanger stage for the excess air sweep.  
-Horizontal axis: stage index HX*1 to HX_6.  
-Solid lines: gas outlet temperature $T*{g,\text{out}}$ for each $\lambda$.  
-Dashed lines: water outlet temperature $T_{w,\text{out}}$ for each $\lambda$.
-```
-
-Stage duties and conductance
-
-```markdown
-![Excess air stage duties](figs/excess_air/fig_lambda_stage_duties.png)
-
-Figure X.3 Stage wise heat duties and global conductance for excess air sweep.  
-Left: $Q_{\text{conv}}$, $Q_{\text{rad}}$, and $Q_{\text{total}}$ per stage versus $\lambda$.  
-Right: global $UA$ of each stage versus $\lambda$.
-```
-
-Pressure losses
-
-```markdown
-![Excess air stage pressure drop](figs/excess_air/fig_lambda_stage_dp.png)
-
-Figure X.4 Gas side pressure loss breakdown for excess air sweep.  
-Friction, minor and total pressure drop per stage, plotted versus $\lambda$.
-```
-
-Compact conclusion panel
-
-```markdown
-![Excess air compact summary](figs/excess_air/fig_lambda_compact_summary.png)
-
-Figure X.5 Compact summary for excess air sweep.  
-Four panels:  
-(a) $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$  
-(b) stack temperature  
-(c) steam capacity  
-(d) total gas pressure drop  
-All plotted versus $\lambda$.
-```
-
----
-
-## Drum pressure
-
-### Simulation setup {#sec-pressure-setup} {- .unlisted}
-
-The influence of drum pressure on boiler performance is studied with `run_water_pressure_sensitivity()` in `main.py`. The absolute pressure levels are
-
-$$
-P = 4\ \text{bar},\ 10\ \text{bar},\ 16\ \text{bar}
-$$
-
-Each case is run as
-
-```python
-run_boiler_case(
-    water_overrides={"P": Q_(P_bar, "bar")},
-    eta_guess=Q_(0.90, ""),
-    tol_m=Q_(1e-3, "kg/s"),
-    max_iter=20,
-    write_csv=True,
-    run_id=f"water_pressure_{P_bar}bar",
-)
-```
-
-The override replaces the drum pressure in the `WaterStream` template used in `_water_mass_from_efficiency()`. The same pressure is used for saturation properties in the drum and boiling surfaces through `WaterProps`.
-
----
-
-### Observed trends {#sec-pressure-observed} {- .unlisted}
-
-Boiler level quantities
-
-- Fuel mass flow and $Q_\text{in}$ are identical for all three cases.
-
-- $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$ decrease mildly with pressure  
-  from about $0.895$ at $4\ \text{bar}$ to about $0.882$ at $16\ \text{bar}$.
-
-- Water mass flow and steam capacity decrease with pressure.  
-  For the same firing rate the boiler produces more mass at $4\ \text{bar}$ than at $16\ \text{bar}$,  
-  consistent with higher latent heat at low pressure.
-
-- Stack temperature increases with pressure from about $163^\circ\text{C}$ at $4\ \text{bar}$  
-  to about $192^\circ\text{C}$ at $16\ \text{bar}$.
-
-- Total gas side pressure drop changes only marginally with drum pressure  
-  because gas side flow conditions remain almost unchanged.
-
-Stage level quantities
-
-- Gas side temperatures and enthalpies are nearly identical at $P = 10\ \text{bar}$ and in the control case,  
-  confirming that gas side behaviour is insensitive to water side pressure over this range.
-
-- Water inlet temperature and enthalpy vary with saturation properties.  
-  At higher pressure the boiling temperature rises and the economiser outlet temperature shifts upward.
-
-- The distribution of $Q$ among stages changes slightly with pressure.  
-  The economiser and final tube bank show the strongest sensitivity,  
-  since they operate closest to saturation and depend on the approach to the drum temperature.
-
----
-
-### Interpretation {#sec-pressure-interpretation} {- .unlisted}
-
-- Raising drum pressure increases saturation temperature and reduces latent heat per unit mass.  
-  With fixed firing rate the boiler delivers less steam mass flow but at higher specific enthalpy.
-
-- The small efficiency trend with pressure reflects changes in approach temperatures at the final surfaces.  
-  At high pressure the flue gas leaves at higher temperature, which slightly increases stack loss.
-
-- Gas side hydraulics are almost unaffected by drum pressure,  
-  since gas properties and mass flow are dominated by combustion conditions.
-
-Within the investigated range the primary role of pressure is to trade steam mass flow against steam enthalpy,  
-with only minor influence on efficiency and gas side pressure drop.
-
----
-
-### Suggested plots for drum pressure
-
-Boiler level overview
-
-```markdown
-![Drum pressure sweep boiler level](figs/water_pressure/fig_pressure_boiler_overview.png)
-
-Figure Y.1 Drum pressure sweep boiler level quantities.  
-Top left: $Q_\text{useful}$ and $Q_\text{in}$ versus drum pressure.  
-Top right: $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$ versus drum pressure.  
-Bottom left: water mass flow and steam capacity versus drum pressure.  
-Bottom right: stack temperature and total gas pressure drop versus drum pressure.
-```
-
-Steam property trade off
-
-```markdown
-![Drum pressure steam tradeoff](figs/water_pressure/fig_pressure_steam_tradeoff.png)
-
-Figure Y.2 Steam delivery trade off with drum pressure.  
-Left: steam mass flow $/dot{m}_w$ versus drum pressure.  
-Right: specific steam enthalpy at drum conditions versus drum pressure.
-```
-
-Stage distribution
-
-```markdown
-![Drum pressure stage duties](figs/water_pressure/fig_pressure_stage_duties.png)
-
-Figure Y.3 Stage wise heat duties for drum pressure sweep.  
-Stacked bars or grouped bars for $Q_{\text{total}}$ in HX_1 to HX_6 at each pressure.
-```
-
-Economiser detail
-
-```markdown
-![Drum pressure economiser](figs/water_pressure/fig_pressure_economiser.png)
-
-Figure Y.4 Economiser performance as a function of drum pressure.  
-Gas inlet and outlet temperatures, water inlet and outlet temperatures, and $Q_{\text{HX6}}$ versus pressure.
-```
-
-Compact conclusion panel
-
-```markdown
-![Drum pressure compact summary](figs/water_pressure/fig_pressure_compact_summary.png)
-
-Figure Y.5 Compact summary for drum pressure sweep.  
-Four panels:  
-(a) efficiency versus pressure  
-(b) stack temperature versus pressure  
-(c) steam capacity versus pressure  
-(d) steam enthalpy versus pressure.
-```
-
----
-
-## Fuel mass flow rate (firing rate)
-
-### Simulation setup {#sec-fuel-setup} {- .unlisted}
-
-The sensitivity of boiler performance to firing rate is assessed by varying the fuel mass flow in `run_fuel_flow_sensitivity()` in `main.py`. The following fuel mass flow rates are considered
-
-$$
-\dot{m}\_f = 0.025,\ 0.050,\ 0.075,\ 0.100\ \text{kg s}^{-1}
-$$
-
-Each case is run as
-
-```python
-run_boiler_case(
-    fuel_overrides={"mass_flow": Q_(mdot, "kg/s")},
-    eta_guess=Q_(0.90, ""),
-    tol_m=Q_(1e-3, "kg/s"),
-    max_iter=20,
-    write_csv=True,
-    run_id=f"fuel_flow_{mdot}kgs",
-)
-```
-
-The excess air ratio, geometry and drum pressure are kept at their control case values.
-
----
-
-### Observed trends {#sec-fuel-observed} {- .unlisted}
-
-Boiler level quantities
-
-- Chemical heat input $Q_\text{in}$ scales almost linearly with fuel mass flow  
-  from about $1.18\ \text{MW}$ at $0.025\ \text{kg s}^{-1}$ to about $4.70\ \text{MW}$ at $0.10\ \text{kg s}^{-1}$.
-
-- $Q_\text{useful}$ also scales nearly linearly over most of the range.  
-  At the lowest firing rate the ratio $Q_\text{useful} / Q_\text{in}$ is slightly higher.
-
-- $\eta_{\text{direct}}$ decreases from about $0.908$ at the lowest load  
-  to about $0.887$ at the highest load.  
-  The indirect efficiency exhibits the same trend.
-
-- Steam capacity follows $Q_\text{useful}$ almost linearly.  
-  Deviations from linearity are most visible at very low and very high firing rate.
-
-- Stack temperature $T_\text{stack}$ increases with fuel mass flow  
-  from about $131^\circ\text{C}$ at $0.025\ \text{kg s}^{-1}$  
-  to about $181^\circ\text{C}$ at $0.10\ \text{kg s}^{-1}$.
-
-- Total gas pressure drop increases strongly with firing rate,  
-  with an almost quadratic dependence on gas mass flow.
-
-Stage level quantities
-
-- The furnace outlet temperature changes little with firing rate,  
-  because flame temperature is set mainly by stoichiometry and less by absolute rate.
-
-- Gas temperatures throughout the convective pass are higher at higher firing rate,  
-  hence each stage processes more heat at increased duty.
-
-- Stage pressure drops scale strongly with load.  
-  Tube bank stages (HX_3 and HX_5) show the largest increase in $\Delta P$ with fuel mass flow.
-
-- Water side velocities increase with load, particularly in boiling and riser sections,  
-  but remain within the same order of magnitude across the studied range.
-
----
-
-### Interpretation {#sec-fuel-interpretation} {- .unlisted}
-
-- For moderate variations of fuel mass flow the boiler behaves close to an ideal linear system.  
-  Both $Q_\text{useful}$ and steam capacity scale with firing rate.
-
-- At very low load fixed parasitic losses and finite approach temperatures become more important.  
-  The stack temperature is reduced and indirect efficiency increases slightly.
-
-- At high load gas side approach temperatures grow and stack temperature rises.  
-  This increases stack loss and reduces $\eta$ at constant fuel quality.
-
-- Gas side pressure drop becomes a limiting factor at high firing rate.  
-  The strong growth of $\Delta P$ indicates higher fan power and possible constraints for operation near full load.
-
-The model therefore predicts a useful load window where efficiency is high and pressure drops remain acceptable.  
-Outside this window efficiency penalties and hydraulic constraints become more pronounced.
-
----
-
-### Suggested plots for firing rate
-
-Boiler level overview
-
-```markdown
-![Firing rate sweep boiler level](figs/fuel_flow/fig_fuel_boiler_overview.png)
-
-Figure Z.1 Firing rate sweep boiler level quantities.  
-Top left: $Q_\text{useful}$ and $Q_\text{in}$ versus fuel mass flow.  
-Top right: $\eta_{\text{direct}}$ and $\eta_{\text{indirect}}$ versus fuel mass flow.  
-Bottom left: steam capacity versus fuel mass flow.  
-Bottom right: stack temperature and total gas pressure drop versus fuel mass flow.
-```
-
-Linearity check
-
-```markdown
-![Firing rate linearity](figs/fuel_flow/fig_fuel_linearity.png)
-
-Figure Z.2 Linearity of boiler response with firing rate.  
-Left: $Q_\text{useful}$ versus $Q_\text{in}$ with a reference straight line.  
-Right: steam capacity versus fuel mass flow with a reference straight line.
-```
-
-Stage duties and pressure losses
-
-```markdown
-![Firing rate stage duties and dp](figs/fuel_flow/fig_fuel_stage_duty_dp.png)
-
-Figure Z.3 Stage wise heat duties and pressure drops as a function of fuel mass flow.  
-Top: $Q_{\text{total}}$ in HX_1 to HX_6 versus fuel mass flow.  
-Bottom: friction, minor and total pressure drop per stage versus fuel mass flow.
-```
-
-Temperature profiles
-
-```markdown
-![Firing rate temperature profiles](figs/fuel_flow/fig_fuel_stage_temperatures.png)
-
-Figure Z.4 Gas and water temperature profile per stage for the firing rate sweep.  
-Horizontal axis: stage index HX_1 to HX_6.  
-Series: one curve for each firing rate for gas outlet temperature and one for water outlet temperature.
-```
-
-Compact conclusion panel
-
-```markdown
-![Firing rate compact summary](figs/fuel_flow/fig_fuel_compact_summary.png)
-
-Figure Z.5 Compact summary for firing rate sweep.  
-Four panels:  
-(a) efficiency versus fuel mass flow  
-(b) stack temperature versus fuel mass flow  
-(c) steam capacity versus fuel mass flow  
-(d) total gas pressure drop versus fuel mass flow.
-```
-
----
-
-## Summary
-
-The sensitivity analysis presented in this chapter shows that
-
-- Excess air ratio $\lambda$ has a clear and direct impact on boiler efficiency and stack loss.  
-  Around the design value $\lambda = 1.0$ to $1.1$ the indirect efficiency exhibits a shallow maximum.  
-  Higher values of $\lambda$ lead to measurable efficiency penalties, higher stack temperature and higher gas pressure drop.
-
-- Drum and feedwater pressure mainly affect the quantity of steam generated for a given firing rate.  
-  Efficiency and stack temperature are comparatively insensitive within the investigated pressure range.  
-  Higher pressure yields less steam mass flow but at higher temperature and specific enthalpy.
-
-- Fuel mass flow (firing rate) controls the overall scale of heat transfer and steam capacity.  
-  For moderate variations the useful duty and steam flow scale almost linearly with firing rate.  
-  Very low and very high loads show departures from ideal behaviour, reflected in efficiency changes and increased pressure drops.
-
-Together these simulations provide a quantitative basis for selecting operating windows that balance efficiency, capacity and hydraulic constraints for the modelled industrial shell boiler.  
-They demonstrate that the numerical framework from Chapters 3–7 is robust and suitable as a tool for design exploration and optimisation of real boiler plants.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_pressure_economiser.png}
+\caption{Economizer temperature levels and heat duty as a function of drum pressure including gas and water inlet and outlet temperatures and the economizer heat load}
+\label{fig:pressure_economiser}
+\end{figure}
+
+### Fuel mass flow
+
+The fuel flow series scales the firing rate over a range from approximately $\dot m_{\mathrm f} = 0.025$ to $0.1 \ \mathrm{kg \ s^{-1}}$ while maintaining a constant excess air ratio and drum pressure. This effectively changes the boiler load.
+
+Boiler level effects
+
+The primary observation is an almost linear relation between firing rate and both useful duty and steam capacity within the investigated range
+
+- total input $Q_{\mathrm{in}}$ and useful output $Q_{\mathrm{useful}}$ increase nearly proportionally to $\dot m_{\mathrm f}$
+- steam capacity $\dot m_{\mathrm{steam}}$ follows the same nearly linear trend
+- direct and indirect efficiencies remain roughly constant with small deviations at the lowest and highest loads
+- stack temperature $T_{\mathrm{stack}}$ and gas side pressure loss $\Delta p_{\mathrm{gas}}$ increase with firing rate due to higher gas temperatures and velocities
+
+These relations are illustrated in the boiler overview and linearity plots
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_fuel_boiler_overview.png}
+\caption{Boiler performance as a function of fuel firing rate showing heat input efficiencies steam capacity stack temperature and gas side pressure drop}
+\label{fig:fuel_boiler_overview}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_fuel_linearity.png}
+\caption{Linearity of useful heat output and steam capacity with respect to boiler firing rate comparing against and steam capacity against fuel mass flow}
+\label{fig:fuel_linearity}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_fuel_compact_summary.png}
+\caption{Compact summary of boiler efficiency stack temperature steam capacity and gas side pressure drop as a function of fuel mass flow}
+\label{fig:fuel_compact_summary}
+\end{figure}
+
+Stage wise temperatures duties and hydraulics
+
+Increasing firing rate raises gas temperatures and velocities through all stages
+
+- $\mathrm{HX}_1$ and $\mathrm{HX}_3$ experience the largest increase in duty and gas velocity
+- water outlet temperatures rise, especially in earlier stages, while economizer approach temperature remains constrained by design
+- gas side pressure losses grow strongly with load, dominated by friction in tube banks
+
+These effects are documented in the stage plots
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_fuel_stage_temperatures.png}
+\caption{Gas and water outlet temperature profiles along the heat exchanger train for various boiler firing rates}
+\label{fig:fuel_stage_temperatures}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/sens/fig_fuel_stage_duty_dp.png}
+\caption{Stage wise heat duties and gas side pressure losses as a function of fuel mass flow for all heat exchanger stages}
+\label{fig:fuel_stage_duty_dp}
+\end{figure}
+
+## Cross comparison and global patterns
+
+The global sensitivity landscape can be inspected by combining all runs across parameter groups
+
+- Changes in excess air ratio $\lambda$ mostly affect efficiency and gas side hydraulics at almost constant steam capacity
+- Changes in drum pressure mainly alter the balance between steam mass flow and enthalpy with minor efficiency impact
+- Changes in fuel flow have the strongest impact on absolute duties steam capacity and pressure drops while leaving efficiencies relatively flat
+
+The correlation between efficiency and stack temperature across all cases is shown in
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/sens/fig_global_eta_vs_stack.png}
+\caption{Global relationship between indirect boiler efficiency and stack gas temperature across all sensitivity runs}
+\label{fig:global_eta_vs_stack}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_Q_total.png}
+\caption{Heat duty per heat exchanger stage and simulation run shown as a run stage heatmap of total duty}
+\label{fig:heatmap_Q_total}
+\end{minipage}
+\end{figure}
+\clearpage
+
+Additional structure in the run and stage dimensions is captured by the heatmap set
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_Q_conv.png}
+\caption{Convective part of the heat duty per heat exchanger stage and simulation run}
+\label{fig:heatmap_Q_conv}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_Q_rad.png}
+\caption{Radiative part of the heat duty per heat exchanger stage and simulation run}
+\label{fig:heatmap_Q_rad}
+\end{minipage}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_UA.png}
+\caption{Overall heat transfer conductance $UA$ per heat exchanger stage and simulation run}
+\label{fig:heatmap_UA}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_T_gas_in.png}
+\caption{Gas inlet temperature distribution over runs and heat exchanger stages}
+\label{fig:heatmap_T_gas_in}
+\end{minipage}
+\end{figure}
+\clearpage
+
+Temperature distributions across runs and stages are summarized as
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_T_gas_out.png}
+\caption{Gas outlet temperature distribution over runs and heat exchanger stages}
+\label{fig:heatmap_T_gas_out}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_T_water_in.png}
+\caption{Water inlet temperature distribution over runs and heat exchanger stages}
+\label{fig:heatmap_T_water_in}
+\end{minipage}
+\end{figure}
+\clearpage
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_T_water_out.png}
+\caption{Water outlet temperature distribution over runs and heat exchanger stages}
+\label{fig:heatmap_T_water_out}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_v_gas.png}
+\caption{Gas velocity per heat exchanger stage and simulation run}
+\label{fig:heatmap_v_gas}
+\end{minipage}
+\end{figure}
+\clearpage
+
+The hydraulic and velocity structure is presented by
+
+\begin{figure}[p]
+\centering
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_v_water.png}
+\caption{Water velocity per heat exchanger stage and simulation run}
+\label{fig:heatmap_v_water}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+\centering
+\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{results/plots/map/heatmap_dp_total.png}
+\caption{Total gas side pressure drop per heat exchanger stage and simulation run}
+\label{fig:heatmap_dp_total}
+\end{minipage}
+\end{figure}
+\clearpage
+
+Together the sensitivity series show that the boiler is most sensitive in absolute capacity and hydraulic load to the firing rate $\dot m_{\mathrm f}$ while mixture control via $\lambda$ is the dominant lever for efficiency and stack loss and drum pressure mainly tunes the thermodynamic quality and quantity of the generated steam
