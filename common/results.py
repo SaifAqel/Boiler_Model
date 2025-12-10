@@ -2,10 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Sequence, Tuple
 from common.units import Q_
-from common.models import GasStream, WaterStream
+from common.models import GasStream
 from pathlib import Path
 import pandas as pd
-
 
 @dataclass(frozen=True)
 class CombustionResult:
@@ -156,11 +155,17 @@ def write_results_csvs(
     boiler_summary_path = outdir / f"{run_id}_boiler_summary.csv"
 
     # 2) Build step dataframe (unchanged)
-    df_steps = profile_to_dataframe(global_profile, remap_water=True)
+    df_steps = profile_to_dataframe(
+        global_profile,
+        remap_water=True,
+    )
     df_steps.to_csv(steps_path, index=False)
 
-    # 3) Get summary rows (unchanged structure: stages + TOTAL_BOILER at the end)
-    rows, _, _ = summary_from_profile(global_profile, combustion=combustion)
+    rows, _, _ = summary_from_profile(
+        global_profile,
+        combustion=combustion,
+    )
+
 
     df_summary = pd.DataFrame(
         rows,
@@ -188,9 +193,7 @@ def write_results_csvs(
         ],
     )
 
-    # 4) Split into:
-    #    - pure per-stage table (no TOTAL_BOILER)
-    #    - boiler row (TOTAL_BOILER), later turned into boiler summary
+
     df_stages = df_summary[df_summary["stage_name"] != "TOTAL_BOILER"].copy()
     df_boiler = df_summary[df_summary["stage_name"] == "TOTAL_BOILER"].copy()
 
@@ -241,9 +244,8 @@ def write_results_csvs(
             "UA[MW/K]": df_stages["UA_stage[MW/K]"],
 
             "steam capacity[t/h]": df_stages["steam_capacity[t/h]"],
-        },
-        index=df_stages.index,
-    )
+        }
+    ).set_index("name")
 
     table = table.drop(columns=["name"], errors="ignore")
     table.T.to_csv(stages_summary_path, index_label="name")
