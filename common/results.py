@@ -191,7 +191,7 @@ def write_results_csvs(
             "Q_total_useful[MW]", "Q_in_total[MW]",
             "P_LHV[MW]", "LHV_mass[kJ/kg]",
         ],
-    )
+    ).set_index("stage_index")
 
 
     df_stages = df_summary[df_summary["stage_name"] != "TOTAL_BOILER"].copy()

@@ -2,7 +2,6 @@ from pathlib import Path
 import re
 
 import pandas as pd
-import matplotlib.pyplot as plt
 
 
 # ======================================================================
@@ -10,7 +9,6 @@ import matplotlib.pyplot as plt
 # ======================================================================
 
 RESULTS_DIR = Path("results")
-PLOTS_DIR = RESULTS_DIR / "plots"
 SUMMARY_DIR = RESULTS_DIR / "summary"
 
 # Regex to recognize filenames:
@@ -37,61 +35,6 @@ def parse_param_value(raw):
         return float(raw)
     except ValueError:
         return raw
-
-
-# Groupings for steps variables vs x[m]
-STEP_GROUPS = {
-    "temp": {
-        "label": "Temperatures",
-        "vars": ["gas_T[°C]", "water_T[°C]"],
-    },
-    "pressure": {
-        "label": "Pressures",
-        "vars": ["gas_P[Pa]", "water_P[Pa]"],
-    },
-    "enthalpy": {
-        "label": "Enthalpies",
-        "vars": ["gas_h[kJ/kg]", "water_h[kJ/kg]"],
-    },
-    "htc": {
-        "label": "Heat transfer coefficients",
-        "vars": ["h_gas[W/m^2/K]", "h_water[W/m^2/K]"],
-    },
-    "vel_re": {
-        "label": "Velocities and Reynolds numbers",
-        "vars": ["gas_V[m/s]", "water_V[m/s]", "Re_gas[-]", "Re_water[-]"],
-    },
-    "q_ua": {
-        "label": "Linear heat / UA",
-        "vars": ["qprime[MW/m]", "UA_prime[MW/K/m]"],
-    },
-    "dp": {
-        "label": "Pressure drops",
-        "vars": ["dP_fric[Pa]", "dP_minor[Pa]", "dP_total[Pa]"],
-    },
-    "gas_props": {
-        "label": "Gas properties",
-        "vars": [
-            "gas_cp[kJ/kg/K]",
-            "gas_mu[Pa*s]",
-            "gas_k[W/m/K]",
-            "gas_rho[kg/m^3]",
-        ],
-    },
-    "water_props": {
-        "label": "Water properties",
-        "vars": [
-            "water_cp[kJ/kg/K]",
-            "water_mu[Pa*s]",
-            "water_k[W/m/K]",
-            "water_rho[kg/m^3]",
-        ],
-    },
-    "quality": {
-        "label": "Gas emissivity and water quality",
-        "vars": ["gas_eps[-]", "water_x[-]"],
-    },
-}
 
 
 # ======================================================================
@@ -182,54 +125,11 @@ def load_steps(path: Path):
 
 
 # ======================================================================
-# Plotting helpers
-# ======================================================================
-
-def safe_name(s: str) -> str:
-    """Turn an arbitrary string into a filename-safe token."""
-    return re.sub(r"[^0-9A-Za-z]+", "_", s).strip("_")
-
-
-def plot_steps_groups(run_info, steps_df: pd.DataFrame, outdir: Path):
-    """
-    For a single run, create grouped plots of various step variables vs x[m].
-    """
-    if "x[m]" not in steps_df.columns:
-        print(f"[WARN] run {run_info['case']}: 'x[m]' column not found in steps, skipping plots.")
-        return
-
-    x = steps_df["x[m]"]
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    for group_key, group in STEP_GROUPS.items():
-        label = group["label"]
-        vars_ = [v for v in group["vars"] if v in steps_df.columns]
-
-        if not vars_:
-            # Nothing from this group present in the DataFrame
-            continue
-
-        plt.figure()
-        for var in vars_:
-            plt.plot(x, steps_df[var], label=var)
-
-        plt.xlabel("x[m]")
-        plt.ylabel(label)
-        plt.title(f"{run_info['case']} – {label} vs x")
-        plt.legend()
-        plt.tight_layout()
-        fname = f"{run_info['case']}_steps_{safe_name(group_key)}.png"
-        plt.savefig(outdir / fname, dpi=150)
-        plt.close()
-
-
-# ======================================================================
 # Main driver
 # ======================================================================
 
 def main():
     RESULTS_DIR.mkdir(exist_ok=True)
-    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
     SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
 
     runs = discover_runs(RESULTS_DIR)
@@ -262,13 +162,9 @@ def main():
         else:
             print(f"[WARN] run {run_name}: stages_summary file missing.")
 
-        # Steps -> grouped plots vs x
-        if "steps" in files:
-            steps_df = load_steps(files["steps"])
-            run_plot_dir = PLOTS_DIR / run_name
-            plot_steps_groups(info, steps_df, run_plot_dir)
-        else:
-            print(f"[WARN] run {run_name}: steps file missing, no step plots.")
+        # Steps file is discovered and loadable, but no plots are produced
+        if "steps" not in files:
+            print(f"[WARN] run {run_name}: steps file missing.")
 
     # ==================================================================
     # Combined boiler KPI table (all runs)
