@@ -75,23 +75,22 @@ A compact global view of how key boiler level indicators respond to the varied p
 
 ### Excess air ratio
 
-The excess air series modifies the combustion air flow around the control point while keeping fuel mass flow constant. This changes the excess air ratio $\lambda$ in the approximate range from $1.0$ to $1.3$ and primarily affects gas composition dilution and flue gas mass flow.
+The excess air series modifies the combustion air flow around the control point. This runs the model for the values of $$\lambda = [1.0, 1.1, 1.2, 1.3]$$
 
-Boiler level effects
+#### Boiler level effects {- .unlisted #sec-ea}
 
 At constant firing rate the total chemical energy input is unchanged so changes in efficiency mainly reflect stack and other losses. The main trends with increasing $\lambda$ are
 
-- direct and indirect efficiencies $\eta_{\mathrm{direct}}$ and $\eta_{\mathrm{indirect}}$ decrease as colder combustion with higher dry flue gas loss offsets slightly reduced moisture loss
-- useful heat $Q_{\mathrm{useful}}$ decreases modestly relative to $Q_{\mathrm{in}}$
-- stack temperature $T_{\mathrm{stack}}$ increases due to the larger flue gas flow that must be cooled through the same heat transfer surface
-- gas side pressure loss magnitude $\lvert \Delta p_{\mathrm{gas}} \rvert$ increases almost proportionally to flue gas mass flow
+- direct and indirect efficiencies decrease as colder combustion with higher dry flue gas loss offsets.
+- stack temperature $T_{\mathrm{stack}}$ increases due to the larger flue gas flow.
+- gas side pressure loss magnitude increases almost proportionally to flue gas mass flow
 
-These tendencies are summarized in the boiler level sensitivity plots
+These tendencies are shown in the following plots:
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{results/plots/sens/fig_lambda_boiler_overview.png}
-\caption{Boiler level performance indicators as a function of excess air ratio $\lambda$ including total and useful heat input efficiencies stack temperature water flow and overall gas side pressure loss}
+\caption{Performance indicators as a function of excess air ratio}
 \label{fig:lambda_boiler_overview}
 \end{figure}
 
