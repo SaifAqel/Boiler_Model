@@ -386,6 +386,157 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
+def generate_stage_param_figure(
+    csv_path: str = "results/summary/stages_summary_all_runs.csv",
+    output_dir: str = "figures",
+) -> None:
+    """
+    Generate a 2x2 figure with stage-wise results, grouped by param_group.
+
+    Subplots:
+        (0,0): Stage duty Q_total vs stage
+        (0,1): Stage conductance UA vs stage
+        (1,0): Gas outlet temperature vs stage
+        (1,1): Total pressure drop vs stage
+
+    x-axis for all subplots: stage index (1–6)
+    Colors / linestyles / markers: same scheme as in generate_overall_kpi_figure.
+    """
+    df = load_data(csv_path)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Extract numeric stage index from strings like "HX_1" -> 1
+    # If 'stage' is already numeric, this will leave it unchanged.
+    if df["stage"].dtype == object:
+        df["stage_index"] = (
+            df["stage"]
+            .astype(str)
+            .str.extract(r"(\d+)", expand=False)
+            .astype(int)
+        )
+    else:
+        df["stage_index"] = df["stage"].astype(int)
+
+    # Drop rows without stage index
+    df = df.dropna(subset=["stage_index"]).copy()
+
+    # Prepare figure
+    fig, axes = plt.subplots(2, 2, figsize=(8, 6))
+    ax_duty = axes[0, 0]
+    ax_UA   = axes[0, 1]
+    ax_Tg   = axes[1, 0]
+    ax_dp   = axes[1, 1]
+
+    # Common x-ticks: all stages present
+    stage_ticks = sorted(df["stage_index"].unique())
+
+    for ax in (ax_duty, ax_UA, ax_Tg, ax_dp):
+        ax.set_xlabel("Stage [-]")
+        ax.set_xticks(stage_ticks)
+        ax.grid(True, which="both")
+
+    ax_duty.set_ylabel("Stage duty $Q_{\\mathrm{stage}}$ [MW]")
+    ax_UA.set_ylabel("Stage conductance $UA$ [MW/K]")
+    ax_Tg.set_ylabel("Gas outlet temperature [°C]")
+    ax_dp.set_ylabel("Total pressure drop [Pa]")
+
+    # Colors / linestyles per param_group, same logic as generate_overall_kpi_figure
+    pg_list = sorted(df["param_group"].unique())
+
+    style_color_keys = list(style_colors.keys())
+    style_line_keys  = list(style_linestyles.keys())
+
+    pg_color = {
+        pg: style_colors[style_color_keys[i % len(style_color_keys)]]
+        for i, pg in enumerate(pg_list)
+    }
+    pg_line = {
+        pg: style_linestyles[style_line_keys[i % len(style_line_keys)]]
+        for i, pg in enumerate(pg_list)
+    }
+
+    legend_handles = {}
+
+    # Plot one line per RUN, colored by param_group
+    for param_group, df_pg in df.groupby("param_group"):
+        marker = _get_marker(param_group) or "o"
+        color = pg_color[param_group]
+        line_style = pg_line[param_group]
+        lw = 0.7
+
+        for run_name, df_run in df_pg.groupby("run"):
+            df_run_sorted = df_run.sort_values("stage_index")
+            x = df_run_sorted["stage_index"]
+
+            # Column names from stages_summary_all_runs.csv
+            y_Q  = df_run_sorted["Q total[MW]"]
+            y_UA = df_run_sorted["UA[MW/K]"]
+            y_Tg = df_run_sorted["gas out temp[°C]"]
+            y_dp = df_run_sorted["pressure drop total[pa]"].abs()
+
+            # Duty
+            line_duty, = ax_duty.plot(
+                x,
+                y_Q,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+                label=param_group,
+            )
+
+            # Conductance
+            ax_UA.plot(
+                x,
+                y_UA,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # Gas outlet temperature
+            ax_Tg.plot(
+                x,
+                y_Tg,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # Pressure drop
+            ax_dp.plot(
+                x,
+                y_dp,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # One legend handle per param_group (so 4 entries, not 13)
+            if param_group not in legend_handles:
+                legend_handles[param_group] = line_duty
+
+
+    # Global legend for param_groups
+    if legend_handles:
+        fig.legend(
+            handles=list(legend_handles.values()),
+            labels=list(legend_handles.keys()),
+            loc="lower center",
+            ncol=min(len(legend_handles), 4),
+            framealpha=0.8,
+            bbox_to_anchor=(0.5, 0.02),
+        )
+
+    fig.tight_layout(rect=(0.0, 0.05, 1.0, 1.0))
+
+    out_path = out_dir / "stages_param_groups.png"
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
 
 
 # =============================================================================
@@ -437,10 +588,6 @@ def generate_all_figures(csv_path: str, output_dir: str = "figures") -> None:
         plt.close(fig)
 
 
-# =============================================================================
-# Command-line interface
-# =============================================================================
-
 if __name__ == "__main__":
     # Defaults for this workflow
     default_csv = "results/summary/boiler_kpis_all_runs.csv"
@@ -461,4 +608,8 @@ if __name__ == "__main__":
 
     # NEW: one 4x2 figure with all param_groups on each KPI subplot
     generate_overall_kpi_figure(csv_arg, output_dir=out_arg)
+
+    # NEW: stage-wise figure from stages_summary_all_runs.csv
+    stage_csv = "results/summary/stages_summary_all_runs.csv"
+    generate_stage_param_figure(stage_csv, output_dir=out_arg)
 
