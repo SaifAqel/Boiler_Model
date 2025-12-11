@@ -50,9 +50,9 @@ def _copy_step_with_stage(
         dP_fric=dP_fric or Q_(0.0, "Pa"),
         dP_minor=dP_minor or Q_(0.0, "Pa"),
         dP_total=dP_total or Q_(0.0, "Pa"),
-        dP_water_fric=w_dP_fric or Q_(0.0, "Pa"),
-        dP_water_minor=w_dP_minor or Q_(0.0, "Pa"),
-        dP_water_total=w_dP_tot or Q_(0.0, "Pa"),
+        w_dP_fric=w_dP_fric or Q_(0.0, "Pa"),
+        w_dP_minor=w_dP_minor or Q_(0.0, "Pa"),
+        w_dP_tot=w_dP_tot or Q_(0.0, "Pa"),
     )
 
 def initial_wall_guesses(g: GasStream, w: WaterStream) -> tuple[Q_, Q_, Q_]:
@@ -233,9 +233,9 @@ def solve_stage(
     dP_fric_sum = Q_(0.0, "Pa")
     dP_minor_sum = Q_(0.0, "Pa")
     dP_total_sum = Q_(0.0, "Pa")
-    dP_water_fric_sum = Q_(0.0, "Pa")
-    dP_water_minor_sum = Q_(0.0, "Pa")
-    dP_water_total_sum = Q_(0.0, "Pa")
+    w_dP_fric = Q_(0.0, "Pa")
+    w_dP_minor = Q_(0.0, "Pa")
+    w_dP_tot = Q_(0.0, "Pa")
 
     for i, x in enumerate(xs):
         dP_fric, dP_minor, dP_tot = _gas_dp_components(g, stage, dx, i, n_steps)
@@ -260,9 +260,9 @@ def solve_stage(
         dP_minor_sum = (dP_minor_sum + dP_minor).to("Pa")
         dP_total_sum = (dP_total_sum + dP_tot).to("Pa")
 
-        dP_water_fric_sum  = (dP_water_fric_sum  + w_dP_fric).to("Pa")
-        dP_water_minor_sum = (dP_water_minor_sum + w_dP_minor).to("Pa")
-        dP_water_total_sum = (dP_water_total_sum + w_dP_tot).to("Pa") 
+        w_dP_fric  = (w_dP_fric  + w_dP_fric).to("Pa")
+        w_dP_minor = (w_dP_minor + w_dP_minor).to("Pa")
+        w_dP_tot = (w_dP_tot + w_dP_tot).to("Pa") 
 
         Tgw_guess, Tww_guess, qprime_guess = sr.Tgw, sr.Tww, sr.qprime
 
@@ -286,9 +286,9 @@ def solve_stage(
         dP_stage_fric=dP_fric_sum,
         dP_stage_minor=dP_minor_sum,
         dP_stage_total=dP_total_sum,
-        dP_water_stage_fric=dP_water_fric_sum,
-        dP_water_stage_minor=dP_water_minor_sum,
-        dP_water_stage_total=dP_water_total_sum,
+        dP_water_stage_fric=w_dP_fric,
+        dP_water_stage_minor=w_dP_minor,
+        dP_water_stage_total=w_dP_tot,
         hot_flow_A=stage.spec["hot_flow_A"],
         cold_flow_A=stage.spec["cold_flow_A"],
         hot_Dh=stage.spec["hot_Dh"],

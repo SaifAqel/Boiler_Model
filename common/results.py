@@ -38,9 +38,9 @@ class StepResult:
     dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    w_dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    w_dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    w_dP_tot: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     qprime_conv: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
     qprime_rad: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
 
@@ -77,9 +77,9 @@ class GlobalProfile:
     dP_fric: List[Q_]
     dP_minor: List[Q_]
     dP_total: List[Q_]
-    dP_water_fric: List[Q_]
-    dP_water_minor: List[Q_]
-    dP_water_total: List[Q_]
+    w_dP_fric: List[Q_]
+    w_dP_minor: List[Q_]
+    w_dP_tot: List[Q_]
     stage_results: List[StageResult]
 
 def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
@@ -96,9 +96,9 @@ def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
     dP_fric: List[Q_] = []
     dP_minor: List[Q_] = []
     dP_total: List[Q_] = []
-    dP_water_fric: List[Q_] = []
-    dP_water_minor: List[Q_] = []
-    dP_water_total: List[Q_] = []
+    w_dP_fric: List[Q_] = []
+    w_dP_minor: List[Q_] = []
+    w_dP_tot: List[Q_] = []
 
     for k, sr in enumerate(stage_results):
         for st in sr.steps:
@@ -115,16 +115,16 @@ def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
             dP_fric.append(st.dP_fric)
             dP_minor.append(st.dP_minor)
             dP_total.append(st.dP_total)
-            dP_water_fric.append(st.dP_water_fric)
-            dP_water_minor.append(st.dP_water_minor)
-            dP_water_total.append(st.dP_water_total)
+            w_dP_fric.append(st.w_dP_fric)
+            w_dP_minor.append(st.w_dP_minor)
+            w_dP_tot.append(st.w_dP_tot)
 
     return GlobalProfile(
         x=xs, dx=dxs, gas=gas, water=water,
         qprime=qprime, UA_prime=UA_prime, h_g=h_g, h_c=h_c,
         stage_index=sidx, stage_name=sname,
         dP_fric=dP_fric, dP_minor=dP_minor, dP_total=dP_total,
-        dP_water_fric=dP_water_fric, dP_water_minor=dP_water_minor, dP_water_total=dP_water_total,  
+        w_dP_fric=w_dP_fric, w_dP_minor=w_dP_minor, w_dP_tot=w_dP_tot,  
         stage_results=list(stage_results),
     )
 
