@@ -182,7 +182,7 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
         dP_fric = (- f * (dx / Dh) * q).to("Pa")
 
     K_exit = spec.get("_K_water_from_eco", Q_(0.0, ""))
-    if i_step == max(n_steps - 1, 0) and K_exit.to("").magnitude != 0.0:
+    if i_step == 0 and K_exit.to("").magnitude != 0.0:
         A = spec.get("cold_flow_A", None)
         if A is not None:
             A = A.to("m^2")
@@ -238,19 +238,15 @@ def solve_stage(
     w_dP_tot_sum  = Q_(0.0, "Pa")
 
     for i, x in enumerate(xs):
-        # per-step gas-side ΔP
         dP_fric_step, dP_minor_step, dP_tot_step = _gas_dp_components(g, stage, dx, i, n_steps)
-        # per-step water-side ΔP
         w_dP_fric_step, w_dP_minor_step, w_dP_tot_step = _water_dp_components(w, stage, dx, i, n_steps)
 
-        # solve heat-transfer step
         sr = solve_step(
             g=g, w=w, stage=stage,
             Tgw_guess=Tgw_guess, Tww_guess=Tww_guess, qprime_guess=qprime_guess,
             i=i, x=x, dx=dx
         )
 
-        # attach ΔP and stage info to the step (this is what ends up in GlobalProfile)
         sr = _copy_step_with_stage(
             sr, stage.name, stage_index,
             dP_fric=dP_fric_step,
@@ -262,21 +258,17 @@ def solve_stage(
         )
         steps.append(sr)
 
-        # accumulate heat and UA
         Q_sum = (Q_sum + (sr.qprime * dx)).to("W")
         UA_sum = (UA_sum + (sr.UA_prime * dx)).to("W/K")
 
-        # accumulate gas-side ΔP over the stage
         dP_fric_sum  = (dP_fric_sum  + dP_fric_step).to("Pa")
         dP_minor_sum = (dP_minor_sum + dP_minor_step).to("Pa")
         dP_total_sum = (dP_total_sum + dP_tot_step).to("Pa")
 
-        # accumulate water-side ΔP over the stage
         w_dP_fric_sum  = (w_dP_fric_sum  + w_dP_fric_step).to("Pa")
         w_dP_minor_sum = (w_dP_minor_sum + w_dP_minor_step).to("Pa")
         w_dP_tot_sum   = (w_dP_tot_sum   + w_dP_tot_step).to("Pa")
 
-        # update guesses and fields
         Tgw_guess, Tww_guess, qprime_guess = sr.Tgw, sr.Tww, sr.qprime
         g = update_gas_after_step(g, sr.qprime, dx, stage, i, n_steps)
         w = update_water_after_step(w, sr.qprime, dx, stage, i, n_steps)
@@ -285,7 +277,6 @@ def solve_stage(
             "step",
             extra={"stage": stage.name, "step": f"{i+1}/{n_steps}"}
         )
-
 
     g_out = g
     w_out = w

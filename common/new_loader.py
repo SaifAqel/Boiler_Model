@@ -67,7 +67,6 @@ def load_stages(path: str) -> List[HXStage]:
     stages: List[HXStage] = []
 
     for name, node in sdoc.items():
-        # required
         for k in ("kind", "inner_diameter", "inner_length"):
             if k not in node:
                 raise KeyError(f"{name}: '{k}' is required")

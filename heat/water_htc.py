@@ -126,7 +126,6 @@ def compute_nusselt(w:WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
         Re = reynolds_number(w, Aflow, L, umax)
         Pr = pr(w)
         Rc = stage.spec["curvature_radius"]
-        # approximate as single cylinder with optional bump
         Nu = nu_churchill_bernstein(Re, Pr)
         return Nu * bend_factor_external(L, Rc)
 
@@ -230,13 +229,11 @@ def _h_liquid_only(w: WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
     G   = _mass_flux(w, A)
     Re_lo  = (G * D_h / mu_l).to("")
     Pr  = prandtl_number(cp_l, mu_l, k_l).to("")
-    # wall/bulk viscosity ratio at Tsat
     mu_ratio = (mu_l / WaterProps.mu_from_PT(w.P, T_wall)).to("")
 
     if stage.kind == "economiser":
         Nu = nu_gnielinski(Re_lo, Pr, mu_ratio, L, D_h)
     elif stage.kind == "tube_bank":
-        # need Pr_s at wall
         Pr_s = prandtl_number(cp_l, WaterProps.mu_from_PT(w.P, T_wall), WaterProps.k_from_PT(w.P, T_wall))
         Nu, m = nu_zukauskas_bank(Re_lo, Pr, Pr_s, stage.spec["arrangement"])
         Nu *= bank_row_factor(stage.spec["N_rows"])

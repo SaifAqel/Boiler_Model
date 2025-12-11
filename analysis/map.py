@@ -92,7 +92,6 @@ def plot_hx_heatmaps(hx: pd.DataFrame, outdir: Path) -> None:
         return
 
     heatmaps = {
-        # existing ones
         "Q_total": (
             "heatmap_Q_total.png",
             "Heat duty per stage and run [MW]",
@@ -103,7 +102,6 @@ def plot_hx_heatmaps(hx: pd.DataFrame, outdir: Path) -> None:
             "Gas outlet temperature per stage and run [°C]",
             "T_gas_out [°C]",
         ),
-        # additional maps
         "T_gas_in": (
             "heatmap_T_gas_in.png",
             "Gas inlet temperature per stage and run [°C]",

@@ -16,7 +16,7 @@ def _water_mass_from_efficiency(
     combustion: CombustionResult,
     water_template: WaterStream,
 ) -> Q_:
-    Q_in = combustion.Q_in.to("W")  # Q_
+    Q_in = combustion.Q_in.to("W")
 
     h_in = water_template.h.to("J/kg")
 
@@ -86,7 +86,6 @@ def run_boiler_case(
     final_m = None
     final_eta = None
 
-    # --- Iteration loop ---
     for it in range(max_iter):
         if it % 5 == 0:
             log.info(f"Iteration {it}: eta_guess={eta_guess}, prev_m={prev_m}")

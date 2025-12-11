@@ -24,11 +24,6 @@ HX_2:
   inner_diameter: { value: 1.6, unit: m }
   inner_length: { value: 0.8, unit: m }
   curvature_radius: { value: 0.8, unit: m }
-  nozzles:
-    inlet:
-      k: { value: 1, unit: dimensionless }
-    outlet:
-      k: { value: 1, unit: dimensionless }
   wall:
     thickness: { value: 0.02, unit: m }
     conductivity: { value: 50, unit: W/m/K }
@@ -78,11 +73,6 @@ HX_4:
   inner_diameter: { value: 1.6, unit: m }
   inner_length: { value: 0.8, unit: m }
   curvature_radius: { value: 0.8, unit: m }
-  nozzles:
-    inlet:
-      k: { value: 1, unit: dimensionless }
-    outlet:
-      k: { value: 1, unit: dimensionless }
   wall:
     thickness: { value: 0.02, unit: m }
     conductivity: { value: 50, unit: W/m/K }
@@ -153,4 +143,4 @@ HX_6:
         emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-  shell_inner_diameter: { value: 1.80, unit: m }
+  shell_inner_diameter: { value: 1.80, unit: m } # Gas side

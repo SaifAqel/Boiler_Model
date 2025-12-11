@@ -355,7 +355,7 @@ def generate_stage_heat_figure(
             df_run_sorted = df_run.sort_values("stage_index")
             x     = df_run_sorted["stage_index"]
             y_Tg  = df_run_sorted["gas out temp[°C]"]
-            y_Q   = df_run_sorted["Q total[MW]"]     # stage duty
+            y_Q   = df_run_sorted["Q total[MW]"]
             y_Qrad = df_run_sorted["Q rad[MW]"]
             y_Qconv = df_run_sorted["Q conv[MW]"]
 
