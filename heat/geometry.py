@@ -44,7 +44,7 @@ class GeometryBuilder:
                 Nt = spec["tubes_number"].to("")
                 Do_t = (Di_t + 2*t).to("m")
 
-                Ds = spec["shell_inner_diameter"].to("m")
+                Ds = self.drum.Di.to("m")
                 B  = spec["baffle_spacing"].to("m")
                 ST = spec["ST"].to("m")
                 SL = spec["SL"].to("m")
@@ -119,7 +119,7 @@ class GeometryBuilder:
                 Nt = spec["tubes_number"].to("")
                 Do_t = (Di_t + 2*t).to("m")
 
-                Di_drum = self.drum.Di.to("m")
+                Di_drum = spec["shell_inner_diameter"].to("m")
                 A_drum = (pi * (Di_drum/2)**2).to("m^2")
                 A_tube_out = (pi * (Do_t/2)**2).to("m^2")
 
