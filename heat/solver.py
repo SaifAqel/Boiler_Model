@@ -35,7 +35,7 @@ def _copy_step_with_stage(
     dP_total: Q_ | None = None,
     dP_water_fric: Q_ | None = None,
     dP_water_minor: Q_ | None = None,
-    dP_water_total: Q_ | None = None, 
+    dP_water_total: Q_ | None = None,
 ) -> StepResult:
     return StepResult(
         i=sr.i, x=sr.x, dx=sr.dx,
@@ -222,7 +222,7 @@ def solve_stage(
 
     K_sum = _stage_minor_K_sum(stage).to("")
     K_per_step = (K_sum / max(n_steps, 1)).to("")
-    stage.spec["_K_per_step"] = K_per_step
+    stage.spec["_K_bend_per_step"] = K_per_step
 
     steps: List[StepResult] = []
 
@@ -250,7 +250,8 @@ def solve_stage(
         )
         sr = _copy_step_with_stage(
             sr, stage.name, stage_index,
-            dP_fric=dP_fric, dP_minor=dP_minor, dP_total=dP_tot
+            dP_fric=dP_fric, dP_minor=dP_minor, dP_total=dP_tot,
+            w_dP_fric=w_dP_fric, w_dP_minor=w_dP_minor, w_dP_tot=w_dP_tot
         )
         steps.append(sr)
 
