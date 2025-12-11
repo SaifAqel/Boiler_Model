@@ -47,12 +47,12 @@ def _copy_step_with_stage(
         qprime_conv=sr.qprime_conv,
         qprime_rad=sr.qprime_rad,  
         stage_name=stage_name, stage_index=stage_index,
-        dP_fric=dP_fric or Q_(0.0, "Pa"),
-        dP_minor=dP_minor or Q_(0.0, "Pa"),
-        dP_total=dP_total or Q_(0.0, "Pa"),
-        w_dP_fric=w_dP_fric or Q_(0.0, "Pa"),
-        w_dP_minor=w_dP_minor or Q_(0.0, "Pa"),
-        w_dP_tot=w_dP_tot or Q_(0.0, "Pa"),
+        dP_fric=dP_fric if dP_fric is not None else Q_(0.0, "Pa"),
+        dP_minor=dP_minor if dP_minor is not None else Q_(0.0, "Pa"),
+        dP_total=dP_total if dP_total is not None else Q_(0.0, "Pa"),
+        w_dP_fric=w_dP_fric if w_dP_fric is not None else Q_(0.0, "Pa"),
+        w_dP_minor=w_dP_minor if w_dP_minor is not None else Q_(0.0, "Pa"),
+        w_dP_tot=w_dP_tot if w_dP_tot is not None else Q_(0.0, "Pa"),
     )
 
 def initial_wall_guesses(g: GasStream, w: WaterStream) -> tuple[Q_, Q_, Q_]:
@@ -233,39 +233,51 @@ def solve_stage(
     dP_fric_sum = Q_(0.0, "Pa")
     dP_minor_sum = Q_(0.0, "Pa")
     dP_total_sum = Q_(0.0, "Pa")
-    w_dP_fric = Q_(0.0, "Pa")
-    w_dP_minor = Q_(0.0, "Pa")
-    w_dP_tot = Q_(0.0, "Pa")
+    w_dP_fric_sum  = Q_(0.0, "Pa")
+    w_dP_minor_sum  = Q_(0.0, "Pa")
+    w_dP_tot_sum  = Q_(0.0, "Pa")
 
     for i, x in enumerate(xs):
-        dP_fric, dP_minor, dP_tot = _gas_dp_components(g, stage, dx, i, n_steps)
-        w_dP_fric, w_dP_minor, w_dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
+        # per-step gas-side ΔP
+        dP_fric_step, dP_minor_step, dP_tot_step = _gas_dp_components(g, stage, dx, i, n_steps)
+        # per-step water-side ΔP
+        w_dP_fric_step, w_dP_minor_step, w_dP_tot_step = _water_dp_components(w, stage, dx, i, n_steps)
 
+        # solve heat-transfer step
         sr = solve_step(
             g=g, w=w, stage=stage,
             Tgw_guess=Tgw_guess, Tww_guess=Tww_guess, qprime_guess=qprime_guess,
             i=i, x=x, dx=dx
         )
+
+        # attach ΔP and stage info to the step (this is what ends up in GlobalProfile)
         sr = _copy_step_with_stage(
             sr, stage.name, stage_index,
-            dP_fric=dP_fric, dP_minor=dP_minor, dP_total=dP_tot,
-            w_dP_fric=w_dP_fric, w_dP_minor=w_dP_minor, w_dP_tot=w_dP_tot
+            dP_fric=dP_fric_step,
+            dP_minor=dP_minor_step,
+            dP_total=dP_tot_step,
+            w_dP_fric=w_dP_fric_step,
+            w_dP_minor=w_dP_minor_step,
+            w_dP_tot=w_dP_tot_step,
         )
         steps.append(sr)
 
+        # accumulate heat and UA
         Q_sum = (Q_sum + (sr.qprime * dx)).to("W")
         UA_sum = (UA_sum + (sr.UA_prime * dx)).to("W/K")
 
-        dP_fric_sum  = (dP_fric_sum  + dP_fric).to("Pa")
-        dP_minor_sum = (dP_minor_sum + dP_minor).to("Pa")
-        dP_total_sum = (dP_total_sum + dP_tot).to("Pa")
+        # accumulate gas-side ΔP over the stage
+        dP_fric_sum  = (dP_fric_sum  + dP_fric_step).to("Pa")
+        dP_minor_sum = (dP_minor_sum + dP_minor_step).to("Pa")
+        dP_total_sum = (dP_total_sum + dP_tot_step).to("Pa")
 
-        w_dP_fric  = (w_dP_fric  + w_dP_fric).to("Pa")
-        w_dP_minor = (w_dP_minor + w_dP_minor).to("Pa")
-        w_dP_tot = (w_dP_tot + w_dP_tot).to("Pa") 
+        # accumulate water-side ΔP over the stage
+        w_dP_fric_sum  = (w_dP_fric_sum  + w_dP_fric_step).to("Pa")
+        w_dP_minor_sum = (w_dP_minor_sum + w_dP_minor_step).to("Pa")
+        w_dP_tot_sum   = (w_dP_tot_sum   + w_dP_tot_step).to("Pa")
 
+        # update guesses and fields
         Tgw_guess, Tww_guess, qprime_guess = sr.Tgw, sr.Tww, sr.qprime
-
         g = update_gas_after_step(g, sr.qprime, dx, stage, i, n_steps)
         w = update_water_after_step(w, sr.qprime, dx, stage, i, n_steps)
 
@@ -274,21 +286,22 @@ def solve_stage(
             extra={"stage": stage.name, "step": f"{i+1}/{n_steps}"}
         )
 
+
     g_out = g
     w_out = w
 
     stage_res = StageResult(
         stage_name=stage.name,
-        stage_kind=stage.kind,
+        stage_kind=stage.kind,  
         steps=steps,
         Q_stage=Q_sum,
         UA_stage=UA_sum,
         dP_stage_fric=dP_fric_sum,
         dP_stage_minor=dP_minor_sum,
         dP_stage_total=dP_total_sum,
-        dP_water_stage_fric=w_dP_fric,
-        dP_water_stage_minor=w_dP_minor,
-        dP_water_stage_total=w_dP_tot,
+        dP_water_stage_fric=w_dP_fric_sum,
+        dP_water_stage_minor=w_dP_minor_sum,
+        dP_water_stage_total=w_dP_tot_sum,
         hot_flow_A=stage.spec["hot_flow_A"],
         cold_flow_A=stage.spec["cold_flow_A"],
         hot_Dh=stage.spec["hot_Dh"],
