@@ -91,6 +91,10 @@ def _stage_minor_K_sum(stage: HXStage) -> Q_:
     spec = stage.spec
     kind = stage.kind.lower()
 
+    K_hot_bend = spec.get("K_hot_bend", None)
+    if K_hot_bend is not None:
+        return K_hot_bend.to("")
+
     if kind == "reversal_chamber":
         Rc = spec.get("curvature_radius", None)
         Do = spec.get("outer_diameter", None)
@@ -100,6 +104,7 @@ def _stage_minor_K_sum(stage: HXStage) -> Q_:
         else:
             Kbend = 0.5
         return Q_(Kbend, "")
+
     return Q_(0.0, "")
 
 def _gas_dp_economiser_crossflow(
@@ -109,7 +114,6 @@ def _gas_dp_economiser_crossflow(
     i_step: int,
     n_steps: int,
 ) -> tuple[Q_, Q_, Q_]:
-
     spec = stage.spec
 
     A_hot = spec["hot_flow_A"].to("m^2")
@@ -159,8 +163,19 @@ def _gas_dp_economiser_crossflow(
 
     frac = (dx / L).to("").magnitude
     dP_fric = (dP_bundle * frac).to("Pa")
+    K_bend_per_step = spec.get("_K_bend_per_step", Q_(0.0, "")).to("")
+    K_inlet = spec.get("K_hot_inlet", Q_(0.0, "")).to("")
+    K_outlet = spec.get("K_hot_outlet", Q_(0.0, "")).to("")
 
-    dP_minor = Q_(0.0, "Pa")
+    K_minor = K_bend_per_step
+
+    if i_step == 0:
+        K_minor = (K_minor + K_inlet).to("")
+
+    if i_step == max(n_steps - 1, 0):
+        K_minor = (K_minor + K_outlet).to("")
+
+    dP_minor = (-K_minor * q_dyn).to("Pa")
     dP_total = (dP_fric + dP_minor).to("Pa")
 
     return dP_fric, dP_minor, dP_total
@@ -174,11 +189,9 @@ def _gas_dp_components(
 ) -> tuple[Q_, Q_, Q_]:
     kind = stage.kind.lower()
 
-    # Special treatment for economiser: tube-bank cross-flow correlation
     if kind == "economiser":
         return _gas_dp_economiser_crossflow(g, stage, dx, i_step, n_steps)
 
-    # Default: internal pipe-like flow with Darcy–Weisbach + minor K
     spec = stage.spec
     A = spec["hot_flow_A"].to("m^2")
     Dh = spec["hot_Dh"].to("m")
@@ -193,16 +206,22 @@ def _gas_dp_components(
     f = _friction_factor(Re, eps_over_D)
     q = (rho * V**2 / 2.0).to("Pa")
 
-    dP_fric = (- f * (dx / Dh) * q).to("Pa")
+    dP_fric = (-f * (dx / Dh) * q).to("Pa")
 
     K_bend_per_step = spec.get("_K_bend_per_step", Q_(0.0, "")).to("")
-    K_boundary = spec.get("_K_boundary_hot", Q_(0.0, "")).to("")
+
+    K_inlet = spec.get("K_hot_inlet", Q_(0.0, "")).to("")
+    K_outlet = spec.get("K_hot_outlet", Q_(0.0, "")).to("")
 
     K_minor = K_bend_per_step
-    if i_step == max(n_steps - 1, 0):
-        K_minor = (K_minor + K_boundary).to("")
 
-    dP_minor = (- K_minor * q).to("Pa")
+    if i_step == 0:
+        K_minor = (K_minor + K_inlet).to("")
+
+    if i_step == max(n_steps - 1, 0):
+        K_minor = (K_minor + K_outlet).to("")
+
+    dP_minor = (-K_minor * q).to("Pa")
     dP_total = (dP_fric + dP_minor).to("Pa")
     return dP_fric, dP_minor, dP_total
 
@@ -253,17 +272,43 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
         f = _friction_factor(Re, eps_over_D)
         q = (rho * V**2 / 2.0).to("Pa")
 
-        dP_fric = (- f * (dx / Dh) * q).to("Pa")
-
-    K_exit = spec.get("_K_water_from_eco", Q_(0.0, ""))
-    if i_step == 0 and K_exit.to("").magnitude != 0.0:
+        dP_fric = (-f * (dx / Dh) * q).to("Pa")
+    else:
         A = spec.get("cold_flow_A", None)
         if A is not None:
             A = A.to("m^2")
             rho = WaterProps.rho_from_Ph(w.P, w.h)
             V = (w.mass_flow / (rho * A)).to("m/s")
             q = (rho * V**2 / 2.0).to("Pa")
-            dP_minor = (- K_exit.to("") * q).to("Pa")
+        else:
+            rho = WaterProps.rho_from_Ph(w.P, w.h)
+            q = Q_(0.0, "Pa")
+
+    K_cold_bend_total = spec.get("K_cold_bend", Q_(0.0, "")).to("")
+    K_cold_bend_per_step = (K_cold_bend_total / max(n_steps, 1)).to("")
+
+    K_cold_inlet = spec.get("K_cold_inlet", Q_(0.0, "")).to("")
+    K_cold_outlet = spec.get("K_cold_outlet", Q_(0.0, "")).to("")
+
+    K_minor = K_cold_bend_per_step
+
+    if i_step == 0:
+        K_minor = (K_minor + K_cold_inlet).to("")
+
+    if i_step == max(n_steps - 1, 0):
+        K_minor = (K_minor + K_cold_outlet).to("")
+
+    if "q" not in locals():
+        A = spec.get("cold_flow_A", None)
+        if A is not None:
+            A = A.to("m^2")
+            rho = WaterProps.rho_from_Ph(w.P, w.h)
+            V = (w.mass_flow / (rho * A)).to("m/s")
+            q = (rho * V**2 / 2.0).to("Pa")
+        else:
+            q = Q_(0.0, "Pa")
+
+    dP_minor = (-K_minor * q).to("Pa")
 
     dP_total = (dP_fric + dP_minor).to("Pa")
     return dP_fric, dP_minor, dP_total
@@ -420,20 +465,6 @@ def solve_exchanger(
         L = st.spec["inner_length"].to("m")
         n = _clamp(int(ceil((L / dx_target).to("").magnitude)), min_steps_per_stage, max_steps_per_stage)
         n_steps_by_stage.append(n)
-
-    eco_idx = next((i for i, st in enumerate(stages) if st.kind.lower() == "economiser"), None)
-    if eco_idx is not None and eco_idx > 0:
-        st_eco = stages[eco_idx]
-        st_after_water = stages[eco_idx - 1]
-
-        A1 = st_eco.spec["cold_flow_A"].to("m^2").magnitude
-        A2 = st_after_water.spec["cold_flow_A"].to("m^2").magnitude
-        if A1 <= 0.0 or A2 <= 0.0:
-            K_exit = 0.0
-        else:
-            ratio = min(A1, A2) / max(A1, A2)
-            K_exit = (1.0 - ratio) ** 2
-        st_eco.spec["_K_water_from_eco"] = Q_(K_exit, "")
 
     prev_Q_total: Optional[Q_] = None
     prev_end_h: Optional[Tuple[Q_, Q_, Q_, Q_]] = None
