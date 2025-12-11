@@ -4,16 +4,16 @@ from common.units import Q_
 
 @dataclass
 class GasStream:
-    mass_flow: Q_   # kg/s
-    T: Q_             # K
-    P: Q_             # Pa
+    mass_flow: Q_
+    T: Q_
+    P: Q_
     comp: Dict[str, Q_]
 
 @dataclass
 class WaterStream:
-    mass_flow: Q_     # kg/s
-    h: Q_             # J/kg
-    P: Q_             # Pa
+    mass_flow: Q_
+    h: Q_
+    P: Q_
 
 @dataclass
 class HXStage:
@@ -23,5 +23,5 @@ class HXStage:
 
 @dataclass
 class Drum:
-    Di: Q_          # inner diameter, m
+    Di: Q_
     L: Q_     

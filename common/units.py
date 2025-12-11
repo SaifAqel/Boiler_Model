@@ -1,4 +1,4 @@
-from __future__ import annotations  # at top of every module
+from __future__ import annotations
 import pint
 
 ureg = pint.UnitRegistry()

@@ -12,7 +12,6 @@ def solve_step(g: GasStream, w: WaterStream, stage: HXStage, Tgw_guess: Q_, Tww_
     Pw = spec["cold_wet_P"]
     Tg = g.T
     if stage.spec["pool_boiling"]:
-        # bulk water = pool at Tsat
         Tw = WaterProps.Tsat(w.P)
     else:
         Tw = WaterProps.T_from_Ph(w.P, w.h)
@@ -49,11 +48,9 @@ def solve_step(g: GasStream, w: WaterStream, stage: HXStage, Tgw_guess: Q_, Tww_
         Tgw = (alpha*Tgw_new + (1-alpha)*Tgw).to("K")
         Tww = (alpha*Tww_new + (1-alpha)*Tww).to("K")
         qprime = (alpha*qprime_new + (1-alpha)*qprime).to("W/m")
-    # After convergence, decompose gas-side HTC into convective and radiative parts
     h_conv, h_rad = gas_htc_parts(g, spec, Tgw)
-    h_g = (h_conv + h_rad).to("W/m^2/K")  # total gas-side HTC, keep as before for diagnostics
+    h_g = (h_conv + h_rad).to("W/m^2/K")
 
-    # Split q′ between convection and radiation based on HTC ratio
     h_tot_mag = h_g.to("W/m^2/K").magnitude
     if h_tot_mag > 0:
         frac_conv = (h_conv / h_g).to("").magnitude

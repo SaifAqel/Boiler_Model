@@ -1,4 +1,4 @@
-from math import log, sqrt, exp, log10
+from math import log, sqrt, exp
 from common.units import Q_
 from common.models import WaterStream, HXStage
 from common.props import WaterProps
@@ -47,8 +47,6 @@ def pr_s(w: WaterStream, T_wall: Q_) -> Q_:
     return prandtl_number(cp_s, mu_s, k_s)
 
 def nu_zukauskas_bank(Re: Q_, Pr: Q_, Pr_s: Q_, arrangement: str) -> tuple[Q_, Q_]:
-    # Zukauskas correlation for crossflow over tube banks, ε = (Pr/Pr_s)^0.25
-    # Coeffs by Re band and arrangement
     Re = Re.to("").magnitude
     Pr = Pr.to("").magnitude
     Pr_s = Pr_s.to("").magnitude
@@ -71,18 +69,13 @@ def nu_zukauskas_bank(Re: Q_, Pr: Q_, Pr_s: Q_, arrangement: str) -> tuple[Q_, Q
     nu = C * (Re**m) * (Pr**n) * ((Pr / max(Pr_s, 1e-12))**s)
     return Q_(nu, ""),Q_(m, "")
 
-
-
 def nu_churchill_bernstein(Re: Q_, Pr: Q_) -> Q_:
-    # External crossflow over a single cylinder
     Re = Re.to("").magnitude
     Pr = Pr.to("").magnitude
     a = 0.3
     b = (0.62 * Re**0.5 * Pr**(1/3)) / (1 + (0.4/Pr)**(2/3))**0.25
     c = (1 + (Re/282000.0)**(5/8))**(4/5)
     return Q_(a + b * c, "")
-
-
 
 def nu_gnielinski(Re: Q_, Pr: Q_, mu_ratio: Q_, L: Q_, D: Q_) -> Q_:
     Re = Re.to("").magnitude
@@ -150,36 +143,25 @@ def compute_nusselt(w:WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
 
     raise ValueError(f"unknown stage kind: {stage.kind}")
 
-
-
-# ---------- viscosity ratio (bulk/wall) ----------
 def _mu_ratio(w: WaterStream, T_bulk: Q_, T_wall: Q_) -> Q_:
     mu_b = WaterProps.mu_from_PT(w.P, T_bulk)
     mu_w = WaterProps.mu_from_PT(w.P, T_wall)
     return mu_b / mu_w
 
-# ---------- bend factor for external U-bend / reversal chamber ----------
 def bend_factor_external(D: Q_, Rc: Q_) -> Q_:
-    """
-    Simple curvature boost for crossflow around a bent tube.
-    D = tube OD [m], Rc = bend centerline radius [m].
-    Returns multiplier in [1.0, 1.25].
-    """
+
     if Rc <= 0 or D <= 0:
         return 1.0
-    phi = 1.0 + 0.10 * sqrt(D / Rc)   # ~+10% at tight bends; milder for gentle bends
+    phi = 1.0 + 0.10 * sqrt(D / Rc)
     return Q_(phi, "")
 
 def spacing_factor(D: Q_, ST: Q_, SL: Q_, arrangement: str, m_exp: Q_) -> Q_:
-    # Max-velocity ratio estimates (engineering approximations)
     if arrangement == "staggered":
         denom_T = ST - D
         denom_L = SL - (0.5 * D)
         vmax_ratio = (ST / denom_T) * (SL / denom_L)
-        # slightly soften for very open banks
         vmax_ratio = vmax_ratio**0.5
     else:
-        # inline: minimum area between neighboring cylinders
         vmax_ratio = ST / (ST - D)
     m_exp = m_exp.to("").magnitude
     phi = vmax_ratio ** m_exp
@@ -208,10 +190,9 @@ def _h_water_boil_cooper(P: Q_, qpp: Q_, Rp: Q_) -> Q_:
 
 def water_htc(w: WaterStream, stage: HXStage, T_wall: Q_, qpp: Q_) -> tuple[Q_, bool]:
     if stage.spec["pool_boiling"]:
-        # Use pure pool boiling HTC (Cooper) at Tsat
         Rp = stage.spec["roughness_cold_surface"]
         h_nb = _h_water_boil_cooper(w.P, qpp, Rp)
-        return h_nb, True   # mark as boiling, no checks
+        return h_nb, True
 
     boiling = _is_boiling(w.P, w.h, T_wall)
     if boiling:
@@ -267,10 +248,10 @@ def _h_liquid_only(w: WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
 
 def _martinelli_Xtt(P: Q_, x: float) -> float:
     T_sat = WaterProps.Tsat(P)
-    rho_l = WaterProps.rho_from_Px(P, Q_(0.0, ""))    # saturated liquid
-    rho_g = WaterProps.rho_from_Px(P, Q_(1.0, ""))    # saturated vapor
+    rho_l = WaterProps.rho_from_Px(P, Q_(0.0, ""))
+    rho_g = WaterProps.rho_from_Px(P, Q_(1.0, ""))
     mu_l  = WaterProps.mu_from_PT(P, T_sat)
-    mu_g  = WaterProps.mu_from_PT(P, T_sat)           # IAPWS μ(T,P) handles both phases
+    mu_g  = WaterProps.mu_from_PT(P, T_sat)
     mu_ratio  = (mu_l / mu_g).to("").magnitude
     rho_ratio = (rho_g / rho_l).to("").magnitude
     return ((1 - x) / x) ** 0.9 * (mu_ratio ** 0.1) * (rho_ratio ** 0.5)

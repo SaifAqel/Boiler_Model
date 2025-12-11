@@ -1,4 +1,3 @@
-# postproc.py
 from __future__ import annotations
 import pandas as pd
 from common.results import GlobalProfile, CombustionResult
@@ -6,13 +5,12 @@ from common.props import WaterProps, GasProps
 from common.units import Q_
 from heat.gas_htc import emissivity 
 
-_gas = GasProps()  # reuse for all rows
+_gas = GasProps()
 
 def _mag_or_nan(q, unit):
     return q.to(unit).magnitude if q is not None else float("nan")
 
 def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "pd.DataFrame":
-    # Build per-stage [first,last] index ranges once
     stage_ranges: dict[int, tuple[int, int]] = {}
     for i in range(len(gp.x)):
         k = gp.stage_index[i]
@@ -34,24 +32,21 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
     for i in range(len(gp.x)):
         g = gp.gas[i]
 
-        # stage index and geometry (same for gas + water in this row)
         k_stage = gp.stage_index[i]
         sr_stage = gp.stage_results[k_stage]
-        A_hot = sr_stage.hot_flow_A   # gas-side flow area
-        A_cold = sr_stage.cold_flow_A # water-side flow area
-        Dh_hot = sr_stage.hot_Dh      # gas-side hydraulic diameter
-        Dh_cold = sr_stage.cold_Dh    # water-side hydraulic diameter
+        A_hot = sr_stage.hot_flow_A
+        A_cold = sr_stage.cold_flow_A
+        Dh_hot = sr_stage.hot_Dh
+        Dh_cold = sr_stage.cold_Dh
 
-        # mirrored index for water within the same stage block
         if remap_water:
             i0, iN = stage_ranges[gp.stage_index[i]]
-            j = i0 + (iN - i)          # mirror: i -> j
+            j = i0 + (iN - i)
         else:
             j = i
 
         w = gp.water[j]
 
-        # water side primitives (from mirrored j)
         xq = WaterProps.quality_from_Ph(w.P, w.h)
         Two_phase = xq is not None
 
@@ -66,18 +61,15 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             w_k  = WaterProps.k_from_Ph(w.P, w.h)
             w_rho = WaterProps.rho_from_Ph(w.P, w.h)
 
-        # gas props (local i)
         g_h   = _gas.h_sensible(g.T, g.P, g.comp)
         g_cp  = _gas.cp(g.T, g.P, g.comp)
         g_mu  = _gas.mu(g.T, g.P, g.comp)
         g_k   = _gas.k(g.T, g.P, g.comp)
         g_rho = _gas.rho(g.T, g.P, g.comp)
 
-        # NEW: gas velocity and Reynolds number
         gas_V = (g.mass_flow / (g_rho * A_hot)).to("m/s")
         Re_gas = (g_rho * gas_V * Dh_hot / g_mu).to("").magnitude
 
-        # NEW: water velocity and Reynolds number
         if w_rho is not None and A_cold is not None:
             water_V = (w.mass_flow / (w_rho * A_cold)).to("m/s")
         else:
@@ -88,14 +80,12 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
         else:
             Re_water = float("nan")
 
-        # NEW: gas emissivity (H2O + CO2) using same model as gas_htc
         y = g.comp or {}
         yH2O = y.get("H2O", Q_(0.0, "")).to("").magnitude
         yCO2 = y.get("CO2", Q_(0.0, "")).to("").magnitude
         P_Pa = g.P.to("Pa").magnitude
         pH2O = yH2O * P_Pa
         pCO2 = yCO2 * P_Pa
-        # mean beam length same logic as _mean_beam_length (0.9 * Dh)
         Lb_m = (0.9 * Dh_hot).to("m").magnitude
         gas_eps = emissivity(
             g.T.to("K").magnitude,
@@ -104,61 +94,38 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             Lb_m,
         )
 
-        # --- x global: offset per stage + local x ---
         x_local = gp.x[i].to("m")
         x_global = (stage_offsets[k_stage] + x_local).to("m")
 
-        # NOTE: all units kept as in original code, only ordering/selection changed
         row = {
-            # 1) identifiers
-            "stage_name": gp.stage_name[i],                      # stage name
-            "i": i,                                              # global step index
-
-            # 2) geometry / per-step
-            "x[m]": x_global.magnitude,                          # GLOBAL x
+            "stage_name": gp.stage_name[i],
+            "i": i,
+            "x[m]": x_global.magnitude,
             "dx[m]": gp.dx[i].to("m").magnitude,
             "qprime[MW/m]": gp.qprime[i].to("MW/m").magnitude,
             "UA_prime[MW/K/m]": gp.UA_prime[i].to("MW/K/m").magnitude,
-
-            # 3) gas state
             "gas_P[Pa]": g.P.to("Pa").magnitude,
             "gas_T[°C]": g.T.to("degC").magnitude,
             "gas_h[kJ/kg]": g_h.to("kJ/kg").magnitude,
-
-            # 4) water state (mirrored j)
             "water_P[Pa]": w.P.to("Pa").magnitude,
             "water_T[°C]": Tw.to("degC").magnitude,
             "water_h[kJ/kg]": w.h.to("kJ/kg").magnitude,
-
-            # 5) phase / radiation flags
             "gas_eps[-]": gas_eps,
             "water_x[-]": _mag_or_nan(xq, ""),
             "boiling": bool(xq is not None),
-
-            # 6) gas hydraulics & HTC
             "gas_V[m/s]": gas_V.to("m/s").magnitude,
             "Re_gas[-]": Re_gas,
             "h_gas[W/m^2/K]": gp.h_g[i].to("W/m^2/K").magnitude,
-
-            # 7) water hydraulics & HTC
-            "water_V[m/s]": (
-                _mag_or_nan(water_V, "m/s") if isinstance(water_V, Q_) else float("nan")
-            ),
+            "water_V[m/s]": (_mag_or_nan(water_V, "m/s") if isinstance(water_V, Q_) else float("nan")),
             "Re_water[-]": Re_water,
             "h_water[W/m^2/K]": gp.h_c[i].to("W/m^2/K").magnitude,
-
-            # 8) pressure drops (gas side, per step)
             "dP_fric[Pa]": gp.dP_fric[i].to("Pa").magnitude,
             "dP_minor[Pa]": gp.dP_minor[i].to("Pa").magnitude,
             "dP_total[Pa]": gp.dP_total[i].to("Pa").magnitude,
-
-            # 9) gas transport / thermophysical
             "gas_cp[kJ/kg/K]": g_cp.to("kJ/kg/K").magnitude,
             "gas_mu[Pa*s]": g_mu.to("Pa*s").magnitude,
             "gas_k[W/m/K]": g_k.to("W/m/K").magnitude,
             "gas_rho[kg/m^3]": g_rho.to("kg/m^3").magnitude,
-
-            # 10) water transport / thermophysical
             "water_cp[kJ/kg/K]": _mag_or_nan(w_cp, "kJ/kg/K"),
             "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
             "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
@@ -180,12 +147,11 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     dP_total_minor = 0.0
     dP_total_total = 0.0
     stack_T_C = None
-    flue_mdot_kg_s = None               # global flue gas mass flow [kg/s]
-    boiler_water_in_P_Pa = None         # boiler water inlet pressure [Pa]
-    boiler_water_in_T_C = None          # boiler water inlet temperature [°C]
-    boiler_water_out_T_C = None         # boiler water outlet temperature [°C]
-    boiler_water_Tsat_C = None          # water saturation temperature at inlet pressure [°C]
-
+    flue_mdot_kg_s = None
+    boiler_water_in_P_Pa = None
+    boiler_water_in_T_C = None
+    boiler_water_out_T_C = None
+    boiler_water_Tsat_C = None
 
     import itertools
     for k, grp in itertools.groupby(range(len(gp.x)), key=lambda i: gp.stage_index[i]):
@@ -193,10 +159,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         name = gp.stage_name[idxs[0]]
         sr_stage = gp.stage_results[k]
 
-        A_hot = sr_stage.hot_flow_A   # gas-side flow area
-        A_cold = sr_stage.cold_flow_A # water-side flow area
+        A_hot = sr_stage.hot_flow_A
+        A_cold = sr_stage.cold_flow_A
 
-        # NEW: stage-average velocities
         gas_V_sum = 0.0
         water_V_sum = 0.0
         n_steps = len(idxs)
@@ -205,12 +170,10 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             g = gp.gas[i]
             w = gp.water[i]
 
-            # gas velocity
             g_rho = _gas.rho(g.T, g.P, g.comp)
             gas_V = (g.mass_flow / (g_rho * A_hot)).to("m/s").magnitude
             gas_V_sum += gas_V
 
-            # water velocity
             if A_cold is not None:
                 w_rho = WaterProps.rho_from_Ph(w.P, w.h)
                 water_V = (w.mass_flow / (w_rho * A_cold)).to("m/s").magnitude
@@ -219,23 +182,19 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         gas_V_avg = gas_V_sum / max(n_steps, 1)
         water_V_avg = water_V_sum / max(n_steps, 1) if A_cold is not None else float("nan")
 
-        # integrals
         Q_stage = sum((gp.qprime[i] * gp.dx[i]).to("MW").magnitude for i in idxs)
         UA_stage = sum((gp.UA_prime[i] * gp.dx[i]).to("MW/K").magnitude for i in idxs)
 
         Q_stage_conv = sum((st.qprime_conv * st.dx).to("MW").magnitude for st in sr_stage.steps)
         Q_stage_rad  = sum((st.qprime_rad  * st.dx).to("MW").magnitude for st in sr_stage.steps)
 
-        # ΔP sums
         dP_fric = sum(gp.dP_fric[i].to("Pa").magnitude for i in idxs)
         dP_minor = sum(gp.dP_minor[i].to("Pa").magnitude for i in idxs)
         dP_total = sum(gp.dP_total[i].to("Pa").magnitude for i in idxs)
 
-        # endpoints along gas x in this stage
         g_in  = gp.gas[idxs[0]]
         g_out = gp.gas[idxs[-1]]
 
-        # gas endpoints: P, T, h (sensible), in/out
         gas_in_T  = g_in.T.to("degC").magnitude
         gas_out_T = g_out.T.to("degC").magnitude
 
@@ -245,9 +204,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         gas_in_h  = _gas.h_sensible(g_in.T,  g_in.P,  g_in.comp).to("kJ/kg").magnitude
         gas_out_h = _gas.h_sensible(g_out.T, g_out.P, g_out.comp).to("kJ/kg").magnitude
 
-        # water endpoints: counter-current (water inlet at gas x=L)
-        w_in  = gp.water[idxs[-1]]   # water inlet
-        w_out = gp.water[idxs[0]]    # water outlet
+        w_in  = gp.water[idxs[-1]]
+        w_out = gp.water[idxs[0]]
 
         water_in_h  = w_in.h.to("kJ/kg").magnitude
         water_out_h = w_out.h.to("kJ/kg").magnitude
@@ -258,16 +216,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         water_in_T  = WaterProps.T_from_Ph(w_in.P,  w_in.h).to("degC").magnitude
         water_out_T = WaterProps.T_from_Ph(w_out.P, w_out.h).to("degC").magnitude
 
-        # NEW: capture global flue mass flow and boiler water inlet/outlet
         if flue_mdot_kg_s is None:
-            # flue gas mass flow rate from gas stream (same for all stages)
             flue_mdot_kg_s = g_in.mass_flow.to("kg/s").magnitude
 
-        # First stage (k == 0): water outlet for the whole boiler
         if k == 0:
             boiler_water_out_T_C = water_out_T
 
-        # Last stage: water inlet for the whole boiler (counter-current)
         if k == len(gp.stage_results) - 1:
             boiler_water_in_T_C = water_in_T
             boiler_water_in_P_Pa = water_in_P
@@ -276,48 +230,35 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "stage_index": k,
             "stage_name": name,
             "stage_kind": gp.stage_results[k].stage_kind,
-
             "Q_stage[MW]": Q_stage,
             "UA_stage[MW/K]": UA_stage,
             "gas_V_avg[m/s]": gas_V_avg,
             "water_V_avg[m/s]": water_V_avg,
-
-            # gas endpoints
             "gas_in_P[Pa]": gas_in_P,
             "gas_in_T[°C]": gas_in_T,
             "gas_in_h[kJ/kg]": gas_in_h,
             "gas_out_P[Pa]": gas_out_P,
             "gas_out_T[°C]": gas_out_T,
             "gas_out_h[kJ/kg]": gas_out_h,
-
-            # water endpoints (counter-current)
             "water_in_P[Pa]": water_in_P,
             "water_in_T[°C]": water_in_T,
             "water_in_h[kJ/kg]": water_in_h,
             "water_out_P[Pa]": water_out_P,
             "water_out_T[°C]": water_out_T,
             "water_out_h[kJ/kg]": water_out_h,
-
-            # ΔP stage totals
             "ΔP_stage_fric[Pa]": dP_fric,
             "ΔP_stage_minor[Pa]": dP_minor,
             "ΔP_stage_total[Pa]": dP_total,
-
-            # heat splits
             "Q_conv_stage[MW]": Q_stage_conv,
             "Q_rad_stage[MW]": Q_stage_rad,
-
             "steam_capacity[kg/s]": "",
             "steam_capacity[t/h]": "",
-
-            # boiler-level fields (blank at stage level)
             "η_direct[-]": "",
             "η_indirect[-]": "",
             "Q_total_useful[MW]": "",
             "Q_in_total[MW]": "",
             "P_LHV[MW]": "",
             "LHV_mass[kJ/kg]": "",
-
             "flue_mdot[kg/s]": "",
             "boiler_water_in_T[°C]": "",
             "boiler_water_out_T[°C]": "",
@@ -348,12 +289,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         for r in rows:
             Q_stage_MW = r["Q_stage[MW]"]
-            # Only stage rows have numeric Q_stage; TOTAL row is added later
             if isinstance(Q_stage_MW, (int, float)):
-                # stage duty → kg/s
                 m_dot_q = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s")
                 m_dot_kg_s = m_dot_q.to("kg/s").magnitude
-                # convert to t/h
                 m_dot_tph = m_dot_q.to("tonne/hour").magnitude
 
                 r["steam_capacity[kg/s]"] = m_dot_kg_s
@@ -366,14 +304,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
                 Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
             )
 
-
-
-
-
-    # Global boiler useful duty (W)
     Q_useful = Q_total
 
-    # Default values if no combustion info
     Q_in_total = None
     P_LHV_W = None
     LHV_mass_kJkg = None
@@ -381,24 +313,19 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     eta_indirect = None
 
     if combustion is not None:
-        # Q_in is currently in kW
         Q_in_total = combustion.Q_in.to("MW").magnitude
 
-        # firing capacity based on LHV (kW) – try fuel_P_LHV if present, else LHV field
         if combustion.fuel_P_LHV is not None:
             P_LHV_W = combustion.fuel_P_LHV.to("MW").magnitude
         else:
             P_LHV_W = combustion.LHV.to("MW").magnitude
 
-        # mass-based LHV if available
         if combustion.fuel_LHV_mass is not None:
             LHV_mass_kJkg = combustion.fuel_LHV_mass.to("kJ/kg").magnitude
 
-        # Direct efficiency: useful duty / firing capacity (LHV basis)
         if P_LHV_W and P_LHV_W > 0.0:
             eta_direct = Q_useful / P_LHV_W
 
-        # Approximate indirect efficiency: useful duty / total input heat
         if Q_in_total and Q_in_total > 0.0:
             eta_indirect = Q_useful / Q_in_total
 
@@ -406,13 +333,10 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "stage_index": "",
         "stage_name": "TOTAL_BOILER",
         "stage_kind": "",
-
         "Q_stage[MW]": Q_useful,
         "UA_stage[MW/K]": UA_total,
         "gas_V_avg[m/s]": "",
         "water_V_avg[m/s]": "",
-
-        # endpoints not meaningful at TOTAL_BOILER level
         "gas_in_P[Pa]": "",
         "gas_in_T[°C]": "",
         "gas_in_h[kJ/kg]": "",
@@ -425,29 +349,20 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "water_out_P[Pa]": "",
         "water_out_T[°C]": "",
         "water_out_h[kJ/kg]": "",
-
         "ΔP_stage_fric[Pa]": dP_total_fric,
         "ΔP_stage_minor[Pa]": dP_total_minor,
         "ΔP_stage_total[Pa]": dP_total_total,
-
         "stack_temperature[°C]": stack_T_C,
-
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,
-
-        "steam_capacity[kg/s]": (
-            steam_capacity_total_kg_s if steam_capacity_total_kg_s is not None else ""
-        ),
-        "steam_capacity[t/h]": (
-            steam_capacity_total_tph if steam_capacity_total_tph is not None else ""
-        ),
+        "steam_capacity[kg/s]": (steam_capacity_total_kg_s if steam_capacity_total_kg_s is not None else ""),
+        "steam_capacity[t/h]": (steam_capacity_total_tph if steam_capacity_total_tph is not None else ""),
         "η_direct[-]": eta_direct if eta_direct is not None else "",
         "η_indirect[-]": eta_indirect if eta_indirect is not None else "",
         "Q_total_useful[MW]": Q_useful,
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",
-
         "flue_mdot[kg/s]": flue_mdot_kg_s if flue_mdot_kg_s is not None else "",
         "boiler_water_in_T[°C]": boiler_water_in_T_C if boiler_water_in_T_C is not None else "",
         "boiler_water_out_T[°C]": boiler_water_out_T_C if boiler_water_out_T_C is not None else "",

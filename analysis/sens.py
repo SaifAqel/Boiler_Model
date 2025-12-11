@@ -1,29 +1,7 @@
-"""
-Sensitivity plotting script for boiler thesis
-
-Reads:
-    results/summary/boiler_kpis_all_runs.csv
-    results/summary/stages_summary_all_runs.csv
-
-Writes figures to:
-    results/plots/sens
-
-Required Python packages:
-    pandas
-    matplotlib
-    numpy
-"""
-
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
-# ---------------------------------------------------------------------------
-# Paths and global setup
-# ---------------------------------------------------------------------------
 
 BASE_DIR = Path(".")
 KPI_CSV = BASE_DIR / "results" / "summary" / "boiler_kpis_all_runs.csv"
@@ -44,54 +22,28 @@ plt.rcParams.update(
         "grid.alpha": 0.3,
         "legend.frameon": False,
         "axes.titlesize": 7,
-
-        # Axis labels
         "axes.labelsize": 7,
-
-        # Tick labels
         "xtick.labelsize": 6,
         "ytick.labelsize": 6,
-
-        # Legend text
         "legend.fontsize": 6,
         "legend.title_fontsize": 6,
     }
 )
 
-
-# ---------------------------------------------------------------------------
-# Utilities
-# ---------------------------------------------------------------------------
-
 def load_data():
     df_kpi = pd.read_csv(KPI_CSV)
     df_stage = pd.read_csv(STAGE_CSV)
 
-    # Convert param_value to numeric where possible
     df_kpi["param_value"] = pd.to_numeric(df_kpi["param_value"], errors="coerce")
     df_stage["param_value"] = pd.to_numeric(df_stage["param_value"], errors="coerce")
 
-    # Sort for nice plotting
     df_kpi = df_kpi.sort_values(["param_group", "param_value"])
     df_stage["stage_index"] = df_stage["stage"].map(STAGE_INDEX)
 
     return df_kpi, df_stage
 
 def add_fig_legend(fig, axes, title=None, bottom=0.15, ncol=None):
-    """Create a figure-level legend from one or more axes and adjust layout.
 
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-    axes : iterable of Axes
-        Axes whose handles/labels should be included.
-    title : str or None
-        Legend title.
-    bottom : float
-        Bottom margin to leave free for legend (0–1 figure fraction).
-    ncol : int or None
-        Number of columns in legend. If None, choose up to 4 columns.
-    """
     axes = np.atleast_1d(axes).ravel()
 
     handles = []
@@ -101,10 +53,9 @@ def add_fig_legend(fig, axes, title=None, bottom=0.15, ncol=None):
         handles.extend(h)
         labels.extend(l)
 
-    # Remove duplicates while preserving last occurrence
     by_label = dict(zip(labels, handles))
     if not by_label:
-        return  # nothing to do
+        return
 
     if ncol is None:
         ncol = min(len(by_label), 4)
@@ -120,29 +71,14 @@ def add_fig_legend(fig, axes, title=None, bottom=0.15, ncol=None):
     fig.tight_layout(rect=[0, bottom, 1, 1])
 
 def add_legend_under_axis(fig, ax, handles=None, labels=None, ncol=None, dy=0.02):
-    """
-    Place a legend centered below a single axes, in figure coordinates.
 
-    Parameters
-    ----------
-    fig : Figure
-    ax : Axes
-    handles, labels : optional
-        If None, taken from ax.get_legend_handles_labels().
-        For twin axes, pass concatenated handles/labels explicitly.
-    ncol : int or None
-        Number of columns in the legend. Defaults to len(labels).
-    dy : float
-        Vertical offset in figure coordinates below the axes bottom.
-        ~0.02–0.04 works well.
-    """
     if handles is None or labels is None:
         handles, labels = ax.get_legend_handles_labels()
 
     if not handles:
         return
 
-    box = ax.get_position()  # in figure coordinates
+    box = ax.get_position()
     x_center = 0.5 * (box.x0 + box.x1)
     y = box.y0 - dy
 
@@ -159,7 +95,6 @@ def add_legend_under_axis(fig, ax, handles=None, labels=None, ncol=None, dy=0.02
 
 
 def df_subset(df_kpi, group_name):
-    """Return KPI subset for a given param_group, sorted by param_value."""
     sub = df_kpi[df_kpi["param_group"] == group_name].copy()
     return sub.sort_values("param_value")
 
@@ -176,11 +111,6 @@ def savefig(name, fig=None):
     plt.close(fig)
     print(f"Saved {path}")
 
-
-
-# ---------------------------------------------------------------------------
-# Excess air plots
-# ---------------------------------------------------------------------------
 def plot_excess_air_boiler_overview(df_ea):
     lam = df_ea["param_value"]
     q_in = df_ea["Q_in total[MW]"]
@@ -193,10 +123,8 @@ def plot_excess_air_boiler_overview(df_ea):
 
     fig, axes = plt.subplots(2, 2, figsize=(6.0, 5.5))
 
-    # Make some vertical room for legends between rows and below
     fig.subplots_adjust(top=0.90, bottom=0.12, hspace=0.45)
 
-    # ---------------- (0,0): Q_in / Q_useful ----------------
     ax00 = axes[0, 0]
     ax00.plot(lam, q_in, "o-", label=r"$Q_\mathrm{in}$")
     ax00.plot(lam, q_useful, "s-", label=r"$Q_\mathrm{useful}$")
@@ -206,7 +134,6 @@ def plot_excess_air_boiler_overview(df_ea):
 
     h00, l00 = ax00.get_legend_handles_labels()
 
-    # ---------------- (0,1): efficiencies ----------------
     ax01 = axes[0, 1]
     ax01.plot(lam, eta_d, "o-", label=r"$\eta_\mathrm{direct}$")
     ax01.plot(lam, eta_i, "s-", label=r"$\eta_\mathrm{indirect}$")
@@ -216,7 +143,6 @@ def plot_excess_air_boiler_overview(df_ea):
 
     h01, l01 = ax01.get_legend_handles_labels()
 
-    # ---------------- (1,0): stack T and water flow (twin) ----------------
     ax10 = axes[1, 0]
     ax10b = ax10.twinx()
     ax10.plot(lam, t_stack, "o-", label=r"$T_\mathrm{stack}$")
@@ -231,7 +157,6 @@ def plot_excess_air_boiler_overview(df_ea):
     h10_all = h10 + h10b
     l10_all = l10 + l10b
 
-    # ---------------- (1,1): pressure drop ----------------
     ax11 = axes[1, 1]
     ax11.plot(lam, -dp_total, "o-", label=r"$\Delta P_\mathrm{gas}$")
     ax11.set_xlabel(r"Excess air ratio $\lambda$ [-]")
@@ -240,19 +165,13 @@ def plot_excess_air_boiler_overview(df_ea):
 
     h11, l11 = ax11.get_legend_handles_labels()
 
-    # ---------------- legends under each subplot ----------------
-    #
-    # Top row: push moderately downward (below subplot but above row 2)
     add_legend_under_axis(fig, ax00, h00, l00, dy=0.05)
     add_legend_under_axis(fig, ax01, h01, l01, dy=0.05)
 
-    # Bottom row: push farther downward (below row 2 labels)
     add_legend_under_axis(fig, ax10, h10_all, l10_all, dy=0.05)
     add_legend_under_axis(fig, ax11, h11, l11, dy=0.05)
 
-
     savefig("fig_lambda_boiler_overview.png", fig)
-
 
 def plot_excess_air_stage_temperatures(df_stage_ea):
     lam_values = sorted(df_stage_ea["param_value"].dropna().unique())
@@ -279,7 +198,6 @@ def plot_excess_air_stage_temperatures(df_stage_ea):
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-    # legends under each axis (same row, so same dy)
     add_legend_under_axis(fig, axes[0], dy=0.05)
     add_legend_under_axis(fig, axes[1], dy=0.05)
 
@@ -291,7 +209,6 @@ def plot_excess_air_stage_duties_ua(df_stage_ea):
 
     fig.subplots_adjust(top=0.88, bottom=0.20, wspace=0.30)
 
-    # Stage heat duty Q_total
     ax0 = axes[0]
     for stage in STAGE_ORDER:
         data = df_stage_ea[df_stage_ea["stage"] == stage].sort_values("param_value")
@@ -300,7 +217,6 @@ def plot_excess_air_stage_duties_ua(df_stage_ea):
     ax0.set_ylabel(r"Stage heat duty $Q_\mathrm{total}$ [MW]")
     ax0.set_title("Stage total duties vs excess air")
 
-    # Stage UA
     ax1 = axes[1]
     for stage in STAGE_ORDER:
         data = df_stage_ea[df_stage_ea["stage"] == stage].sort_values("param_value")
@@ -309,14 +225,10 @@ def plot_excess_air_stage_duties_ua(df_stage_ea):
     ax1.set_ylabel(r"Global conductance $UA$ [MW/K]")
     ax1.set_title("Stage global conductance vs excess air")
 
-    # legends per subplot
     add_legend_under_axis(fig, ax0, dy=0.05)
     add_legend_under_axis(fig, ax1, dy=0.05)
 
     savefig("fig_lambda_stage_duties.png", fig)
-
-
-
 
 def plot_excess_air_stage_pressure_drop(df_stage_ea):
     fig, ax = plt.subplots(figsize=(6.0, 3.5))
@@ -336,14 +248,10 @@ def plot_excess_air_stage_pressure_drop(df_stage_ea):
 
     savefig("fig_lambda_stage_dp.png", fig)
 
-
-
-
 def plot_excess_air_compact(df_ea):
     lam = df_ea["param_value"]
     fig, axes = plt.subplots(2, 2, figsize=(6.0, 5.5))
 
-    # Make some room for legends between rows and at bottom
     fig.subplots_adjust(top=0.90, bottom=0.12, hspace=0.45, wspace=0.30)
 
     ax00 = axes[0, 0]
@@ -373,7 +281,6 @@ def plot_excess_air_compact(df_ea):
     ax11.set_xlabel(r"$\lambda$ [-]")
     ax11.set_title("Total gas pressure drop")
 
-    # legends under each subplot (top row between rows, bottom row below)
     add_legend_under_axis(fig, ax00, dy=0.05)
     add_legend_under_axis(fig, ax01, dy=0.05)
     add_legend_under_axis(fig, ax10, dy=0.05)
@@ -381,12 +288,6 @@ def plot_excess_air_compact(df_ea):
 
     savefig("fig_lambda_compact_summary.png", fig)
 
-
-
-
-# ---------------------------------------------------------------------------
-# Drum pressure plots
-# ---------------------------------------------------------------------------
 def plot_pressure_boiler_overview(df_p):
     P_bar = df_p["param_value"]
     q_in = df_p["Q_in total[MW]"]
@@ -401,7 +302,6 @@ def plot_pressure_boiler_overview(df_p):
     fig, axes = plt.subplots(2, 2, figsize=(6.0, 5.5))
     fig.subplots_adjust(top=0.90, bottom=0.12, hspace=0.45)
 
-    # (0,0) Heat input / useful duty
     ax00 = axes[0, 0]
     ax00.plot(P_bar, q_in, "o-", label=r"$Q_\mathrm{in}$")
     ax00.plot(P_bar, q_useful, "s-", label=r"$Q_\mathrm{useful}$")
@@ -410,7 +310,6 @@ def plot_pressure_boiler_overview(df_p):
     ax00.set_title("Heat input and useful duty")
     h00, l00 = ax00.get_legend_handles_labels()
 
-    # (0,1) Efficiencies
     ax01 = axes[0, 1]
     ax01.plot(P_bar, eta_d, "o-", label="direct")
     ax01.plot(P_bar, eta_i, "s-", label="indirect")
@@ -419,7 +318,6 @@ def plot_pressure_boiler_overview(df_p):
     ax01.set_title("Boiler efficiency")
     h01, l01 = ax01.get_legend_handles_labels()
 
-    # (1,0) Water / steam throughput (twin)
     ax10 = axes[1, 0]
     ax10b = ax10.twinx()
     ax10.plot(P_bar, m_w, "o-", label="water flow")
@@ -433,7 +331,6 @@ def plot_pressure_boiler_overview(df_p):
     h10_all = h10 + h10b
     l10_all = l10 + l10b
 
-    # (1,1) Stack temperature and gas pressure drop (twin)
     ax11 = axes[1, 1]
     ax11b = ax11.twinx()
     ax11.plot(P_bar, t_stack, "o-", label=r"$T_\mathrm{stack}$")
@@ -447,15 +344,12 @@ def plot_pressure_boiler_overview(df_p):
     h11_all = h11 + h11b
     l11_all = l11 + l11b
 
-    # legends (top row between rows, bottom row below)
     add_legend_under_axis(fig, ax00, h00, l00, dy=0.05)
     add_legend_under_axis(fig, ax01, h01, l01, dy=0.05)
     add_legend_under_axis(fig, ax10, h10_all, l10_all, dy=0.05)
     add_legend_under_axis(fig, ax11, h11_all, l11_all, dy=0.05)
 
     savefig("fig_pressure_boiler_overview.png", fig)
-
-
 
 def plot_pressure_steam_tradeoff(df_p, df_stage_p):
     P_bar = df_p["param_value"]
@@ -489,9 +383,6 @@ def plot_pressure_steam_tradeoff(df_p, df_stage_p):
 
     savefig("fig_pressure_steam_tradeoff.png", fig)
 
-
-
-
 def plot_pressure_stage_duties(df_stage_p):
     fig, ax = plt.subplots(figsize=(6.0, 3.5))
     fig.subplots_adjust(top=0.88, bottom=0.22)
@@ -507,9 +398,6 @@ def plot_pressure_stage_duties(df_stage_p):
     add_legend_under_axis(fig, ax, dy=0.06)
 
     savefig("fig_pressure_stage_duties.png", fig)
-
-
-
 
 def plot_pressure_economiser_detail(df_stage_p):
     eco = df_stage_p[df_stage_p["stage"] == "HX_6"].sort_values("param_value")
@@ -536,9 +424,6 @@ def plot_pressure_economiser_detail(df_stage_p):
     add_legend_under_axis(fig, ax, h1 + h2, l1 + l2, dy=0.06)
 
     savefig("fig_pressure_economiser.png", fig)
-
-
-
 
 def plot_pressure_compact(df_p, df_stage_p):
     P_bar = df_p["param_value"]
@@ -581,19 +466,12 @@ def plot_pressure_compact(df_p, df_stage_p):
     ax11.set_ylabel("Steam enthalpy [kJ/kg]")
     ax11.set_title("Steam enthalpy")
 
-    # legends under each subplot
     add_legend_under_axis(fig, ax00, dy=0.05)
     add_legend_under_axis(fig, ax01, dy=0.05)
     add_legend_under_axis(fig, ax10, dy=0.05)
     add_legend_under_axis(fig, ax11, dy=0.05)
 
     savefig("fig_pressure_compact_summary.png", fig)
-
-
-
-# ---------------------------------------------------------------------------
-# Fuel mass flow (firing rate) plots
-# ---------------------------------------------------------------------------
 
 def plot_fuel_boiler_overview(df_f):
     mdot = df_f["param_value"]
@@ -608,7 +486,6 @@ def plot_fuel_boiler_overview(df_f):
     fig, axes = plt.subplots(2, 2, figsize=(6.0, 5.5))
     fig.subplots_adjust(top=0.90, bottom=0.12, hspace=0.45)
 
-    # (0,0) Heat input / useful duty
     ax00 = axes[0, 0]
     ax00.plot(mdot, q_in, "o-", label=r"$Q_\mathrm{in}$")
     ax00.plot(mdot, q_useful, "s-", label=r"$Q_\mathrm{useful}$")
@@ -617,7 +494,6 @@ def plot_fuel_boiler_overview(df_f):
     ax00.set_title("Heat input and useful duty")
     h00, l00 = ax00.get_legend_handles_labels()
 
-    # (0,1) Efficiency
     ax01 = axes[0, 1]
     ax01.plot(mdot, eta_d, "o-", label="direct")
     ax01.plot(mdot, eta_i, "s-", label="indirect")
@@ -626,7 +502,6 @@ def plot_fuel_boiler_overview(df_f):
     ax01.set_title("Boiler efficiency")
     h01, l01 = ax01.get_legend_handles_labels()
 
-    # (1,0) Steam capacity
     ax10 = axes[1, 0]
     ax10.plot(mdot, steam_cap, "o-", label="steam capacity")
     ax10.set_xlabel(r"Fuel mass flow $\dot m_f$ [kg/s]")
@@ -634,7 +509,6 @@ def plot_fuel_boiler_overview(df_f):
     ax10.set_title("Steam capacity")
     h10, l10 = ax10.get_legend_handles_labels()
 
-    # (1,1) Stack temperature and gas pressure drop (twin)
     ax11 = axes[1, 1]
     ax11b = ax11.twinx()
     ax11.plot(mdot, t_stack, "o-", label=r"$T_\mathrm{stack}$")
@@ -648,16 +522,12 @@ def plot_fuel_boiler_overview(df_f):
     h11_all = h11 + h11b
     l11_all = l11 + l11b
 
-    # legends
     add_legend_under_axis(fig, ax00, h00, l00, dy=0.05)
     add_legend_under_axis(fig, ax01, h01, l01, dy=0.05)
     add_legend_under_axis(fig, ax10, h10, l10, dy=0.05)
     add_legend_under_axis(fig, ax11, h11_all, l11_all, dy=0.05)
 
     savefig("fig_fuel_boiler_overview.png", fig)
-
-
-
 
 def plot_fuel_linearity(df_f):
     mdot = df_f["param_value"]
@@ -668,7 +538,6 @@ def plot_fuel_linearity(df_f):
     fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.5))
     fig.subplots_adjust(top=0.88, bottom=0.22, wspace=0.30)
 
-    # Left: Q_useful vs Q_in
     ax0 = axes[0]
     ax0.plot(q_in, q_useful, "o", label="model")
     coeff = np.polyfit(q_in, q_useful, 1)
@@ -679,7 +548,6 @@ def plot_fuel_linearity(df_f):
     ax0.set_ylabel(r"$Q_\mathrm{useful}$ [MW]")
     ax0.set_title("Linearity of useful duty")
 
-    # Right: steam capacity vs fuel flow
     ax1 = axes[1]
     ax1.plot(mdot, steam_cap, "o", label="model")
     coeff2 = np.polyfit(mdot, steam_cap, 1)
@@ -695,13 +563,10 @@ def plot_fuel_linearity(df_f):
 
     savefig("fig_fuel_linearity.png", fig)
 
-
-
 def plot_fuel_stage_duties_dp(df_stage_f):
     fig, axes = plt.subplots(2, 1, figsize=(6.0, 6.0), sharex=True)
     fig.subplots_adjust(top=0.90, bottom=0.12, hspace=0.45)
 
-    # Stage duties
     ax0 = axes[0]
     for stage in STAGE_ORDER:
         data = df_stage_f[df_stage_f["stage"] == stage].sort_values("param_value")
@@ -709,7 +574,6 @@ def plot_fuel_stage_duties_dp(df_stage_f):
     ax0.set_ylabel(r"Stage duty $Q_\mathrm{total}$ [MW]")
     ax0.set_title("Stage total duties vs fuel mass flow")
 
-    # Stage pressure drops
     ax1 = axes[1]
     for stage in STAGE_ORDER:
         data = df_stage_f[df_stage_f["stage"] == stage].sort_values("param_value")
@@ -723,7 +587,6 @@ def plot_fuel_stage_duties_dp(df_stage_f):
     add_legend_under_axis(fig, ax1, dy=0.05)
 
     savefig("fig_fuel_stage_duty_dp.png", fig)
-
 
 def plot_fuel_stage_temperatures(df_stage_f):
     mdot_values = sorted(df_stage_f["param_value"].dropna().unique())
@@ -754,9 +617,6 @@ def plot_fuel_stage_temperatures(df_stage_f):
     add_legend_under_axis(fig, axes[1], dy=0.06)
 
     savefig("fig_fuel_stage_temperatures.png", fig)
-
-
-
 
 def plot_fuel_compact(df_f):
     mdot = df_f["param_value"]
@@ -792,20 +652,12 @@ def plot_fuel_compact(df_f):
     ax11.set_ylabel(r"Total gas $\Delta P$ [Pa]")
     ax11.set_title("Total gas pressure drop")
 
-    # legends under each subplot
     add_legend_under_axis(fig, ax00, dy=0.05)
     add_legend_under_axis(fig, ax01, dy=0.05)
     add_legend_under_axis(fig, ax10, dy=0.05)
     add_legend_under_axis(fig, ax11, dy=0.05)
 
     savefig("fig_fuel_compact_summary.png", fig)
-
-
-
-
-# ---------------------------------------------------------------------------
-# Extra overall summary plot (all runs)
-# ---------------------------------------------------------------------------
 
 def plot_global_eta_vs_stack(df_kpi):
     fig, ax = plt.subplots(figsize=(5.0, 3.5))
@@ -836,17 +688,9 @@ def plot_global_eta_vs_stack(df_kpi):
 
     savefig("fig_global_eta_vs_stack.png", fig)
 
-
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
     df_kpi, df_stage = load_data()
 
-    # Excess air
     df_ea = df_subset(df_kpi, "excess_air")
     df_stage_ea = stage_subset(df_stage, "excess_air")
     if not df_ea.empty:
@@ -856,7 +700,6 @@ def main():
         plot_excess_air_stage_pressure_drop(df_stage_ea)
         plot_excess_air_compact(df_ea)
 
-    # Drum pressure
     df_p = df_subset(df_kpi, "water_pressure")
     df_stage_p = stage_subset(df_stage, "water_pressure")
     if not df_p.empty:
@@ -866,7 +709,6 @@ def main():
         plot_pressure_economiser_detail(df_stage_p)
         plot_pressure_compact(df_p, df_stage_p)
 
-    # Fuel mass flow
     df_f = df_subset(df_kpi, "fuel_flow")
     df_stage_f = stage_subset(df_stage, "fuel_flow")
     if not df_f.empty:
@@ -876,7 +718,6 @@ def main():
         plot_fuel_stage_temperatures(df_stage_f)
         plot_fuel_compact(df_f)
 
-    # Extra global summary
     plot_global_eta_vs_stack(df_kpi)
 
 

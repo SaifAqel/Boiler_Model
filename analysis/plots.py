@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
-import os
 from pathlib import Path
-
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
-# ---------------------------------------------------------------------------
-# Config: paths
-# ---------------------------------------------------------------------------
 
 HX_CSV = Path(r"results/summary/stages_summary_all_runs.csv")
 OUTDIR = Path(r"results/plots")
 
-
-# ---------------------------------------------------------------------------
-# Utility helpers
-# ---------------------------------------------------------------------------
-
 def ensure_outdir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
-
 
 def rename_hx_columns(df: pd.DataFrame) -> pd.DataFrame:
     mapping = {
@@ -49,17 +36,11 @@ def rename_hx_columns(df: pd.DataFrame) -> pd.DataFrame:
     }
     df = df.rename(columns={k: v for k, v in mapping.items() if k in df.columns})
 
-    # Add stage_index (1..N) from "HX_1" etc.
     if "stage" in df.columns:
         df["stage_index"] = (
             df["stage"].astype(str).str.extract(r"(\d+)", expand=False).astype(int)
         )
     return df
-
-
-# ---------------------------------------------------------------------------
-# HX per-run plots
-# ---------------------------------------------------------------------------
 
 def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     df = hx[hx["run"] == run].copy()
@@ -70,7 +51,6 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     outdir = ensure_outdir(outdir)
     x = df["stage_index"]
 
-    # 1) Gas and water temperatures
     fig, ax = plt.subplots()
     ax.plot(x, df["T_gas_in"], marker="o", label="T_gas_in")
     ax.plot(x, df["T_gas_out"], marker="s", label="T_gas_out")
@@ -85,7 +65,6 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     fig.savefig(outdir / f"{run}_hx_temperatures.png", dpi=200)
     plt.close(fig)
 
-    # 2) Q_conv, Q_rad, Q_total per stage
     fig, ax = plt.subplots()
     ax.bar(x - 0.2, df["Q_conv"], width=0.2, label="Q_conv [MW]")
     ax.bar(x, df["Q_rad"], width=0.2, label="Q_rad [MW]")
@@ -99,7 +78,6 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     fig.savefig(outdir / f"{run}_hx_Q.png", dpi=200)
     plt.close(fig)
 
-    # 3) Pressure drops per stage
     fig, ax = plt.subplots()
     ax.bar(x - 0.15, df["dp_fric"], width=0.3, label="dp_fric [Pa]")
     ax.bar(x + 0.15, df["dp_minor"], width=0.3, label="dp_minor [Pa]")
@@ -113,7 +91,6 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     fig.savefig(outdir / f"{run}_hx_dp.png", dpi=200)
     plt.close(fig)
 
-    # 4) Approach temperatures per stage
     fig, ax = plt.subplots()
     approach1 = df["T_gas_out"] - df["T_water_in"]
     approach2 = df["T_gas_in"] - df["T_water_out"]
@@ -128,7 +105,6 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
     fig.savefig(outdir / f"{run}_hx_approach.png", dpi=200)
     plt.close(fig)
 
-    # 5) UA per stage (if available)
     if "UA" in df.columns:
         fig, ax = plt.subplots()
         ax.bar(x, df["UA"])
@@ -140,17 +116,11 @@ def plot_hx_profile_for_run(hx: pd.DataFrame, run: str, outdir: Path):
         fig.savefig(outdir / f"{run}_hx_UA.png", dpi=200)
         plt.close(fig)
 
-
 def make_hx_plots(hx: pd.DataFrame, outdir: Path):
     outdir = ensure_outdir(outdir / "hx")
     runs = sorted(hx["run"].unique())
     for r in runs:
         plot_hx_profile_for_run(hx, r, outdir)
-
-
-# ---------------------------------------------------------------------------
-# Main (HX only)
-# ---------------------------------------------------------------------------
 
 def main():
     ensure_outdir(OUTDIR)

@@ -17,20 +17,17 @@ def parse_CH(s: str):
 
 def compute_LHV_HHV(fuel: GasStream) -> Q_:
     latent_H2O = WaterProps.h_g(P_ref) - WaterProps.h_f(P_ref)
-    # product enthalpies (kJ/mol)
-    H2O_liq = _dHf["H2O"]                                # kJ/mol
-    H2O_vap = _dHf["H2O"] + latent_H2O * molar_masses["H2O"]          # (kJ/kg)*(kg/mol) = kJ/mol
+    H2O_liq = _dHf["H2O"]
+    H2O_vap = _dHf["H2O"] + latent_H2O * molar_masses["H2O"]
 
-    # initialize as quantities, not floats
-    react = 0 * _dHf["CO2"]                              # kJ/mol
+    react = 0 * _dHf["CO2"]
     HHV_p = 0 * _dHf["CO2"]
     LHV_p = 0 * _dHf["CO2"]
 
     mol_comp = to_mole(fuel.comp)
 
     for comp, x in mol_comp.items():
-        # use quantity zero as default to avoid dimensionless 0.0
-        dh = _dHf.get(comp, 0 * _dHf["CO2"])              # kJ/mol
+        dh = _dHf.get(comp, 0 * _dHf["CO2"])
         react += x * dh
 
         C, H = parse_CH(comp)
@@ -44,15 +41,15 @@ def compute_LHV_HHV(fuel: GasStream) -> Q_:
             HHV_p += x * dh
             LHV_p += x * dh
 
-    M_mix = mix_molar_mass(mol_comp)  # kg/mol
+    M_mix = mix_molar_mass(mol_comp)
 
-    HHV_mol = react - HHV_p           # kJ/mol
-    LHV_mol = react - LHV_p           # kJ/mol
-    HHV_kg  = HHV_mol / M_mix         # kJ/kg
-    LHV_kg  = LHV_mol / M_mix         # kJ/kg
+    HHV_mol = react - HHV_p
+    LHV_mol = react - LHV_p
+    HHV_kg  = HHV_mol / M_mix
+    LHV_kg  = LHV_mol / M_mix
 
     P_HHV = (HHV_kg * fuel.mass_flow).to('kW')
-    P_LHV = (LHV_kg * fuel.mass_flow).to('kW')                     # (kJ/kg)*(kg/s)=kJ/s = kW
+    P_LHV = (LHV_kg * fuel.mass_flow).to('kW')
 
     return HHV_kg.to('kJ/kg'), LHV_kg.to('kJ/kg'), P_HHV, P_LHV
 

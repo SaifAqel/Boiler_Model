@@ -1,4 +1,5 @@
 import logging, functools, time
+
 TRACE_LEVEL_NUM = 5
 logging.addLevelName(TRACE_LEVEL_NUM, "TRACE")
 
@@ -30,7 +31,7 @@ def setup_logging(level: int | str = logging.INFO):
     root.addHandler(h)
 
 def _fmt(v):
-    try:    return f"{v:.6g~P}"  # pint Quantity pretty
+    try:    return f"{v:.6g~P}"
     except: return repr(v)
 
 def trace_calls(name: str|None=None, values: bool=False):

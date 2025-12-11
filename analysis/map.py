@@ -1,47 +1,14 @@
-#!/usr/bin/env python3
-"""
-Standalone heatmap generator for HX results.
-
-Reads:
-    results/summary/stages_summary_all_runs.csv
-
-Writes (if columns exist):
-    results/plots/hx/heatmap_Q_total.png
-    results/plots/hx/heatmap_T_gas_out.png
-    results/plots/hx/heatmap_T_gas_in.png
-    results/plots/hx/heatmap_T_water_in.png
-    results/plots/hx/heatmap_T_water_out.png
-    results/plots/hx/heatmap_v_gas.png
-    results/plots/hx/heatmap_v_water.png
-    results/plots/hx/heatmap_dp_total.png
-    results/plots/hx/heatmap_Q_conv.png
-    results/plots/hx/heatmap_Q_rad.png
-    results/plots/hx/heatmap_UA.png
-    results/plots/hx/heatmap_steam_capacity.png
-"""
-
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
-
 HX_CSV = Path(r"results/summary/stages_summary_all_runs.csv")
 OUTDIR = Path(r"results/plots/map")
-
-
-# ---------------------------------------------------------------------------
-# Utils
-# ---------------------------------------------------------------------------
 
 def ensure_outdir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
-
 
 def rename_hx_columns(df: pd.DataFrame) -> pd.DataFrame:
     mapping = {
@@ -69,7 +36,6 @@ def rename_hx_columns(df: pd.DataFrame) -> pd.DataFrame:
     }
     df = df.rename(columns={k: v for k, v in mapping.items() if k in df.columns})
 
-    # Add stage_index (1..N) from "HX_1", "HX_2", ...
     if "stage" in df.columns:
         df["stage_index"] = (
             df["stage"]
@@ -79,11 +45,6 @@ def rename_hx_columns(df: pd.DataFrame) -> pd.DataFrame:
         )
     return df
 
-
-# ---------------------------------------------------------------------------
-# Heatmap plotting
-# ---------------------------------------------------------------------------
-
 def _plot_single_heatmap(
     df: pd.DataFrame,
     value_col: str,
@@ -92,7 +53,6 @@ def _plot_single_heatmap(
     title: str,
     cbar_label: str,
 ) -> None:
-    """Generic heatmap: run vs stage_index for a given value column."""
     if "run" not in df.columns or "stage_index" not in df.columns:
         return
     if value_col not in df.columns:
@@ -125,14 +85,12 @@ def _plot_single_heatmap(
     fig.savefig(outdir / filename, dpi=200)
     plt.close(fig)
 
-
 def plot_hx_heatmaps(hx: pd.DataFrame, outdir: Path) -> None:
     df = hx.copy()
     outdir = ensure_outdir(outdir)
     if df.empty:
         return
 
-    # Define all desired heatmaps: value_col -> (filename, title, colorbar label)
     heatmaps = {
         # existing ones
         "Q_total": (
@@ -201,17 +159,11 @@ def plot_hx_heatmaps(hx: pd.DataFrame, outdir: Path) -> None:
     for col, (fname, title, cbar) in heatmaps.items():
         _plot_single_heatmap(df, col, outdir, fname, title, cbar)
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
     ensure_outdir(OUTDIR)
     hx = pd.read_csv(HX_CSV)
     hx = rename_hx_columns(hx)
     plot_hx_heatmaps(hx, OUTDIR)
-
 
 if __name__ == "__main__":
     main()

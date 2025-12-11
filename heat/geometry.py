@@ -49,12 +49,12 @@ class GeometryBuilder:
                 ST = spec["ST"].to("m")
                 SL = spec["SL"].to("m")
 
-                FAR_T = (1 - (Do_t / ST)).to("")          # transverse open-area ratio
+                FAR_T = (1 - (Do_t / ST)).to("")
                 A_gross = (Ds * B).to("m^2")
-                A_cross = (A_gross * FAR_T).to("m^2")     # bulk crossflow area
+                A_cross = (A_gross * FAR_T).to("m^2")
                 arr = (spec.get("arrangement","inline") or "inline").lower()
                 if arr == "staggered":
-                    FAR_L = (1 - (0.5 * Do_t / SL)).to("")    # longitudinal throat for staggered
+                    FAR_L = (1 - (0.5 * Do_t / SL)).to("")
                     umax = (ST / (ST - Do_t)) * ((SL / (SL - 0.5*Do_t)) ** 0.5)
                 else:
                     umax = (ST / (ST - Do_t))

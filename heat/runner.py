@@ -9,13 +9,11 @@ from common.models import HXStage, WaterStream, GasStream, Drum
 from common.results import build_global_profile,CombustionResult
 from heat.postproc import profile_to_dataframe, summary_from_profile
 
-
 def _q_or_none(s: Optional[str]) -> Optional[Q_]:
     if s is None:
         return None
     s = s.strip()
     return Q_(s) if s else None
-
 
 def run_hx(
     *,
@@ -23,7 +21,7 @@ def run_hx(
     water: WaterStream,
     gas: GasStream,
     drum: Drum,
-    target_dx: str | None = None,   # e.g. "0.1 m"
+    target_dx: str | None = None,
     min_steps: int = 20,
     max_steps: int = 400,
     max_passes: int = 20,
@@ -74,7 +72,6 @@ def run_hx(
 
     rows, _, _ = summary_from_profile(global_profile, combustion=combustion)
 
-    # CSV writing moved out to heat/results.py; run_hx now only returns data
     return {
         "gas_in": gas,
         "water_in": water,
@@ -84,11 +81,9 @@ def run_hx(
         "global_profile": global_profile,
         "steps_df": df_steps,
         "summary_rows": rows,
-        # kept keys for backward compatibility; files are not written here anymore
         "steps_csv": None,
         "summary_csv": None,
         "run_id": run_id,
         "outdir": str(outdir),
         "combustion": combustion,
     }
-
