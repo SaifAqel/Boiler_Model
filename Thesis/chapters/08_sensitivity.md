@@ -16,10 +16,7 @@ Table: Control case performance.
 | $\eta_{\mathrm{direct}} [-]$   |    0.89 |
 | $\eta_{\mathrm{indirect}} [-]$ |    0.89 |
 | Conductance [MW/K]             |    0.01 |
-| Input heat [MW]                |     4.7 |
 | Useful heat [MW]               |    4.17 |
-| pressure drop fric total[Pa]   |  -59.43 |
-| pressure drop minor total[Pa]  |  -15.54 |
 | pressure drop total[Pa]        |  -74.96 |
 | LHV [MJ/kg]                    |   46.97 |
 | Firing rate [MW]               |     4.7 |
@@ -39,10 +36,12 @@ The control case corresponds to the nominal design operation introduced in the p
 
 This figure provides a compact summary of how the different parameter groups shift the global performance relative to the control case introduced above. In the remainder of the chapter, each parameter group is analyzed separately.
 
+\newpage
+
 ## Influence of excess air factor
 
 $$
-\lambda = [1.0, 1.1, 1.2, 1.3]
+\lambda = [1.0, 1.1, 1.2, 1.3]\; [-]
 $$
 
 \begin{figure}[H]
@@ -83,10 +82,12 @@ Key observations from [@tbl:excess_air_performance] are:
 - The total gas side pressure drop rises from about −62 Pa to −104 Pa as air flow and hence gas mass flow increase.
 - The useful heat $Q_\mathrm{useful}$ decreases slightly with $\lambda$, while the overall conductance $UA$ increases modestly due to higher gas side Reynolds numbers.
 
+\newpage
+
 ## Influence of fuel mass flow
 
 $$
-\dot{m}_\mathrm{fuel} = [0.10, 0.075, 0.050, 0.025]
+\dot{m}_\mathrm{fuel} = [0.10, 0.075, 0.050, 0.025]\; \frac{kg}{s}
 $$
 
 \begin{figure}[H]
@@ -127,10 +128,12 @@ Key observations from [@tbl:fuel_flow_performance] are:
 - The gas-side pressure drop increases strongly with load, from about −3 Pa to −75 Pa, reflecting the approximate quadratic dependence on gas mass flow.
 - Stack temperature increases from roughly 131 °C at 25% load to 181 °C at full load, which indicates less complete heat recovery at high firing rates.
 
+\newpage
+
 ## Influence of drum pressure
 
 $$
-P_\mathrm{Drum} = [4.0, 10.0, 16.0] bar
+P_\mathrm{Drum} = [4.0, 10.0, 16.0]\; \mathrm{bar}
 $$
 
 \begin{figure}[H]
@@ -175,8 +178,8 @@ Key observations from [@tbl:drum_pressure_performance] are:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_param_groups.png}
-\caption{Stage wise heat exchanger duty, conductance, outlet temperature, and pressure drop for all parameter groups}
+\includegraphics[width=\textwidth]{results/plots/per_run/stages_heat.png}
+\caption{Stage wise heat transfer profile}
 \label{fig:stages_param_groups}
 \end{figure}
 
@@ -192,8 +195,8 @@ The drum pressure variation mainly alters the effective utilization of $UA$ in e
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_velocity_pressure_Qsum_UA.png}
-\caption{Stage wise gas velocity, gas pressure, heat transfer decomposition, and conductance}
+\includegraphics[width=\textwidth]{results/plots/per_run/stages_hydraulics.png}
+\caption{Stage wise hydraulics and conductance profile }
 \label{fig:stages_velocity_pressure_Qsum_UA}
 \end{figure}
 
@@ -204,3 +207,5 @@ Figure clarifies how changes in fuel mass flow and excess air factor translate i
 At high load and high excess air, the maximum stage-wise gas velocity approaches the upper range of typical design values for fire tube boilers, while the total pressure drop remains within the available fan head. At low load, gas velocities are small, especially in the last convective stage, which may limit convective heat transfer and affect combustion stability in practice.
 
 The presented data therefore enable a consistent interpretation of how hydraulic margins evolve with operating point and how close individual stages approach practical constraints such as allowable gas velocity or pressure drop. In combination with the previous plots, this information supports the identification of an operating window that balances efficiency, steam conditions, and hydraulic safety.
+
+\newpage

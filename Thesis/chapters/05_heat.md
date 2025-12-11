@@ -2,9 +2,9 @@
 
 This model simulates heat transfer from hot flue gas to the water/steam mixture in the drum, flue gas entering first pass, is specified by the results of the combustion model as fully burnt gas at adiabatic temperature with known mass flow rate, and water entering the economizer, specified by user at $10 bar$ pressure and $105^{\circ}\text{C}$ temperature with the mass flow to be calculated iteratively until convergence of water in and steam produced.
 
-## Fundamental heat-balance equations
+## Fundamental heat balance equations
 
-The boiler is modelled as a one-dimensional counter-current heat exchanger composed of six stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.
+The boiler is modelled as a one dimensional counter current heat exchanger composed of six stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$). Heat transfer is resolved along the gas flow direction $x$, while water flows in the opposite direction. Each stage is discretized into segments of length $\mathrm{d}x$; all local quantities are defined per unit length.
 
 - Notation (per segment)
 
@@ -27,7 +27,7 @@ The boiler is modelled as a one-dimensional counter-current heat exchanger compo
 
 ## Local energy balance
 
-For each differential segment of length $\mathrm{d}x$, the model enforces a one-dimensional steady-state energy balance between the gas, the water and the tube wall:
+For each differential segment of length $\mathrm{d}x$, the model enforces a one dimensional steady state energy balance between the gas, the water and the tube wall:
 
 - Heat transferred across the wall:
 
@@ -56,7 +56,7 @@ For each differential segment of length $\mathrm{d}x$, the model enforces a one-
   \frac{\mathrm{d}h_w}{\mathrm{d}x} = +\,\frac{q'(x)}{\dot{m}_w}
   $$
 
-In the numerical implementation these equations are applied in finite-difference form over each marching step:
+In the numerical implementation these equations are applied in finite difference form over each marching step:
 
 $$
 Q_\text{step} = q'(x)\,\Delta x
@@ -72,13 +72,13 @@ $$
 
 The overall conductance per unit length $UA'(x)$ is obtained from a radial series of thermal resistances per unit length:
 
-- Gas-side convection:
+- Gas side convection:
 
   $$
   R_g' = \frac{1}{h_g(x)\,P_g}
   $$
 
-- Gas-side fouling:
+- Gas side fouling:
 
   $$
   R_{fg}' = R_{fi}'(P_g) \quad\text{(from specified fouling thickness and conductivity)}
@@ -90,13 +90,13 @@ The overall conductance per unit length $UA'(x)$ is obtained from a radial serie
   R_w' = \frac{\ln\!\bigl(D_o/D_i\bigr)}{2\pi k_w}
   $$
 
-- Water-side fouling:
+- Water side fouling:
 
   $$
   R_{fc}' = R_{fo}'(P_w)
   $$
 
-- Water-side convection:
+- Water side convection:
   $$
   R_c' = \frac{1}{h_w(x)\,P_w}
   $$
@@ -189,7 +189,7 @@ These integrated quantities are later used in the performance and efficiency eva
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/3_pass_T-Q_diagram.png}
-\caption{Representative $T$–$Q$ diagram for the three-pass boiler, showing gas and water/steam temperature evolution and stage heat duties $\mathrm{HX_1}$–$\mathrm{HX_6}$.}
+\caption{Representative $T$–$Q$ diagram for the three pass boiler, showing gas and water/steam temperature evolution and stage heat duties $\mathrm{HX_1}$–$\mathrm{HX_6}$.}
 \label{fig:TQ-diagram}
 \end{figure}
 

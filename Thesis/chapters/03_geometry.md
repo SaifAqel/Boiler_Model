@@ -124,3 +124,5 @@ These YAML entries are translated by the loader into the geometric and hydraulic
    - Compressibility effects appear only through property variations $\rho(T,P)$ and $\mu(T,P)$ in $\mathrm{Re}$ and $\rho V^2 / 2$.
    - Stage level minor loss coefficients are lumped, and uniformly distributed along the stage.
    - Gas side ΔP in economizer stage is neglected.
+
+\newpage

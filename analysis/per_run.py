@@ -290,7 +290,7 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
-def generate_stage_param_figure(
+def generate_stage_heat_figure(
     csv_path: str = "results/summary/stages_summary_all_runs.csv",
     output_dir: str = "figures",
 ) -> None:
@@ -312,22 +312,22 @@ def generate_stage_param_figure(
     df = df.dropna(subset=["stage_index"]).copy()
 
     fig, axes = plt.subplots(2, 2, figsize=(8, 6))
-    ax_duty = axes[0, 0]
-    ax_UA   = axes[0, 1]
-    ax_Tg   = axes[1, 0]
-    ax_dp   = axes[1, 1]
+    ax_Tg    = axes[0, 0]
+    ax_duty  = axes[0, 1]
+    ax_Qrad  = axes[1, 0]
+    ax_Qconv = axes[1, 1]
 
     stage_ticks = sorted(df["stage_index"].unique())
 
-    for ax in (ax_duty, ax_UA, ax_Tg, ax_dp):
+    for ax in (ax_Tg, ax_duty, ax_Qrad, ax_Qconv):
         ax.set_xlabel("Stage [-]")
         ax.set_xticks(stage_ticks)
         ax.grid(True, which="both")
 
-    ax_duty.set_ylabel("Stage duty $Q_{\\mathrm{stage}}$ [MW]")
-    ax_UA.set_ylabel("Stage conductance $UA$ [MW/K]")
     ax_Tg.set_ylabel("Gas outlet temperature [°C]")
-    ax_dp.set_ylabel("Total pressure drop [Pa]")
+    ax_duty.set_ylabel("Stage duty $Q_{\\mathrm{stage}}$ [MW]")
+    ax_Qrad.set_ylabel("$Q_{\\mathrm{rad}}$ [MW]")
+    ax_Qconv.set_ylabel("$Q_{\\mathrm{conv}}$ [MW]")
 
     pg_list = sorted(df["param_group"].unique())
 
@@ -353,15 +353,15 @@ def generate_stage_param_figure(
 
         for run_name, df_run in df_pg.groupby("run"):
             df_run_sorted = df_run.sort_values("stage_index")
-            x = df_run_sorted["stage_index"]
-            y_Q  = df_run_sorted["Q total[MW]"]
-            y_UA = df_run_sorted["UA[MW/K]"]
-            y_Tg = df_run_sorted["gas out temp[°C]"]
-            y_dp = df_run_sorted["pressure drop total[pa]"].abs()
+            x     = df_run_sorted["stage_index"]
+            y_Tg  = df_run_sorted["gas out temp[°C]"]
+            y_Q   = df_run_sorted["Q total[MW]"]     # stage duty
+            y_Qrad = df_run_sorted["Q rad[MW]"]
+            y_Qconv = df_run_sorted["Q conv[MW]"]
 
-            line_duty, = ax_duty.plot(
+            line_Tg, = ax_Tg.plot(
                 x,
-                y_Q,
+                y_Tg,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
@@ -369,27 +369,27 @@ def generate_stage_param_figure(
                 label=param_group,
             )
 
-            ax_UA.plot(
+            ax_duty.plot(
                 x,
-                y_UA,
+                y_Q,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
                 linewidth=lw,
             )
 
-            ax_Tg.plot(
+            ax_Qrad.plot(
                 x,
-                y_Tg,
+                y_Qrad,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
                 linewidth=lw,
             )
 
-            ax_dp.plot(
+            ax_Qconv.plot(
                 x,
-                y_dp,
+                y_Qconv,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
@@ -397,7 +397,7 @@ def generate_stage_param_figure(
             )
 
             if param_group not in legend_handles:
-                legend_handles[param_group] = line_duty
+                legend_handles[param_group] = line_Tg
 
     if legend_handles:
         fig.legend(
@@ -411,11 +411,11 @@ def generate_stage_param_figure(
 
     fig.tight_layout(rect=(0.0, 0.05, 1.0, 1.0))
 
-    out_path = out_dir / "stages_param_groups.png"
+    out_path = out_dir / "stages_heat.png"
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
-def generate_stage_velocity_pressure_Qsum_UA_figure(
+def generate_stage_hydraulics_figure(
     csv_path: str = "results/summary/stages_summary_all_runs.csv",
     output_dir: str = "figures",
 ) -> None:
@@ -437,22 +437,22 @@ def generate_stage_velocity_pressure_Qsum_UA_figure(
     df = df.dropna(subset=["stage_index"]).copy()
 
     fig, axes = plt.subplots(2, 2, figsize=(8, 6))
-    ax_vel = axes[0, 0]
+    ax_UA  = axes[0, 0]
     ax_p   = axes[0, 1]
-    ax_Q   = axes[1, 0]
-    ax_UA  = axes[1, 1]
+    ax_dp  = axes[1, 0]
+    ax_vel = axes[1, 1]
 
     stage_ticks = sorted(df["stage_index"].unique())
 
-    for ax in (ax_vel, ax_p, ax_Q, ax_UA):
+    for ax in (ax_UA, ax_p, ax_dp, ax_vel):
         ax.set_xlabel("Stage [-]")
         ax.set_xticks(stage_ticks)
         ax.grid(True, which="both")
 
-    ax_vel.set_ylabel("Gas average velocity [m/s]")
-    ax_p.set_ylabel("Gas outlet pressure [Pa]")
-    ax_Q.set_ylabel(r"$Q_\mathrm{conv} + Q_\mathrm{rad} + Q_\mathrm{total}$ [MW]")
     ax_UA.set_ylabel("Stage conductance $UA$ [MW/K]")
+    ax_p.set_ylabel("Gas outlet pressure [Pa]")
+    ax_dp.set_ylabel("Total pressure drop [Pa]")
+    ax_vel.set_ylabel("Gas average velocity [m/s]")
 
     pg_list = sorted(df["param_group"].unique())
 
@@ -478,19 +478,15 @@ def generate_stage_velocity_pressure_Qsum_UA_figure(
 
         for run_name, df_run in df_pg.groupby("run"):
             df_run_sorted = df_run.sort_values("stage_index")
-            x = df_run_sorted["stage_index"]
+            x     = df_run_sorted["stage_index"]
             y_vel = df_run_sorted["gas avg velocity[m/s]"]
             y_p   = df_run_sorted["gas out pressure[pa]"]
-            y_Q   = (
-                df_run_sorted["Q conv[MW]"]
-                + df_run_sorted["Q rad[MW]"]
-                + df_run_sorted["Q total[MW]"]
-            )
+            y_dp  = df_run_sorted["pressure drop total[pa]"].abs()
             y_UA  = df_run_sorted["UA[MW/K]"]
 
-            line_vel, = ax_vel.plot(
+            line_UA, = ax_UA.plot(
                 x,
-                y_vel,
+                y_UA,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
@@ -507,18 +503,18 @@ def generate_stage_velocity_pressure_Qsum_UA_figure(
                 linewidth=lw,
             )
 
-            ax_Q.plot(
+            ax_dp.plot(
                 x,
-                y_Q,
+                y_dp,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
                 linewidth=lw,
             )
 
-            ax_UA.plot(
+            ax_vel.plot(
                 x,
-                y_UA,
+                y_vel,
                 marker=marker,
                 linestyle=line_style,
                 color=color,
@@ -526,7 +522,7 @@ def generate_stage_velocity_pressure_Qsum_UA_figure(
             )
 
             if param_group not in legend_handles:
-                legend_handles[param_group] = line_vel
+                legend_handles[param_group] = line_UA
 
     if legend_handles:
         fig.legend(
@@ -540,7 +536,7 @@ def generate_stage_velocity_pressure_Qsum_UA_figure(
 
     fig.tight_layout(rect=(0.0, 0.05, 1.0, 1.0))
 
-    out_path = out_dir / "stages_velocity_pressure_Qsum_UA.png"
+    out_path = out_dir / "stages_hydraulics.png"
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
@@ -595,6 +591,6 @@ if __name__ == "__main__":
     generate_overall_kpi_figure(csv_arg, output_dir=out_arg)
 
     stage_csv = "results/summary/stages_summary_all_runs.csv"
-    generate_stage_param_figure(stage_csv, output_dir=out_arg)
+    generate_stage_heat_figure(stage_csv, output_dir=out_arg)
 
-    generate_stage_velocity_pressure_Qsum_UA_figure(stage_csv, output_dir=out_arg)
+    generate_stage_hydraulics_figure(stage_csv, output_dir=out_arg)

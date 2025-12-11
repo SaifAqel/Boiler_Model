@@ -447,3 +447,5 @@ $$
 The function `from_fuel_and_air()` returns the fully burnt flue gas composition $w_k^\mathrm{(flue)}$ and the total flue mass flow $\dot m_\mathrm{flue}$.
 
 This separation allows the model to retain a realistic high temperature reference from chemical equilibrium while employing a reduced, engineering flue gas composition for subsequent heat transfer and hydraulic calculations.
+
+\newpage
