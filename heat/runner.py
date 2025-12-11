@@ -30,7 +30,7 @@ def run_hx(
     tol_Q: str = "1e-3 W",
     tol_end: str = "1e-3 J/kg",
     write_csv: bool,
-    outdir: str | Path = "results",
+    outdir: str | Path = "results/runs",
     run_id: str | None = None,
     log_level: str = "INFO",
     combustion: CombustionResult | None = None,

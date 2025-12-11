@@ -328,7 +328,7 @@ def write_results_csvs(
             ("UA[MW/K]",                        "UA_stage[MW/K]"),
             ("Q_in total[MW]",                  "Q_in_total[MW]"),
             ("Q_useful[MW]",                     "Q_total_useful[MW]"),
-            ("pressue drop fric total[Pa]",     "ΔP_stage_fric[Pa]"),
+            ("pressure drop fric total[Pa]",     "ΔP_stage_fric[Pa]"),
             ("pressure drop minor total[Pa]",   "ΔP_stage_minor[Pa]"),
             ("pressure drop total[Pa]",         "ΔP_stage_total[Pa]"),
             ("LHV[kJ/kg]",                      "LHV_mass[kJ/kg]"),
