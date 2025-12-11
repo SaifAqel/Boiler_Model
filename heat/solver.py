@@ -33,6 +33,9 @@ def _copy_step_with_stage(
     dP_fric: Q_ | None = None,
     dP_minor: Q_ | None = None,
     dP_total: Q_ | None = None,
+    dP_water_fric: Q_ | None = None,
+    dP_water_minor: Q_ | None = None,
+    dP_water_total: Q_ | None = None, 
 ) -> StepResult:
     return StepResult(
         i=sr.i, x=sr.x, dx=sr.dx,
@@ -47,6 +50,9 @@ def _copy_step_with_stage(
         dP_fric=dP_fric or Q_(0.0, "Pa"),
         dP_minor=dP_minor or Q_(0.0, "Pa"),
         dP_total=dP_total or Q_(0.0, "Pa"),
+        dP_water_fric=dP_water_fric or Q_(0.0, "Pa"),
+        dP_water_minor=dP_water_minor or Q_(0.0, "Pa"),
+        dP_water_total=dP_water_total or Q_(0.0, "Pa"),
     )
 
 def initial_wall_guesses(g: GasStream, w: WaterStream) -> tuple[Q_, Q_, Q_]:
@@ -85,12 +91,7 @@ def _stage_minor_K_sum(stage: HXStage) -> Q_:
     spec = stage.spec
     kind = stage.kind.lower()
 
-    if kind == "economiser":
-        return Q_(0.0, "")
-
     if kind == "reversal_chamber":
-        Kin = spec.get("nozzle_k_in", Q_(0.0, ""))
-        Kout = spec.get("nozzle_k_out", Q_(0.0, ""))
         Rc = spec.get("curvature_radius", None)
         Do = spec.get("outer_diameter", None)
         if Rc is not None and Do is not None and Rc.to("m").magnitude > 0 and Do.to("m").magnitude > 0:
@@ -98,27 +99,11 @@ def _stage_minor_K_sum(stage: HXStage) -> Q_:
             Kbend = max(0.2, min(2.0, 0.9 / max(r, 1e-6)))
         else:
             Kbend = 0.5
-        return Q_(Kbend, "") + Kin.to("") + Kout.to("")
-
-    if kind == "single_tube":
-        Kc = spec.get("K_contraction", Q_(0.5, ""))
-        Ke = spec.get("K_expansion",   Q_(1.0, ""))
-        Kx = spec.get("K_exit",        Q_(1.0, ""))
-        return (Kc.to("") + Ke.to("") + Kx.to("")).to("")
-
-    if kind == "tube_bank":
-        Kc = spec.get("K_contraction", Q_(0.0, ""))
-        Ke = spec.get("K_expansion",   Q_(0.0, ""))
-        Kx = spec.get("K_exit",        Q_(0.0, ""))
-        return (Kc.to("") + Ke.to("") + Kx.to("")).to("")
-
+        return Q_(Kbend, "")
     return Q_(0.0, "")
 
-def _gas_dp_components(g: GasStream, stage: HXStage, dx: Q_) -> tuple[Q_, Q_, Q_]:
-    kind = stage.kind.lower()
-    if kind == "economiser":
-        return Q_(0.0, "Pa"), Q_(0.0, "Pa"), Q_(0.0, "Pa")
 
+def _gas_dp_components(g: GasStream, stage: HXStage, dx: Q_, i_step: int) -> tuple[Q_, Q_, Q_]:
     spec = stage.spec
     A = spec["hot_flow_A"].to("m^2")
     Dh = spec["hot_Dh"].to("m")
@@ -127,23 +112,28 @@ def _gas_dp_components(g: GasStream, stage: HXStage, dx: Q_) -> tuple[Q_, Q_, Q_
     mu  = _gas.mu(g.T, g.P, g.comp)
 
     V = (g.mass_flow / (rho * A)).to("m/s")
-    Re = max( (rho * V * Dh / mu).to("").magnitude, 1e-6)
+    Re = max((rho * V * Dh / mu).to("").magnitude, 1e-6)
     eps_over_D = (eps / Dh).to("").magnitude
 
     f = _friction_factor(Re, eps_over_D)
-
     q = (rho * V**2 / 2.0).to("Pa")
 
-    dP_fric = ( - f * (dx / Dh) * q ).to("Pa")
+    dP_fric = (- f * (dx / Dh) * q).to("Pa")
 
-    K_per_step = spec.get("_K_per_step", Q_(0.0, ""))
-    dP_minor = ( - K_per_step.to("") * q ).to("Pa")
+    K_bend_per_step = spec.get("_K_bend_per_step", Q_(0.0, "")).to("")
+    K_boundary = spec.get("_K_boundary_hot", Q_(0.0, "")).to("")
 
+    K_minor = K_bend_per_step
+    if i_step == 0:
+        K_minor = (K_minor + K_boundary).to("")
+
+    dP_minor = (- K_minor * q).to("Pa")
     dP_total = (dP_fric + dP_minor).to("Pa")
     return dP_fric, dP_minor, dP_total
 
+
 def pressure_drop_gas(g: GasStream, stage: HXStage, i: int, dx: Q_) -> Q_:
-    _, _, dP_total = _gas_dp_components(g, stage, dx)
+    _, _, dP_total = _gas_dp_components(g, stage, dx, i)
     return dP_total
 
 def _solve_T_for_h(P, X, h_target, T0, maxit=30):
@@ -158,21 +148,64 @@ def _solve_T_for_h(P, X, h_target, T0, maxit=30):
         T  = (T + 0.8*dT).to("K")
     return T
 
-def update_gas_after_step(g, qprime, dx, stage):
+def update_gas_after_step(g, qprime, dx, stage, i: int) -> GasStream:
     Q_step = (qprime * dx).to("W")
     dh     = (-Q_step / g.mass_flow).to("J/kg")
     h_old  = _gasprops.h(g.T, g.P, g.comp)
     h_new  = (h_old + dh).to("J/kg")
     T_new  = _solve_T_for_h(g.P, g.comp, h_new, g.T)
-    P_new  = (g.P + pressure_drop_gas(g, stage, i=0, dx=dx)).to("Pa")
+    P_new  = (g.P + pressure_drop_gas(g, stage, i=i, dx=dx)).to("Pa")
     return GasStream(mass_flow=g.mass_flow, T=T_new, P=P_new, comp=g.comp)
 
+def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int) -> tuple[Q_, Q_, Q_]:
+    spec = stage.spec
+    kind = stage.kind.lower()
 
-def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage) -> WaterStream:
+    dP_fric = Q_(0.0, "Pa")
+    dP_minor = Q_(0.0, "Pa")
+
+    # friction only inside economiser tubes
+    if kind == "economiser":
+        A = spec["cold_flow_A"].to("m^2")
+        Dh = spec["cold_Dh"].to("m")
+        eps = spec.get("roughness_cold_surface", Q_(0.0, "m")).to("m")
+
+        rho = WaterProps.rho_from_Ph(w.P, w.h)
+        mu  = WaterProps.mu_from_Ph(w.P, w.h)
+
+        V = (w.mass_flow / (rho * A)).to("m/s")
+        Re = max((rho * V * Dh / mu).to("").magnitude, 1e-6)
+        eps_over_D = (eps / Dh).to("").magnitude
+
+        f = _friction_factor(Re, eps_over_D)
+        q = (rho * V**2 / 2.0).to("Pa")
+
+        dP_fric = (- f * (dx / Dh) * q).to("Pa")
+
+    # single expansion eco -> drum, applied at first water step in HX5
+    K_exit = spec.get("_K_water_from_eco", Q_(0.0, ""))
+    if i_step == 0 and K_exit.to("").magnitude != 0.0:
+        A = spec.get("cold_flow_A", None)
+        if A is not None:
+            A = A.to("m^2")
+            rho = WaterProps.rho_from_Ph(w.P, w.h)
+            V = (w.mass_flow / (rho * A)).to("m/s")
+            q = (rho * V**2 / 2.0).to("Pa")
+            dP_minor = (- K_exit.to("") * q).to("Pa")
+
+    dP_total = (dP_fric + dP_minor).to("Pa")
+    return dP_fric, dP_minor, dP_total
+
+def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage, i: int) -> WaterStream:
     Q_step = (qprime * dx).to("W")
     dh = (Q_step / w.mass_flow).to("J/kg")
     h_new = (w.h + dh).to("J/kg")
-    return WaterStream(mass_flow=w.mass_flow, h=h_new, P=w.P)
+
+    dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i)
+    P_new = (w.P + dP_tot).to("Pa")
+
+    return WaterStream(mass_flow=w.mass_flow, h=h_new, P=P_new)
+
 
 def solve_stage(
     g_in: GasStream,
@@ -191,9 +224,6 @@ def solve_stage(
     K_per_step = (K_sum / max(n_steps, 1)).to("")
     stage.spec["_K_per_step"] = K_per_step
 
-    if stage.kind.lower() == "economiser":
-        log.info("economiser ΔP skipped", extra={"stage": stage.name, "step": "-"})
-
     steps: List[StepResult] = []
 
     g = g_in
@@ -205,9 +235,13 @@ def solve_stage(
     dP_fric_sum = Q_(0.0, "Pa")
     dP_minor_sum = Q_(0.0, "Pa")
     dP_total_sum = Q_(0.0, "Pa")
+    dP_water_fric_sum = Q_(0.0, "Pa")
+    dP_water_minor_sum = Q_(0.0, "Pa")
+    dP_water_total_sum = Q_(0.0, "Pa")
 
     for i, x in enumerate(xs):
-        dP_fric, dP_minor, dP_tot = _gas_dp_components(g, stage, dx)
+        dP_fric, dP_minor, dP_tot = _gas_dp_components(g, stage, dx, i)
+        w_dP_fric, w_dP_minor, w_dP_tot = _water_dp_components(w, stage, dx, i)
 
         sr = solve_step(
             g=g, w=w, stage=stage,
@@ -227,10 +261,14 @@ def solve_stage(
         dP_minor_sum = (dP_minor_sum + dP_minor).to("Pa")
         dP_total_sum = (dP_total_sum + dP_tot).to("Pa")
 
+        dP_water_fric_sum  = (dP_water_fric_sum  + w_dP_fric).to("Pa")
+        dP_water_minor_sum = (dP_water_minor_sum + w_dP_minor).to("Pa")
+        dP_water_total_sum = (dP_water_total_sum + w_dP_tot).to("Pa") 
+
         Tgw_guess, Tww_guess, qprime_guess = sr.Tgw, sr.Tww, sr.qprime
 
-        g = update_gas_after_step(g, sr.qprime, dx, stage)
-        w = update_water_after_step(w, sr.qprime, dx, stage)
+        g = update_gas_after_step(g, sr.qprime, dx, stage, i)
+        w = update_water_after_step(w, sr.qprime, dx, stage, i)
 
         log.debug(
             "step",
@@ -249,6 +287,9 @@ def solve_stage(
         dP_stage_fric=dP_fric_sum,
         dP_stage_minor=dP_minor_sum,
         dP_stage_total=dP_total_sum,
+        dP_water_stage_fric=dP_water_fric_sum,
+        dP_water_stage_minor=dP_water_minor_sum,
+        dP_water_stage_total=dP_water_total_sum,
         hot_flow_A=stage.spec["hot_flow_A"],
         cold_flow_A=stage.spec["cold_flow_A"],
         hot_Dh=stage.spec["hot_Dh"],
@@ -302,6 +343,33 @@ def solve_exchanger(
         L = st.spec["inner_length"].to("m")
         n = _clamp(int(ceil((L / dx_target).to("").magnitude)), min_steps_per_stage, max_steps_per_stage)
         n_steps_by_stage.append(n)
+
+    for idx, st in enumerate(stages):
+        if idx == 0:
+            st.spec["_K_boundary_hot"] = Q_(0.0, "")
+            continue
+        A_prev = stages[idx - 1].spec["hot_flow_A"].to("m^2").magnitude
+        A_curr = st.spec["hot_flow_A"].to("m^2").magnitude
+        if A_prev <= 0.0 or A_curr <= 0.0:
+            K = 0.0
+        else:
+            ratio = min(A_prev, A_curr) / max(A_prev, A_curr)
+            K = (1.0 - ratio) ** 2
+        st.spec["_K_boundary_hot"] = Q_(K, "")
+
+    eco_idx = next((i for i, st in enumerate(stages) if st.kind.lower() == "economiser"), None)
+    if eco_idx is not None and eco_idx > 0:
+        st_eco = stages[eco_idx]
+        st_after_water = stages[eco_idx - 1]
+
+        A1 = st_eco.spec["cold_flow_A"].to("m^2").magnitude
+        A2 = st_after_water.spec["cold_flow_A"].to("m^2").magnitude
+        if A1 <= 0.0 or A2 <= 0.0:
+            K_exit = 0.0
+        else:
+            ratio = min(A1, A2) / max(A1, A2)
+            K_exit = (1.0 - ratio) ** 2
+        st_after_water.spec["_K_water_from_eco"] = Q_(K_exit, "")
 
     prev_Q_total: Optional[Q_] = None
     prev_end_h: Optional[Tuple[Q_, Q_, Q_, Q_]] = None

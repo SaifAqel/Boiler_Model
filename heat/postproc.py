@@ -122,6 +122,9 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             "dP_fric[Pa]": gp.dP_fric[i].to("Pa").magnitude,
             "dP_minor[Pa]": gp.dP_minor[i].to("Pa").magnitude,
             "dP_total[Pa]": gp.dP_total[i].to("Pa").magnitude,
+            "water_dP_fric[Pa]": gp.dP_water_fric[i].to("Pa").magnitude,
+            "water_dP_minor[Pa]": gp.dP_water_minor[i].to("Pa").magnitude,
+            "water_dP_total[Pa]": gp.dP_water_total[i].to("Pa").magnitude, 
             "gas_cp[kJ/kg/K]": g_cp.to("kJ/kg/K").magnitude,
             "gas_mu[Pa*s]": g_mu.to("Pa*s").magnitude,
             "gas_k[W/m/K]": g_k.to("W/m/K").magnitude,
@@ -146,6 +149,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     dP_total_fric = 0.0
     dP_total_minor = 0.0
     dP_total_total = 0.0
+    dP_water_total_fric = 0.0
+    dP_water_total_minor = 0.0
+    dP_water_total_total = 0.0 
     stack_T_C = None
     flue_mdot_kg_s = None
     boiler_water_in_P_Pa = None
@@ -191,6 +197,10 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         dP_fric = sum(gp.dP_fric[i].to("Pa").magnitude for i in idxs)
         dP_minor = sum(gp.dP_minor[i].to("Pa").magnitude for i in idxs)
         dP_total = sum(gp.dP_total[i].to("Pa").magnitude for i in idxs)
+    
+        dP_water_fric = sum(gp.dP_water_fric[i].to("Pa").magnitude for i in idxs)
+        dP_water_minor = sum(gp.dP_water_minor[i].to("Pa").magnitude for i in idxs)
+        dP_water_total = sum(gp.dP_water_total[i].to("Pa").magnitude for i in idxs) 
 
         g_in  = gp.gas[idxs[0]]
         g_out = gp.gas[idxs[-1]]
@@ -249,6 +259,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "ΔP_stage_fric[Pa]": dP_fric,
             "ΔP_stage_minor[Pa]": dP_minor,
             "ΔP_stage_total[Pa]": dP_total,
+            "ΔP_water_stage_fric[Pa]": dP_water_fric,
+            "ΔP_water_stage_minor[Pa]": dP_water_minor,
+            "ΔP_water_stage_total[Pa]": dP_water_total,
             "Q_conv_stage[MW]": Q_stage_conv,
             "Q_rad_stage[MW]": Q_stage_rad,
             "steam_capacity[kg/s]": "",
@@ -275,6 +288,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         dP_total_fric  += dP_fric
         dP_total_minor += dP_minor
         dP_total_total += dP_total
+        dP_water_total_fric  += dP_water_fric
+        dP_water_total_minor += dP_water_minor
+        dP_water_total_total += dP_water_total
         stack_T_C = gas_out_T
 
     steam_capacity_total_kg_s = None
@@ -352,6 +368,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "ΔP_stage_fric[Pa]": dP_total_fric,
         "ΔP_stage_minor[Pa]": dP_total_minor,
         "ΔP_stage_total[Pa]": dP_total_total,
+        "ΔP_water_stage_fric[Pa]": dP_water_total_fric,
+        "ΔP_water_stage_minor[Pa]": dP_water_total_minor,
+        "ΔP_water_stage_total[Pa]": dP_water_total_total, 
         "stack_temperature[°C]": stack_T_C,
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,

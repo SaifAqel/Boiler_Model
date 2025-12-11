@@ -38,6 +38,9 @@ class StepResult:
     dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     qprime_conv: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
     qprime_rad: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
 
@@ -51,6 +54,9 @@ class StageResult:
     dP_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     dP_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_water_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
     hot_flow_A: Q_ = field(default_factory=lambda: Q_(0.0, "m^2"))
     cold_flow_A: Q_ = field(default_factory=lambda: Q_(0.0, "m^2"))
     hot_Dh: Q_ = field(default_factory=lambda: Q_(0.0, "m"))
@@ -71,6 +77,9 @@ class GlobalProfile:
     dP_fric: List[Q_]
     dP_minor: List[Q_]
     dP_total: List[Q_]
+    dP_water_fric: List[Q_]
+    dP_water_minor: List[Q_]
+    dP_water_total: List[Q_]
     stage_results: List[StageResult]
 
 def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
@@ -87,6 +96,9 @@ def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
     dP_fric: List[Q_] = []
     dP_minor: List[Q_] = []
     dP_total: List[Q_] = []
+    dP_water_fric: List[Q_] = []
+    dP_water_minor: List[Q_] = []
+    dP_water_total: List[Q_] = []
 
     for k, sr in enumerate(stage_results):
         for st in sr.steps:
@@ -103,12 +115,16 @@ def build_global_profile(stage_results: Sequence[StageResult]) -> GlobalProfile:
             dP_fric.append(st.dP_fric)
             dP_minor.append(st.dP_minor)
             dP_total.append(st.dP_total)
+            dP_water_fric.append(st.dP_water_fric)
+            dP_water_minor.append(st.dP_water_minor)
+            dP_water_total.append(st.dP_water_total)
 
     return GlobalProfile(
         x=xs, dx=dxs, gas=gas, water=water,
         qprime=qprime, UA_prime=UA_prime, h_g=h_g, h_c=h_c,
         stage_index=sidx, stage_name=sname,
         dP_fric=dP_fric, dP_minor=dP_minor, dP_total=dP_total,
+        dP_water_fric=dP_water_fric, dP_water_minor=dP_water_minor, dP_water_total=dP_water_total,  
         stage_results=list(stage_results),
     )
 
@@ -155,6 +171,7 @@ def write_results_csvs(
             "gas_V_avg[m/s]", "water_V_avg[m/s]",
 
             "ΔP_stage_fric[Pa]", "ΔP_stage_minor[Pa]", "ΔP_stage_total[Pa]",
+            "ΔP_water_stage_fric[Pa]", "ΔP_water_stage_minor[Pa]", "ΔP_water_stage_total[Pa]",
             "stack_temperature[°C]",
             "Q_conv_stage[MW]", "Q_rad_stage[MW]",
 
@@ -197,6 +214,9 @@ def write_results_csvs(
             "pressure drop fric[pa]": df_stages["ΔP_stage_fric[Pa]"],
             "pressure drop minor[pa]": df_stages["ΔP_stage_minor[Pa]"],
             "pressure drop total[pa]": df_stages["ΔP_stage_total[Pa]"],
+            "water pressure drop fric[pa]": df_stages["ΔP_water_stage_fric[Pa]"],
+            "water pressure drop minor[pa]": df_stages["ΔP_water_stage_minor[Pa]"],
+            "water pressure drop total[pa]": df_stages["ΔP_water_stage_total[Pa]"],
             "Q conv[MW]": df_stages["Q_conv_stage[MW]"],
             "Q rad[MW]": df_stages["Q_rad_stage[MW]"],
             "Q total[MW]": df_stages["Q_stage[MW]"],
@@ -272,6 +292,9 @@ def write_results_csvs(
             ("pressure drop fric total[Pa]",     "ΔP_stage_fric[Pa]"),
             ("pressure drop minor total[Pa]",   "ΔP_stage_minor[Pa]"),
             ("pressure drop total[Pa]",         "ΔP_stage_total[Pa]"),
+            ("water pressure drop fric total[Pa]",  "ΔP_water_stage_fric[Pa]"),
+            ("water pressure drop minor total[Pa]", "ΔP_water_stage_minor[Pa]"),
+            ("water pressure drop total[Pa]",       "ΔP_water_stage_total[Pa]"), 
             ("LHV[kJ/kg]",                      "LHV_mass[kJ/kg]"),
             ("P-LHV[MW]",                       "P_LHV[MW]"),
             ("Tad[°C]",                         "T_ad[°C]"),
