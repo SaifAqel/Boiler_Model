@@ -148,7 +148,7 @@ def write_results_csvs(
         global_profile,
         remap_water=True,
     )
-    df_steps.to_csv(steps_path, index=False)
+    df_steps.to_csv(steps_path, index="stage_name")
 
     rows, _, _ = summary_from_profile(
         global_profile,
