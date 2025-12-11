@@ -102,8 +102,83 @@ def _stage_minor_K_sum(stage: HXStage) -> Q_:
         return Q_(Kbend, "")
     return Q_(0.0, "")
 
+def _gas_dp_economiser_crossflow(
+    g: GasStream,
+    stage: HXStage,
+    dx: Q_,
+    i_step: int,
+    n_steps: int,
+) -> tuple[Q_, Q_, Q_]:
 
-def _gas_dp_components(g: GasStream, stage: HXStage, dx: Q_, i_step: int, n_steps: int) -> tuple[Q_, Q_, Q_]:
+    spec = stage.spec
+
+    A_hot = spec["hot_flow_A"].to("m^2")
+    L     = spec["inner_length"].to("m")
+    Do    = spec["outer_diameter"].to("m")
+    ST    = spec["ST"].to("m")
+    SL    = spec["SL"].to("m")
+
+    N_rows_q = spec.get("N_rows", None)
+    N_rows = int(round(N_rows_q.to("").magnitude)) if N_rows_q is not None else 1
+    N_rows = max(N_rows, 1)
+
+    arrangement = str(spec.get("arrangement", "inline") or "inline").lower()
+
+    rho = _gas.rho(g.T, g.P, g.comp)
+    mu  = _gas.mu(g.T, g.P, g.comp)
+
+    V_bulk = (g.mass_flow / (rho * A_hot)).to("m/s")
+
+    umax_factor_q = spec.get("umax_factor", Q_(1.0, ""))
+    umax_factor = umax_factor_q.to("").magnitude
+    V_char = (V_bulk * umax_factor).to("m/s")
+
+    Re_D = (rho * V_char * Do / mu).to("").magnitude
+    Re_D = max(Re_D, 1e-3)
+
+    ST_over_D = (ST / Do).to("").magnitude
+    SL_over_D = (SL / Do).to("").magnitude
+
+    if arrangement == "staggered":
+        C0 = 1.2
+        m  = -0.15
+    else:
+        C0 = 1.0
+        m  = -0.15
+
+    geom_fac = (ST_over_D / 1.5) ** -0.2 * (SL_over_D / 1.5) ** -0.2
+
+    zeta_row = C0 * (Re_D ** m) * geom_fac
+    zeta_row = max(zeta_row, 1e-4)
+
+    zeta_total = zeta_row * N_rows
+
+    q_dyn = (rho * V_char**2 / 2.0).to("Pa")
+
+    dP_bundle = (-zeta_total * q_dyn).to("Pa")
+
+    frac = (dx / L).to("").magnitude
+    dP_fric = (dP_bundle * frac).to("Pa")
+
+    dP_minor = Q_(0.0, "Pa")
+    dP_total = (dP_fric + dP_minor).to("Pa")
+
+    return dP_fric, dP_minor, dP_total
+
+def _gas_dp_components(
+    g: GasStream,
+    stage: HXStage,
+    dx: Q_,
+    i_step: int,
+    n_steps: int,
+) -> tuple[Q_, Q_, Q_]:
+    kind = stage.kind.lower()
+
+    # Special treatment for economiser: tube-bank cross-flow correlation
+    if kind == "economiser":
+        return _gas_dp_economiser_crossflow(g, stage, dx, i_step, n_steps)
+
+    # Default: internal pipe-like flow with Darcy–Weisbach + minor K
     spec = stage.spec
     A = spec["hot_flow_A"].to("m^2")
     Dh = spec["hot_Dh"].to("m")
@@ -130,7 +205,6 @@ def _gas_dp_components(g: GasStream, stage: HXStage, dx: Q_, i_step: int, n_step
     dP_minor = (- K_minor * q).to("Pa")
     dP_total = (dP_fric + dP_minor).to("Pa")
     return dP_fric, dP_minor, dP_total
-
 
 def pressure_drop_gas(g: GasStream, stage: HXStage, i: int, dx: Q_, n_steps: int) -> Q_:
     _, _, dP_total = _gas_dp_components(g, stage, dx, i, n_steps)
@@ -346,19 +420,6 @@ def solve_exchanger(
         L = st.spec["inner_length"].to("m")
         n = _clamp(int(ceil((L / dx_target).to("").magnitude)), min_steps_per_stage, max_steps_per_stage)
         n_steps_by_stage.append(n)
-
-    for idx, st in enumerate(stages):
-        if idx == 0:
-            stages[0].spec["_K_boundary_hot"] = Q_(0.0, "")
-            continue
-        A_prev = stages[idx - 1].spec["hot_flow_A"].to("m^2").magnitude
-        A_curr = st.spec["hot_flow_A"].to("m^2").magnitude
-        if A_prev <= 0.0 or A_curr <= 0.0:
-            K = 0.0
-        else:
-            ratio = min(A_prev, A_curr) / max(A_prev, A_curr)
-            K = (1.0 - ratio) ** 2
-        stages[idx - 1].spec["_K_boundary_hot"] = Q_(K, "")
 
     eco_idx = next((i for i, st in enumerate(stages) if st.kind.lower() == "economiser"), None)
     if eco_idx is not None and eco_idx > 0:

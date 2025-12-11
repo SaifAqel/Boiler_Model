@@ -37,6 +37,37 @@ def _map_nozzles(node: Dict[str, Any], spec: Dict[str, Q_]):
     if _get(inlet, "k"):  spec["nozzle_k_in"]  = _q(_get(inlet, "k"))
     if _get(outlet, "k"): spec["nozzle_k_out"] = _q(_get(outlet, "k"))
 
+def _map_K(node: Dict[str, Any], spec: Dict[str, Q_]):
+    """
+    Map YAML 'K' block into dimensionless K_* entries on spec.
+    Expected YAML layout:
+
+      K:
+        hot_inlet: 0.5
+        hot_outlet: 1.0
+        hot_bend: 0.2
+        cold_inlet: 0.5
+        cold_outlet: 1.0
+        cold_bend: 0.2
+    """
+    K_node = _get(node, "K") or {}
+    if not isinstance(K_node, dict):
+        return
+
+    mapping = {
+        "hot_inlet": "K_hot_inlet",
+        "hot_outlet": "K_hot_outlet",
+        "hot_bend": "K_hot_bend",
+        "cold_inlet": "K_cold_inlet",
+        "cold_outlet": "K_cold_outlet",
+        "cold_bend": "K_cold_bend",
+    }
+
+    for yaml_key, spec_key in mapping.items():
+        v = _get(K_node, yaml_key)
+        if v is not None:
+            spec[spec_key] = Q_(float(v), "dimensionless")
+
 def load_air(path: str) -> Dict[str, Any]:
     doc = yaml.safe_load(open(path, "r", encoding="utf-8"))
     comp = {k: _q(v) for k, v in (doc.get("composition") or {}).items()}
@@ -89,6 +120,7 @@ def load_stages(path: str) -> List[HXStage]:
 
         _wall_to_spec(_get(node, "wall"), spec)
         _map_nozzles(node, spec)
+        _map_K(node, spec)
 
         stages.append(HXStage(name=name, kind=str(node["kind"]), spec=spec))
 
