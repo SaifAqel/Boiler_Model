@@ -538,6 +538,167 @@ def generate_stage_param_figure(
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
+def generate_stage_velocity_pressure_Qsum_UA_figure(
+    csv_path: str = "results/summary/stages_summary_all_runs.csv",
+    output_dir: str = "figures",
+) -> None:
+    """
+    Generate a 2x2 figure (stage-wise) with:
+
+        (0,0): Gas average velocity vs stage
+        (0,1): Gas outlet pressure vs stage
+        (1,0): Q_conv + Q_rad + Q_total vs stage
+        (1,1): UA vs stage
+
+    x-axis for all subplots: stage index (1–6)
+    Colors / linestyles / markers: same scheme as in generate_stage_param_figure.
+    """
+    df = load_data(csv_path)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Extract numeric stage index from strings like "HX_1" -> 1
+    if df["stage"].dtype == object:
+        df["stage_index"] = (
+            df["stage"]
+            .astype(str)
+            .str.extract(r"(\d+)", expand=False)
+            .astype(int)
+        )
+    else:
+        df["stage_index"] = df["stage"].astype(int)
+
+    # Drop rows without stage index
+    df = df.dropna(subset=["stage_index"]).copy()
+
+    # -------------------------------------------------------------------------
+    # Figure and axes
+    # -------------------------------------------------------------------------
+    fig, axes = plt.subplots(2, 2, figsize=(8, 6))
+    ax_vel = axes[0, 0]
+    ax_p   = axes[0, 1]
+    ax_Q   = axes[1, 0]
+    ax_UA  = axes[1, 1]
+
+    # Common x-ticks: all stages present
+    stage_ticks = sorted(df["stage_index"].unique())
+
+    for ax in (ax_vel, ax_p, ax_Q, ax_UA):
+        ax.set_xlabel("Stage [-]")
+        ax.set_xticks(stage_ticks)
+        ax.grid(True, which="both")
+
+    ax_vel.set_ylabel("Gas average velocity [m/s]")
+    ax_p.set_ylabel("Gas outlet pressure [Pa]")
+    ax_Q.set_ylabel(r"$Q_\mathrm{conv} + Q_\mathrm{rad} + Q_\mathrm{total}$ [MW]")
+    ax_UA.set_ylabel("Stage conductance $UA$ [MW/K]")
+
+    # -------------------------------------------------------------------------
+    # Colors / linestyles per param_group (same logic as other stage figure)
+    # -------------------------------------------------------------------------
+    pg_list = sorted(df["param_group"].unique())
+
+    style_color_keys = list(style_colors.keys())
+    style_line_keys  = list(style_linestyles.keys())
+
+    pg_color = {
+        pg: style_colors[style_color_keys[i % len(style_color_keys)]]
+        for i, pg in enumerate(pg_list)
+    }
+    pg_line = {
+        pg: style_linestyles[style_line_keys[i % len(style_line_keys)]]
+        for i, pg in enumerate(pg_list)
+    }
+
+    legend_handles = {}
+
+    # -------------------------------------------------------------------------
+    # Plot one line per RUN, colored by param_group
+    # -------------------------------------------------------------------------
+    for param_group, df_pg in df.groupby("param_group"):
+        marker = _get_marker(param_group) or "o"
+        color = pg_color[param_group]
+        line_style = pg_line[param_group]
+        lw = 0.7
+
+        for run_name, df_run in df_pg.groupby("run"):
+            df_run_sorted = df_run.sort_values("stage_index")
+            x = df_run_sorted["stage_index"]
+
+            # NOTE: adjust column names below to match your CSV exactly
+            y_vel = df_run_sorted["gas avg velocity[m/s]"]
+            y_p   = df_run_sorted["gas out pressure[pa]"]
+            y_Q   = (
+                df_run_sorted["Q conv[MW]"]
+                + df_run_sorted["Q rad[MW]"]
+                + df_run_sorted["Q total[MW]"]
+            )
+            y_UA  = df_run_sorted["UA[MW/K]"]
+
+            # Gas average velocity
+            line_vel, = ax_vel.plot(
+                x,
+                y_vel,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+                label=param_group,
+            )
+
+            # Gas outlet pressure
+            ax_p.plot(
+                x,
+                y_p,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # Qconv + Qrad + Qtotal
+            ax_Q.plot(
+                x,
+                y_Q,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # UA
+            ax_UA.plot(
+                x,
+                y_UA,
+                marker=marker,
+                linestyle=line_style,
+                color=color,
+                linewidth=lw,
+            )
+
+            # One legend handle per param_group
+            if param_group not in legend_handles:
+                legend_handles[param_group] = line_vel
+
+    # -------------------------------------------------------------------------
+    # Global legend for param_groups
+    # -------------------------------------------------------------------------
+    if legend_handles:
+        fig.legend(
+            handles=list(legend_handles.values()),
+            labels=list(legend_handles.keys()),
+            loc="lower center",
+            ncol=min(len(legend_handles), 4),
+            framealpha=0.8,
+            bbox_to_anchor=(0.5, 0.02),
+        )
+
+    fig.tight_layout(rect=(0.0, 0.05, 1.0, 1.0))
+
+    out_path = out_dir / "stages_velocity_pressure_Qsum_UA.png"
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
 
 # =============================================================================
 # Main figure generation
@@ -613,3 +774,4 @@ if __name__ == "__main__":
     stage_csv = "results/summary/stages_summary_all_runs.csv"
     generate_stage_param_figure(stage_csv, output_dir=out_arg)
 
+    generate_stage_velocity_pressure_Qsum_UA_figure(stage_csv, output_dir=out_arg)
