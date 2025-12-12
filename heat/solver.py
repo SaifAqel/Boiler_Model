@@ -434,6 +434,8 @@ def solve_stage(
         extra={"stage": stage.name, "step": f"{len(steps)}/{n_steps}"},
     )
 
+    
+
     return g_out, w_out, stage_res
 
 def solve_exchanger(
