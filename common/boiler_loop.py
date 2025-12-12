@@ -211,6 +211,8 @@ def run_boiler_case(
             combustion=final_result["combustion"],
             outdir=final_result["outdir"],
             run_id=effective_run_id,
+            drum_pressure=drum_P,
+            feed_pressure=feed_P,
         )
         csv_paths = (steps_csv, stages_summary_csv, boiler_summary_csv)
 

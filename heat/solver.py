@@ -422,13 +422,13 @@ def solve_stage(
     if abs((stage_res.Q_stage - recon) / (stage_res.Q_stage + Q_(1e-12, "W"))) > 0.005:
         raise RuntimeError(f"Stage energy accumulation mismatch >0.5% in {stage.name}")
 
-    log.info(
+    log.debug(
         f"{stage.name}: dP_fric={stage_res.dP_stage_fric:~P}, "
         f"dP_minor={stage_res.dP_stage_minor:~P}, dP_total={stage_res.dP_stage_total:~P}",
         extra={"stage": stage.name, "step": "ΔP"},
     )
 
-    log.info(
+    log.debug(
         f"{stage.name}: gas_in(T={g_in.T:~P},P={g_in.P:~P}) gas_out(T={g_out.T:~P},P={g_out.P:~P}) "
         f"water_in(h={w_in.h:~P},P={w_in.P:~P}) water_out(h={w_out.h:~P}) Q_stage={stage_res.Q_stage:~P}",
         extra={"stage": stage.name, "step": f"{len(steps)}/{n_steps}"},

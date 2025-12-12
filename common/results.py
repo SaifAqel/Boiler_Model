@@ -133,6 +133,9 @@ def write_results_csvs(
     combustion: CombustionResult | None,
     outdir: str | Path,
     run_id: str,
+    drum_pressure: Q_ | None = None,
+    feed_pressure: Q_ | None = None,
+
 ) -> Tuple[str, str, str]:
 
     from heat.postproc import profile_to_dataframe, summary_from_profile
@@ -207,8 +210,10 @@ def write_results_csvs(
             "water pressure[pa]": df_stages["water_in_P[Pa]"],
             "water in temp[°C]": df_stages["water_out_T[°C]"],
             "water in enthalpy[kJ/kg]": df_stages["water_out_h[kJ/kg]"],
+            "water in pressure[pa]": df_stages["water_in_P[Pa]"],
             "water out temp[°C]": df_stages["water_in_T[°C]"],
             "water out enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
+            "water out pressure[pa]": df_stages["water_out_P[Pa]"],
             "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
             "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],
             "pressure drop fric[pa]": df_stages["ΔP_stage_fric[Pa]"],
@@ -236,6 +241,22 @@ def write_results_csvs(
         except Exception:
             m_w = float("nan")
         boiler_row["water_mass_flow[kg/s]"] = m_w
+
+        if feed_pressure is not None:
+            try:
+                boiler_row["feedwater_P[Pa]"] = feed_pressure.to("Pa").magnitude
+            except Exception:
+                boiler_row["feedwater_P[Pa]"] = ""
+        else:
+            boiler_row["feedwater_P[Pa]"] = ""
+
+        if drum_pressure is not None:
+            try:
+                boiler_row["drum_P[Pa]"] = drum_pressure.to("Pa").magnitude
+            except Exception:
+                boiler_row["drum_P[Pa]"] = ""
+        else:
+            boiler_row["drum_P[Pa]"] = ""
 
         if combustion is not None:
             try:
@@ -299,6 +320,8 @@ def write_results_csvs(
             ("P-LHV[MW]",                       "P_LHV[MW]"),
             ("Tad[°C]",                         "T_ad[°C]"),
             ("stack temperature[°C]",           "stack_temperature[°C]"),
+            ("feedwater pressure[Pa]",              "feedwater_P[Pa]"),
+            ("drum pressure[Pa]",                   "drum_P[Pa]"),
         ]
 
         out_row = {}
