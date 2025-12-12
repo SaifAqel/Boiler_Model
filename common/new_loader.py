@@ -30,26 +30,7 @@ def _wall_to_spec(wall: Dict[str, Any] | None, spec: Dict[str, Q_]):
     if _get(surf_out, "fouling_thickness"):    spec["foul_t_out"] = _q(_get(surf_out, "fouling_thickness"))
     if _get(surf_out, "fouling_conductivity"): spec["foul_k_out"] = _q(_get(surf_out, "fouling_conductivity"))
 
-def _map_nozzles(node: Dict[str, Any], spec: Dict[str, Q_]):
-    nozzles = _get(node, "nozzles") or {}
-    inlet = _get(nozzles, "inlet") or {}
-    outlet = _get(nozzles, "outlet") or {}
-    if _get(inlet, "k"):  spec["nozzle_k_in"]  = _q(_get(inlet, "k"))
-    if _get(outlet, "k"): spec["nozzle_k_out"] = _q(_get(outlet, "k"))
-
 def _map_K(node: Dict[str, Any], spec: Dict[str, Q_]):
-    """
-    Map YAML 'K' block into dimensionless K_* entries on spec.
-    Expected YAML layout:
-
-      K:
-        hot_inlet: 0.5
-        hot_outlet: 1.0
-        hot_bend: 0.2
-        cold_inlet: 0.5
-        cold_outlet: 1.0
-        cold_bend: 0.2
-    """
     K_node = _get(node, "K") or {}
     if not isinstance(K_node, dict):
         return
@@ -119,7 +100,6 @@ def load_stages(path: str) -> List[HXStage]:
         if "bundle_clearance" in node:     spec["bundle_clearance"] = _q(node["bundle_clearance"])
 
         _wall_to_spec(_get(node, "wall"), spec)
-        _map_nozzles(node, spec)
         _map_K(node, spec)
 
         stages.append(HXStage(name=name, kind=str(node["kind"]), spec=spec))
@@ -128,14 +108,30 @@ def load_stages(path: str) -> List[HXStage]:
 
 def load_operation(path: str) -> Dict[str, Q_]:
     doc = yaml.safe_load(open(path, "r", encoding="utf-8"))
-    return {"excess_air_ratio": _q(doc["excess_air_ratio"])}
+
+    out: Dict[str, Q_] = {
+        "excess_air_ratio": _q(doc["excess_air_ratio"]),
+    }
+
+    if "drum_pressure" in doc:
+        out["drum_pressure"] = _q(doc["drum_pressure"])
+
+    return out
 
 def load_water_stream(path: str) -> WaterStream:
     doc = yaml.safe_load(open(path, "r", encoding="utf-8"))
+    h = _q(doc["enthalpy"])
+
+    P_node = doc.get("pressure", None)
+    if P_node is not None:
+        P = _q(P_node)
+    else:
+        P = Q_(1.0, "megapascal")
+
     return WaterStream(
         mass_flow=Q_(0, "kg/s"),
-        h=_q(doc["enthalpy"]),
-        P=_q(doc["pressure"]),
+        h=h,
+        P=P,
     )
 
 def load_all(

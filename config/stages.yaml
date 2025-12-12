@@ -50,7 +50,7 @@ HX_2:
   K:
     hot_inlet: 0.0
     hot_outlet: 0.0
-    hot_bend: 0.3 # 180° bend with decent radius (Crane-type value)
+    hot_bend: 0.3
 
     cold_inlet: 0.0
     cold_outlet: 0.0
@@ -84,9 +84,9 @@ HX_3:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
 
   K:
-    hot_inlet: 0.5 # entrance from duct/plenum into tube bank
-    hot_outlet: 1.0 # exit from bank into larger duct/chamber
-    hot_bend: 0.0 # no single 180° bend in this stage
+    hot_inlet: 0.5
+    hot_outlet: 1.0
+    hot_bend: 0.0
 
     cold_inlet: 0.0
     cold_outlet: 0.0
@@ -116,7 +116,7 @@ HX_4:
   K:
     hot_inlet: 0.0
     hot_outlet: 0.0
-    hot_bend: 0.3 # second 180° turn
+    hot_bend: 0.3
 
     cold_inlet: 0.0
     cold_outlet: 0.0
@@ -189,10 +189,10 @@ HX_6:
   shell_inner_diameter: { value: 1.80, unit: m } # Gas side
 
   K:
-    hot_inlet: 0.5 # gas entering economiser bundle
-    hot_outlet: 1.0 # gas exiting to stack / duct
-    hot_bend: 0.0 # unless you know there’s a big gas-side turn here
+    hot_inlet: 0.5
+    hot_outlet: 1.0
+    hot_bend: 0.0
 
-    cold_inlet: 0.5 # water entering tubes from header (sharp entrance)
-    cold_outlet: 1.0 # water exiting tubes into header
+    cold_inlet: 0.5
+    cold_outlet: 1.0
     cold_bend: 0.3

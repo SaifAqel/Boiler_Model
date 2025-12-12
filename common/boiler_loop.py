@@ -74,12 +74,17 @@ def run_boiler_case(
             else:
                 log.warning(f"GasStream (fuel) has no attribute '{attr}', ignoring override.")
 
+    drum_P: Q_ | None = operation.get("drum_pressure", None)
+
+    water_template: WaterStream = water
+
+    if drum_P is not None:
+        water_template.P = drum_P
+
 
     svc = Combustor(air, fuel, operation["excess_air_ratio"])
     combustion_results = svc.run()
     log.info(f"Combustion results: {combustion_results}")
-
-    water_template: WaterStream = water
 
     prev_m = None
     final_result = None
@@ -136,15 +141,66 @@ def run_boiler_case(
     else:
         log.warning("Did not reach mass-flow convergence within max_iter.")
 
+    feed_P: Q_ | None = None
+
+    if drum_P is not None and final_m is not None:
+        P_in = (drum_P * Q_(1.1, "")).to("Pa")
+
+        max_p_iter = 5
+        last_result: Dict[str, Any] | None = None
+
+        for _ in range(max_p_iter):
+            water_trial = WaterStream(
+                mass_flow=final_m,
+                h=water_template.h,
+                P=P_in,
+            )
+
+            last_result = run_hx(
+                stages_raw=stages,
+                water=water_trial,
+                gas=combustion_results.flue,
+                drum=drum,
+                target_dx="0.1 m",
+                combustion=combustion_results,
+                write_csv=False,
+            )
+
+            P_out = last_result["water_out"].P.to("Pa")
+
+            dP = (P_in - P_out).to("Pa")
+
+            P_new = (drum_P + dP).to("Pa")
+
+            if abs((P_new - P_in).to("Pa")).magnitude < 1.0:
+                feed_P = P_new
+                break
+
+            P_in = P_new
+
+        if feed_P is None:
+            feed_P = P_in
+
+        log.info(f"Solved feedwater inlet pressure: {feed_P:~P} for drum pressure {drum_P:~P}")
+    else:
+        feed_P = water_template.P
+
+    water_final_in = WaterStream(
+        mass_flow=final_m,
+        h=water_template.h,
+        P=feed_P,
+    )
+
     final_result = run_hx(
         stages_raw=stages,
-        water=water_iter,
+        water=water_final_in,
         gas=combustion_results.flue,
         drum=drum,
         target_dx="0.1 m",
         combustion=combustion_results,
         write_csv=write_csv,
     )
+
 
     csv_paths: Tuple[str, str, str] | None = None
     if write_csv:
@@ -166,6 +222,8 @@ def run_boiler_case(
         "result": final_result,
         "final_m": final_m,
         "final_eta": final_eta,
+        "drum_pressure": drum_P,
+        "feed_pressure": feed_P,
         "combustion": combustion_results,
         "csv_paths": csv_paths,
     }
