@@ -4,6 +4,7 @@ from common.results import GlobalProfile, CombustionResult
 from common.props import WaterProps, GasProps
 from common.units import Q_
 from heat.gas_htc import emissivity 
+from combustion.mass_mole import to_mole
 
 _gas = GasProps()
 
@@ -80,12 +81,16 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
         else:
             Re_water = float("nan")
 
-        y = g.comp or {}
-        yH2O = y.get("H2O", Q_(0.0, "")).to("").magnitude
-        yCO2 = y.get("CO2", Q_(0.0, "")).to("").magnitude
+        Y = {sp: float(q.to("").magnitude) for sp, q in (g.comp or {}).items()}
+        X = to_mole(Y)
+
+        xH2O = X.get("H2O", 0.0)
+        xCO2 = X.get("CO2", 0.0)
+
         P_Pa = g.P.to("Pa").magnitude
-        pH2O = yH2O * P_Pa
-        pCO2 = yCO2 * P_Pa
+        pH2O = xH2O * P_Pa
+        pCO2 = xCO2 * P_Pa
+
         Lb_m = (0.9 * Dh_hot).to("m").magnitude
         gas_eps = emissivity(
             g.T.to("K").magnitude,

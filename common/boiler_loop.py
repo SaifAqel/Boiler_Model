@@ -48,6 +48,7 @@ def run_boiler_case(
     fuel_overrides: Dict[str, Q_] | None = None,
     run_id: str | None = None,
 ) -> Dict[str, Any]:
+    log.info(f"Load config")
     stages, air, fuel, water, drum, operation = load_all(
         stages_path=stages_path,
         air_path=air_path,
@@ -81,10 +82,10 @@ def run_boiler_case(
     if drum_P is not None:
         water_template.P = drum_P
 
-
+    log.info(f"Running Combustor")
     svc = Combustor(air, fuel, operation["excess_air_ratio"])
     combustion_results = svc.run()
-    log.info(f"Combustion results: {combustion_results}")
+    log.info(f"Combustion Done")
 
     prev_m = None
     final_result = None

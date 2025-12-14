@@ -4,18 +4,20 @@ import numpy as np
 from common.units import Q_
 from common.models import GasStream
 from common.props import GasProps
+from combustion.mass_mole import to_mole
 
 _gas = GasProps(mech_path="config/flue_cantera.yaml", phase="gas_mix")
 
 def cp_gas(g: GasStream) -> Q_:
     return _gas.cp(g.T, g.P, g.comp or {})
 
-def _gas_partials(g: GasStream) -> tuple[float, float]:
+def _gas_partials(g):
     P = g.P.to("Pa").magnitude
-    y = g.comp or {}
-    yH2O = y.get("H2O", Q_(0.0, "")).to("").magnitude
-    yCO2 = y.get("CO2", Q_(0.0, "")).to("").magnitude
-    return yH2O * P, yCO2 * P
+    Y = {k: v.to("").magnitude for k,v in (g.comp or {}).items()}
+    X = to_mole(Y)
+    xH2O = X.get("H2O", 0.0)
+    xCO2 = X.get("CO2", 0.0)
+    return xH2O * P, xCO2 * P
 
 _A = np.array([0.434, 0.313, 0.180, 0.073])
 _K = np.array([0.0, 2.3, 11.6, 30.4])
