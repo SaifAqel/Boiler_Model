@@ -120,8 +120,7 @@ def _gas_dp_economiser_crossflow(
     spec = stage.spec
 
     A_hot = spec["hot_flow_A"].to("m^2")
-    L     = spec["inner_length"].to("m")
-
+    
     Dh  = spec["hot_Dh"].to("m")
     eps = spec.get("roughness_out", Q_(0.0, "m")).to("m")
 
