@@ -167,10 +167,6 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
             "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
             "water_rho[kg/m^3]": _mag_or_nan(w_rho, "kg/m^3"),
-            "water_cp[kJ/kg/K]": _mag_or_nan(w_cp, "kJ/kg/K"),
-            "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
-            "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
-            "water_rho[kg/m^3]": _mag_or_nan(w_rho, "kg/m^3"),
         }
 
         rows.append(row)
@@ -178,7 +174,7 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
     return pd.DataFrame(rows)
 
 
-def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | None = None,) -> tuple[list[dict], float, float]:
+def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | None = None, drum_pressure: Q_ | None = None) -> tuple[list[dict], float, float]:
     rows = []
     Q_total = 0.0
     UA_total = 0.0
@@ -338,8 +334,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     steam_capacity_total_kg_s = None
     steam_capacity_total_tph = None
 
-    if boiler_water_in_P_Pa is not None:
-        P_q = Q_(boiler_water_in_P_Pa, "Pa")
+    P_for_evap: Q_ | None = drum_pressure
+    if P_for_evap is None and boiler_water_in_P_Pa is not None:
+        P_for_evap = Q_(boiler_water_in_P_Pa, "Pa")
+
+    if P_for_evap is not None:
+        P_q = P_for_evap.to("Pa")
         boiler_water_Tsat_C = WaterProps.Tsat(P_q).to("degC").magnitude
         h_fg = (WaterProps.h_g(P_q) - WaterProps.h_f(P_q)).to("J/kg")
 

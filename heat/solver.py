@@ -553,7 +553,6 @@ def solve_exchanger(
             water_boundaries = [sr.steps[0].water for sr in water_stage_results]
             g = gas_in
             final_forward_results: List[StageResult] = []
-            w_out_sync = final_forward_results[5].steps[-1].water
 
             for i, st in enumerate(stages):
                 w_boundary = water_boundaries[i]
@@ -563,6 +562,7 @@ def solve_exchanger(
                     w_out_sync = w_tmp
 
             g_out_sync = g
+            w_out_sync = final_forward_results[5].steps[-1].water
 
             h_g_out = _gasprops.h(g_out_sync.T, g_out_sync.P, g_out_sync.comp)
             h_w_out = w_out_sync.h

@@ -208,7 +208,6 @@ def run_boiler_case(
         P=feed_P,
     )
 
-
     final_result = run_hx(
         stages_raw=stages,
         water=water_final_in,

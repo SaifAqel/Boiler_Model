@@ -151,11 +151,12 @@ def write_results_csvs(
         global_profile,
         remap_water=False,
     )
-    df_steps.to_csv(steps_path, index="stage_name")
+    df_steps.set_index("stage_name").to_csv(steps_path)
 
     rows, _, _ = summary_from_profile(
         global_profile,
         combustion=combustion,
+        drum_pressure=drum_pressure
     )
 
 

@@ -92,7 +92,7 @@ def run_hx(
     else:
         df_steps = None
 
-    rows, _, _ = summary_from_profile(global_profile, combustion=combustion)
+    rows, _, _ = summary_from_profile(global_profile, combustion=combustion, drum_pressure=drum_pressure)
 
     return {
         "gas_in": gas,
