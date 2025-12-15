@@ -43,7 +43,8 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
 
         if remap_water:
             i0, iN = stage_ranges[gp.stage_index[i]]
-            j = i0 + (iN - i)
+            i_local = i - i0
+            j = iN - i_local
         else:
             j = i
 

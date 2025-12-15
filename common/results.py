@@ -149,7 +149,7 @@ def write_results_csvs(
 
     df_steps = profile_to_dataframe(
         global_profile,
-        remap_water=True,
+        remap_water=False,
     )
     df_steps.to_csv(steps_path, index="stage_name")
 
@@ -207,12 +207,12 @@ def write_results_csvs(
             "gas out pressure[pa]": df_stages["gas_out_P[Pa]"],
             "gas out temp[°C]": df_stages["gas_out_T[°C]"],
             "gas out enthalpy[kJ/kg]": df_stages["gas_out_h[kJ/kg]"],
-            "water in temp[°C]": df_stages["water_out_T[°C]"],
-            "water in enthalpy[kJ/kg]": df_stages["water_out_h[kJ/kg]"],
-            "water in pressure[pa]": df_stages["water_out_P[Pa]"],
-            "water out temp[°C]": df_stages["water_in_T[°C]"],
-            "water out enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
-            "water out pressure[pa]": df_stages["water_in_P[Pa]"],
+            "water in temp[°C]": df_stages["water_in_T[°C]"],
+            "water in enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
+            "water in pressure[pa]": df_stages["water_in_P[Pa]"],
+            "water out temp[°C]": df_stages["water_out_T[°C]"],
+            "water out enthalpy[kJA/kg]": df_stages["water_out_h[kJ/kg]"],
+            "water out pressure[pa]": df_stages["water_out_P[Pa]"],
             "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
             "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],
             "pressure drop fric[pa]": df_stages["ΔP_stage_fric[Pa]"],
