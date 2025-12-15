@@ -123,7 +123,7 @@ def run_boiler_case(
 
         h_fw_out = final_result["water_out"].h.to("J/kg")
 
-        evap_names = {f"HX{i}" for i in range(1, 6)}
+        evap_names = {f"HX_{i}" for i in range(1, 6)}
         Q_evap_W = 0.0
         for r in final_result["summary_rows"]:
             if r.get("stage_name") in evap_names and isinstance(r.get("Q_stage[MW]"), (int, float)):

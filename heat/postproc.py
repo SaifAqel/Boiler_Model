@@ -345,7 +345,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         steam_capacity_total_kg_s = 0.0
 
-        evap_stage_names = set([f"HX{i}" for i in range(1, 6)])
+        evap_stage_names = set([f"HX_{i}" for i in range(1, 6)])
 
         steam_capacity_total_kg_s = 0.0
 

@@ -234,6 +234,12 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
         z = Q_(0.0, "Pa")
         return z, z, z
 
+    xq = WaterProps.quality_from_Ph(w.P, w.h)
+    if xq is not None:
+        z = Q_(0.0, "Pa")
+        return z, z, z
+
+
     dP_fric = Q_(0.0, "Pa")
     dP_minor = Q_(0.0, "Pa")
 

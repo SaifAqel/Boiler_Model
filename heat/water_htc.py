@@ -225,7 +225,13 @@ def _mass_flux(w: WaterStream, Aflow: Q_) -> Q_:
 
 def _h_liquid_only(w: WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
     D_h = stage.spec["cold_Dh"]
-    L   = stage.spec["inner_length"]
+    if stage.kind == "economiser":
+        if "tube_length" in stage.spec:
+            L = stage.spec["tube_length"]
+        else:
+            raise KeyError(f"{stage.name}: missing 'tube_length' or 'inner_length' for liquid-only boiling model")
+    else:
+        L = stage.spec["inner_length"]
     A   = stage.spec["cold_flow_A"]
     T_sat = WaterProps.Tsat(w.P)
     mu_l  = WaterProps.mu_from_PT(w.P, T_sat)
