@@ -116,6 +116,12 @@ def load_operation(path: str) -> Dict[str, Q_]:
 
     if "drum_pressure" in doc:
         out["drum_pressure"] = _q(doc["drum_pressure"])
+    if "circulation_ratio" in doc:
+        out["circulation_ratio"] = _q(doc["circulation_ratio"])
+    if "blowdown_fraction" in doc:
+        out["blowdown_fraction"] = _q(doc["blowdown_fraction"])
+    if "steam_quality_out" in doc:
+        out["steam_quality_out"] = _q(doc["steam_quality_out"])
 
     return out
 

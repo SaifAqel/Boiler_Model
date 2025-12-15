@@ -297,17 +297,18 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
     return dP_fric, dP_minor, dP_total
 
 def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage, i: int, n_steps: int) -> WaterStream:
+    if stage.spec.get("pool_boiling", False):
+        return WaterStream(mass_flow=w.mass_flow, h=w.h, P=w.P)
+
     Q_step = (qprime * dx).to("W")
     dh = (Q_step / w.mass_flow).to("J/kg")
     h_new = (w.h + dh).to("J/kg")
 
-    if stage.spec.get("pool_boiling", False):
-        P_new = w.P
-    else:
-        dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
-        P_new = (w.P + dP_tot).to("Pa")
+    dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
+    P_new = (w.P + dP_tot).to("Pa")
 
     return WaterStream(mass_flow=w.mass_flow, h=h_new, P=P_new)
+
 
 
 def solve_stage(
@@ -432,6 +433,8 @@ def solve_exchanger(
     gas_in: GasStream,
     water_in: WaterStream,
     *,
+    drum_pool: WaterStream | None = None,
+    drum_pool_stage_count: int = 5,
     target_dx: Q_ | None = None,
     min_steps_per_stage: int = 20,
     max_steps_per_stage: int = 400,
@@ -486,10 +489,13 @@ def solve_exchanger(
 
         g = gas_in
         for i, st in enumerate(stages):
-            if p == 0:
-                w_boundary = water_in
+            if drum_pool is not None and i < drum_pool_stage_count:
+                w_boundary = drum_pool
             else:
-                w_boundary = final_stage_results[i].steps[0].water
+                if p == 0:
+                    w_boundary = water_in
+                else:
+                    w_boundary = final_stage_results[i].steps[0].water
 
             gas_at_stage_in.append(g)
             water_for_stage_boundary.append(w_boundary)
@@ -501,10 +507,17 @@ def solve_exchanger(
         g_fields_for_water: List[GasStream] = [gs for gs in gas_at_stage_in]
 
         w = water_in
+        w_econ_out: WaterStream | None = None
         for i_rev, st in enumerate(reversed(stages)):
             idx = 5 - i_rev
             g_for_stage = g_fields_for_water[idx]
-            g_new, w, st_res = solve_stage(g_for_stage, w, st, n_steps_by_stage[idx], stage_index=idx)
+
+            if drum_pool is not None and idx < drum_pool_stage_count:
+                g_new, _w_dummy, st_res = solve_stage(g_for_stage, drum_pool, st, n_steps_by_stage[idx], stage_index=idx)
+            else:
+                g_new, w, st_res = solve_stage(g_for_stage, w, st, n_steps_by_stage[idx], stage_index=idx)
+                w_econ_out = w
+
             g_fields_for_water[idx] = g_new
             water_stage_results.append(st_res)
 
@@ -513,7 +526,7 @@ def solve_exchanger(
         Q_total = sum([sr.Q_stage.to("W") for sr in water_stage_results], Q_(0.0, "W")).to("W")
 
         g_out = gas_stage_results[-1].steps[-1].gas
-        w_out = water_stage_results[0].steps[-1].water
+        w_out = w_econ_out if w_econ_out is not None else water_in
 
         h_g_out = _gasprops.h(g_out.T, g_out.P, g_out.comp)
         h_w_out = w_out.h
@@ -540,13 +553,13 @@ def solve_exchanger(
             water_boundaries = [sr.steps[0].water for sr in water_stage_results]
             g = gas_in
             final_forward_results: List[StageResult] = []
-            w_out_sync = None
+            w_out_sync = final_forward_results[5].steps[-1].water
 
             for i, st in enumerate(stages):
                 w_boundary = water_boundaries[i]
                 g, w_tmp, st_res = solve_stage(g, w_boundary, st, n_steps_by_stage[i], stage_index=i)
                 final_forward_results.append(st_res)
-                if i == 0:
+                if i == (len(stages) - 1):
                     w_out_sync = w_tmp
 
             g_out_sync = g

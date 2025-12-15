@@ -345,17 +345,24 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         steam_capacity_total_kg_s = 0.0
 
+        evap_stage_names = set([f"HX{i}" for i in range(1, 6)])
+
+        steam_capacity_total_kg_s = 0.0
+
         for r in rows:
+            if r.get("stage_name") not in evap_stage_names:
+                r["steam_capacity[kg/s]"] = ""
+                r["steam_capacity[t/h]"] = ""
+                continue
+
             Q_stage_MW = r["Q_stage[MW]"]
             if isinstance(Q_stage_MW, (int, float)):
                 m_dot_q = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s")
-                m_dot_kg_s = m_dot_q.to("kg/s").magnitude
-                m_dot_tph = m_dot_q.to("tonne/hour").magnitude
+                r["steam_capacity[kg/s]"] = m_dot_q.to("kg/s").magnitude
+                r["steam_capacity[t/h]"] = m_dot_q.to("tonne/hour").magnitude
+                steam_capacity_total_kg_s += r["steam_capacity[kg/s]"]
 
-                r["steam_capacity[kg/s]"] = m_dot_kg_s
-                r["steam_capacity[t/h]"] = m_dot_tph
-
-                steam_capacity_total_kg_s += m_dot_kg_s
+        steam_capacity_total_tph = Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
 
         if steam_capacity_total_kg_s is not None:
             steam_capacity_total_tph = (
@@ -416,8 +423,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "stack_temperature[°C]": stack_T_C,
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,
-        "steam_capacity[kg/s]": (steam_capacity_total_kg_s if steam_capacity_total_kg_s is not None else ""),
-        "steam_capacity[t/h]": (steam_capacity_total_tph if steam_capacity_total_tph is not None else ""),
+        "steam_capacity[kg/s]": steam_capacity_total_kg_s,
+        "steam_capacity[t/h]": steam_capacity_total_tph,
         "η_direct[-]": eta_direct if eta_direct is not None else "",
         "η_indirect[-]": eta_indirect if eta_indirect is not None else "",
         "Q_total_useful[MW]": Q_useful,

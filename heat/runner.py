@@ -7,6 +7,8 @@ from heat.solver import solve_exchanger
 from common.models import HXStage, WaterStream, GasStream, Drum
 from common.results import build_global_profile,CombustionResult
 from heat.postproc import profile_to_dataframe, summary_from_profile
+from common.props import WaterProps
+
 
 def _q_or_none(s: Optional[str]) -> Optional[Q_]:
     if s is None:
@@ -20,6 +22,8 @@ def run_hx(
     water: WaterStream,
     gas: GasStream,
     drum: Drum,
+    drum_pressure: Q_ | None = None,
+    circulation_ratio: Q_ | float | None = None,
     target_dx: str | None = None,
     min_steps: int = 20,
     max_steps: int = 400,
@@ -49,10 +53,29 @@ def run_hx(
 
     stages: List[HXStage] = GeometryBuilder(drum).enrich(stages_raw)
 
+    drum_pool = None
+    if drum_pressure is not None:
+        P_d = drum_pressure.to("Pa")
+        h_f = WaterProps.h_f(P_d).to("J/kg")
+
+        CR = None
+        if circulation_ratio is not None:
+            CR = circulation_ratio if isinstance(circulation_ratio, (int, float)) else circulation_ratio.to("").magnitude
+            CR = max(float(CR), 1.0)
+
+        m_pool = water.mass_flow
+        if CR is not None:
+            m_pool = (water.mass_flow * Q_(CR, "")).to("kg/s")
+
+        drum_pool = WaterStream(mass_flow=m_pool, h=h_f, P=P_d)
+
+
     stage_results, gas_out, water_out = solve_exchanger(
         stages,
         gas,
         water,
+        drum_pool=drum_pool,
+        drum_pool_stage_count=5,
         target_dx=target_dx_q,
         min_steps_per_stage=min_steps,
         max_steps_per_stage=max_steps,

@@ -11,25 +11,24 @@ from common.results import CombustionResult, write_results_csvs
 
 log = logging.getLogger(__name__)
 
-def _water_mass_from_efficiency(
-    eta: Q_,
-    combustion: CombustionResult,
-    water_template: WaterStream,
+def _drum_steam_rate(
+    *,
+    P_drum: Q_,
+    Q_evap: Q_,
+    m_fw: Q_,
+    h_fw_out: Q_,
+    steam_quality_out: float = 1.0,
 ) -> Q_:
-    Q_in = combustion.Q_in.to("W")
+    hf = WaterProps.h_f(P_drum).to("J/kg")
+    hg = WaterProps.h_g(P_drum).to("J/kg")
+    h_s = (hf + Q_(steam_quality_out, "") * (hg - hf)).to("J/kg")
 
-    h_in = water_template.h.to("J/kg")
+    denom = (h_s - hf).to("J/kg")
+    if denom.magnitude <= 0:
+        raise ValueError("Invalid drum latent enthalpy (h_s - h_f) <= 0.")
 
-    h_steam = WaterProps.h_g(water_template.P).to("J/kg")
-
-    delta_h = (h_steam - h_in).to("J/kg")
-    if delta_h.magnitude <= 0.0:
-        raise ValueError("Steam enthalpy must be greater than feedwater enthalpy.")
-
-    Q_target = (eta * Q_in).to("W")
-
-    m_w = (Q_target / delta_h).to("kg/s")
-    return m_w
+    m_s = (Q_evap.to("W") + m_fw * (h_fw_out - hf)) / denom
+    return m_s.to("kg/s")
 
 def run_boiler_case(
     stages_path: str = "config/stages.yaml",
@@ -39,7 +38,6 @@ def run_boiler_case(
     drum_path: str = "config/drum.yaml",
     operation_path: str = "config/operation.yaml",
     *,
-    eta_guess: Q_ = Q_(0.90, ""),
     tol_m: Q_ = Q_(1e-3, "kg/s"),
     max_iter: int = 20,
     write_csv: bool = True,
@@ -75,86 +73,100 @@ def run_boiler_case(
             else:
                 log.warning(f"GasStream (fuel) has no attribute '{attr}', ignoring override.")
 
-    drum_P: Q_ | None = operation.get("drum_pressure", None)
+    P_drum: Q_ | None = operation.get("drum_pressure", None)
+    circulation_ratio = operation.get("circulation_ratio", Q_(10.0, ""))
+    blowdown_fraction = operation.get("blowdown_fraction", Q_(0.0, ""))
+    steam_quality_out = float(operation.get("steam_quality_out", Q_(1.0, "")).to("").magnitude)
 
     water_template: WaterStream = water
 
-    if drum_P is not None:
-        water_template.P = drum_P
+    if P_drum is not None:
+        water_template.P = P_drum
 
     log.info(f"Running Combustor")
     svc = Combustor(air, fuel, operation["excess_air_ratio"])
     combustion_results = svc.run()
     log.info(f"Combustion Done")
 
+    if P_drum is None:
+        raise ValueError("Option B requires operation.drum_pressure")
+
+    hf = WaterProps.h_f(P_drum).to("J/kg")
+    hg = WaterProps.h_g(P_drum).to("J/kg")
+    h_feed = water_template.h.to("J/kg")
+    latent = (hg - hf).to("J/kg")
+    m_fw = ((Q_(0.85, "") * combustion_results.Q_in.to("W")) / (latent + (hf - h_feed))).to("kg/s")
+
     prev_m = None
     final_result = None
-    final_m = None
-    final_eta = None
+    final_m_fw = None
+    final_m_s = None
+
+    tol_m_fw = tol_m.to("kg/s").magnitude
 
     for it in range(max_iter):
-        if it % 5 == 0:
-            log.info(f"Iteration {it}: eta_guess={eta_guess}, prev_m={prev_m}")
+        m_bd = (blowdown_fraction.to("").magnitude * m_fw).to("kg/s")
 
-        m_w = _water_mass_from_efficiency(eta_guess, combustion_results, water_template)
-
-        water_iter = WaterStream(
-            mass_flow=m_w,
-            h=water_template.h,
-            P=water_template.P,
-        )
+        water_in = WaterStream(mass_flow=m_fw, h=water_template.h, P=water_template.P)
 
         final_result = run_hx(
             stages_raw=stages,
-            water=water_iter,
+            water=water_in,
             gas=combustion_results.flue,
             drum=drum,
+            drum_pressure=P_drum,
+            circulation_ratio=circulation_ratio,
             target_dx="0.1 m",
             combustion=combustion_results,
             write_csv=False,
         )
 
-        total_row = next(
-            r for r in final_result["summary_rows"]
-            if r["stage_name"] == "TOTAL_BOILER"
+        h_fw_out = final_result["water_out"].h.to("J/kg")
+
+        evap_names = {f"HX{i}" for i in range(1, 6)}
+        Q_evap_W = 0.0
+        for r in final_result["summary_rows"]:
+            if r.get("stage_name") in evap_names and isinstance(r.get("Q_stage[MW]"), (int, float)):
+                Q_evap_W += Q_(r["Q_stage[MW]"], "MW").to("W").magnitude
+        Q_evap = Q_(Q_evap_W, "W")
+
+        m_s = _drum_steam_rate(
+            P_drum=P_drum,
+            Q_evap=Q_evap,
+            m_fw=m_fw,
+            h_fw_out=h_fw_out,
+            steam_quality_out=steam_quality_out,
         )
 
-        eta_indirect = total_row["η_indirect[-]"]
-        if eta_indirect == "" or eta_indirect is None:
-            final_m = m_w
-            final_eta = eta_guess
-            break
+        resid = (m_s + m_bd - m_fw).to("kg/s").magnitude
 
-        eta_new = Q_(eta_indirect, "")
-        final_m = m_w
-        final_eta = eta_new
-        tol_eta = 1e-6
+        final_m_fw = m_fw
+        final_m_s = m_s
 
         if prev_m is not None:
-            dm = (m_w - prev_m).to("kg/s")
-            deta = abs((eta_new - eta_guess).to("").magnitude)
-
-            if abs(dm).magnitude < tol_m.magnitude and deta < tol_eta:
-                log.info(f"Converged in {it+1} iterations (mass + eta).")
+            dm = (m_fw - prev_m).to("kg/s").magnitude
+            if abs(dm) < tol_m_fw and abs(resid) < tol_m_fw:
                 break
 
-        prev_m = m_w
-        eta_guess = eta_new
+        m_fw_new = (m_s + m_bd).to("kg/s")
+        m_fw = (Q_(0.5, "") * m_fw_new + Q_(0.5, "") * m_fw).to("kg/s")
+
+        prev_m = final_m_fw
 
     else:
-        log.warning("Did not reach mass-flow convergence within max_iter.")
+        log.warning("Did not reach drum mass-balance convergence within max_iter.")
 
     feed_P: Q_ | None = None
 
-    if drum_P is not None and final_m is not None:
-        P_in = (drum_P * Q_(1.1, "")).to("Pa")
+    if P_drum is not None and final_m_fw is not None:
+        P_in = (P_drum * Q_(1.1, "")).to("Pa")
 
         max_p_iter = 5
         last_result: Dict[str, Any] | None = None
 
         for _ in range(max_p_iter):
             water_trial = WaterStream(
-                mass_flow=final_m,
+                mass_flow=final_m_fw,
                 h=water_template.h,
                 P=P_in,
             )
@@ -164,6 +176,8 @@ def run_boiler_case(
                 water=water_trial,
                 gas=combustion_results.flue,
                 drum=drum,
+                drum_pressure=P_drum,
+                circulation_ratio=circulation_ratio,
                 target_dx="0.1 m",
                 combustion=combustion_results,
                 write_csv=False,
@@ -173,7 +187,7 @@ def run_boiler_case(
 
             dP = (P_in - P_out).to("Pa")
 
-            P_new = (drum_P + dP).to("Pa")
+            P_new = (P_drum + dP).to("Pa")
 
             if abs((P_new - P_in).to("Pa")).magnitude < 1.0:
                 feed_P = P_new
@@ -184,26 +198,28 @@ def run_boiler_case(
         if feed_P is None:
             feed_P = P_in
 
-        log.info(f"Solved feedwater inlet pressure: {feed_P:~P} for drum pressure {drum_P:~P}")
+        log.info(f"Solved feedwater inlet pressure: {feed_P:~P} for drum pressure {P_drum:~P}")
     else:
         feed_P = water_template.P
 
     water_final_in = WaterStream(
-        mass_flow=final_m,
+        mass_flow=final_m_fw,
         h=water_template.h,
         P=feed_P,
     )
+
 
     final_result = run_hx(
         stages_raw=stages,
         water=water_final_in,
         gas=combustion_results.flue,
         drum=drum,
+        drum_pressure=P_drum,
+        circulation_ratio=circulation_ratio,
         target_dx="0.1 m",
         combustion=combustion_results,
         write_csv=write_csv,
     )
-
 
     csv_paths: Tuple[str, str, str] | None = None
     if write_csv:
@@ -214,21 +230,24 @@ def run_boiler_case(
             combustion=final_result["combustion"],
             outdir=final_result["outdir"],
             run_id=effective_run_id,
-            drum_pressure=drum_P,
+            drum_pressure=P_drum,
             feed_pressure=feed_P,
         )
         csv_paths = (steps_csv, stages_summary_csv, boiler_summary_csv)
 
-
-    log.info(f"Final water mass flow: {final_m}")
-    log.info(f"Final indirect efficiency: {final_eta}")
+    m_bd_final = None
+    if final_m_fw is not None:
+        m_bd_final = (blowdown_fraction.to("").magnitude * final_m_fw).to("kg/s")
+    else:
+        m_bd_final = Q_(0.0, "kg/s")
 
     return {
         "result": final_result,
-        "final_m": final_m,
-        "final_eta": final_eta,
-        "drum_pressure": drum_P,
-        "feed_pressure": feed_P,
+        "m_fw": final_m_fw,
+        "m_s": final_m_s,
+        "m_bd": m_bd_final,
+        "drum_pressure": P_drum,
         "combustion": combustion_results,
         "csv_paths": csv_paths,
     }
+
