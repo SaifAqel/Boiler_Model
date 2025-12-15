@@ -163,10 +163,10 @@ HX_6:
   kind: "economiser"
   pool_boiling: false
   inner_diameter: { value: 0.0337, unit: m }
-  inner_length: { value: 4, unit: m }
-  tubes_number: { value: 30, unit: dimensionless }
+  inner_length: { value: 80, unit: m }
+  tubes_number: { value: 3, unit: dimensionless } # 3 circuits
   arrangement: "staggered"
-  N_rows: { value: 6, unit: dimensionless }
+  N_rows: { value: 20, unit: dimensionless }
   ST: { value: 0.09, unit: m }
   SL: { value: 0.1, unit: m }
   baffle_spacing: { value: 0.25, unit: m }

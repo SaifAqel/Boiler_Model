@@ -126,14 +126,16 @@ def run_boiler_case(
             break
 
         eta_new = Q_(eta_indirect, "")
-
         final_m = m_w
         final_eta = eta_new
+        tol_eta = 1e-6
 
         if prev_m is not None:
             dm = (m_w - prev_m).to("kg/s")
-            if abs(dm).magnitude < tol_m.magnitude:
-                log.info(f"Converged in {it+1} iterations.")
+            deta = abs((eta_new - eta_guess).to("").magnitude)
+
+            if abs(dm).magnitude < tol_m.magnitude and deta < tol_eta:
+                log.info(f"Converged in {it+1} iterations (mass + eta).")
                 break
 
         prev_m = m_w

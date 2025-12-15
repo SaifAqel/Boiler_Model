@@ -34,6 +34,7 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
         g = gp.gas[i]
 
         k_stage = gp.stage_index[i]
+        disable_water_hydraulics = (k_stage <= 4)
         sr_stage = gp.stage_results[k_stage]
         A_hot = sr_stage.hot_flow_A
         A_cold = sr_stage.cold_flow_A
@@ -81,6 +82,37 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
         else:
             Re_water = float("nan")
 
+        if disable_water_hydraulics:
+            water_V = None
+            Re_water = float("nan")
+            w_cp = w_mu = w_k = w_rho = None
+            w_dP_fric = w_dP_minor = w_dP_tot = float("nan")
+        else:
+            if Two_phase:
+                Tw = WaterProps.Tsat(w.P)
+                w_cp = w_mu = w_k = None
+                w_rho = WaterProps.rho_from_Px(w.P, xq) if xq is not None else None
+            else:
+                Tw   = WaterProps.T_from_Ph(w.P, w.h)
+                w_cp = WaterProps.cp_from_Ph(w.P, w.h)
+                w_mu = WaterProps.mu_from_Ph(w.P, w.h)
+                w_k  = WaterProps.k_from_Ph(w.P, w.h)
+                w_rho = WaterProps.rho_from_Ph(w.P, w.h)
+
+            if w_rho is not None and A_cold is not None:
+                water_V = (w.mass_flow / (w_rho * A_cold)).to("m/s")
+            else:
+                water_V = None
+
+            if w_rho is not None and w_mu is not None and water_V is not None:
+                Re_water = (w_rho * water_V * Dh_cold / w_mu).to("").magnitude
+            else:
+                Re_water = float("nan")
+
+            w_dP_fric = gp.w_dP_fric[i].to("Pa").magnitude
+            w_dP_minor = gp.w_dP_minor[i].to("Pa").magnitude
+            w_dP_tot = gp.w_dP_tot[i].to("Pa").magnitude
+
         Y = {sp: float(q.to("").magnitude) for sp, q in (g.comp or {}).items()}
         X = to_mole(Y)
 
@@ -127,13 +159,13 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             "dP_fric[Pa]": gp.dP_fric[i].to("Pa").magnitude,
             "dP_minor[Pa]": gp.dP_minor[i].to("Pa").magnitude,
             "dP_total[Pa]": gp.dP_total[i].to("Pa").magnitude,
-            "water_dP_fric[Pa]":  gp.w_dP_fric[i].to("Pa").magnitude,
-            "water_dP_minor[Pa]": gp.w_dP_minor[i].to("Pa").magnitude,
-            "water_dP_total[Pa]": gp.w_dP_tot[i].to("Pa").magnitude, 
-            "gas_cp[kJ/kg/K]": g_cp.to("kJ/kg/K").magnitude,
-            "gas_mu[Pa*s]": g_mu.to("Pa*s").magnitude,
-            "gas_k[W/m/K]": g_k.to("W/m/K").magnitude,
-            "gas_rho[kg/m^3]": g_rho.to("kg/m^3").magnitude,
+            "water_dP_fric[Pa]":  (w_dP_fric if disable_water_hydraulics else gp.w_dP_fric[i].to("Pa").magnitude),
+            "water_dP_minor[Pa]": (w_dP_minor if disable_water_hydraulics else gp.w_dP_minor[i].to("Pa").magnitude),
+            "water_dP_total[Pa]": (w_dP_tot if disable_water_hydraulics else gp.w_dP_tot[i].to("Pa").magnitude),
+            "water_cp[kJ/kg/K]": _mag_or_nan(w_cp, "kJ/kg/K"),
+            "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
+            "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
+            "water_rho[kg/m^3]": _mag_or_nan(w_rho, "kg/m^3"),
             "water_cp[kJ/kg/K]": _mag_or_nan(w_cp, "kJ/kg/K"),
             "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
             "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
@@ -166,6 +198,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
     import itertools
     for k, grp in itertools.groupby(range(len(gp.x)), key=lambda i: gp.stage_index[i]):
+        disable_water_hydraulics = (k <= 4) 
         idxs = list(grp)
         name = gp.stage_name[idxs[0]]
         sr_stage = gp.stage_results[k]
@@ -191,7 +224,10 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
                 water_V_sum += water_V
 
         gas_V_avg = gas_V_sum / max(n_steps, 1)
-        water_V_avg = water_V_sum / max(n_steps, 1) if A_cold is not None else float("nan")
+        if disable_water_hydraulics or A_cold is None:
+            water_V_avg = float("nan")
+        else:
+            water_V_avg = water_V_sum / max(n_steps, 1)
 
         Q_stage = sum((gp.qprime[i] * gp.dx[i]).to("MW").magnitude for i in idxs)
         UA_stage = sum((gp.UA_prime[i] * gp.dx[i]).to("MW/K").magnitude for i in idxs)
@@ -264,9 +300,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "ΔP_stage_fric[Pa]": dP_fric,
             "ΔP_stage_minor[Pa]": dP_minor,
             "ΔP_stage_total[Pa]": dP_total,
-            "ΔP_water_stage_fric[Pa]": w_dP_fric,
-            "ΔP_water_stage_minor[Pa]": w_dP_minor,
-            "ΔP_water_stage_total[Pa]": w_dP_tot,
+            "ΔP_water_stage_fric[Pa]": (float("nan") if disable_water_hydraulics else w_dP_fric),
+            "ΔP_water_stage_minor[Pa]": (float("nan") if disable_water_hydraulics else w_dP_minor),
+            "ΔP_water_stage_total[Pa]": (float("nan") if disable_water_hydraulics else w_dP_tot),
             "Q_conv_stage[MW]": Q_stage_conv,
             "Q_rad_stage[MW]": Q_stage_rad,
             "steam_capacity[kg/s]": "",
