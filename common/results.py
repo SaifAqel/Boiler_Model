@@ -252,7 +252,7 @@ def write_results_csvs(
         except Exception:
             m_circ = float("nan")
 
-        boiler_row["water_mass_flow[kg/s]"] = m_fw
+        boiler_row["feedwater_mass_flow[kg/s]"] = m_fw
         boiler_row["circulation_mass_flow[kg/s]"] = m_circ
 
 
