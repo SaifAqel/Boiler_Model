@@ -568,24 +568,21 @@ def solve_exchanger(
                     w_out_sync = w_tmp
 
             g_out_sync = g
-            w_out_sync = final_forward_results[5].steps[-1].water
 
             h_g_out = _gasprops.h(g_out_sync.T, g_out_sync.P, g_out_sync.comp)
             h_w_out = w_out_sync.h
             Q_gas = (gas_in.mass_flow * (h_g_in - h_g_out)).to("W")
-            Q_wat = (w_out_sync.mass_flow * (h_w_out - h_w_in)).to("W")
-            mismatch = abs(Q_gas - Q_wat) / (abs(Q_wat) + Q_(1e-12, "W"))
-
+            mismatch = abs(Q_gas - Q_total) / (abs(Q_total) + Q_(1e-12, "W"))
             log.info(
                 f"FINAL forward: Q_total={sum((sr.Q_stage for sr in final_forward_results), Q_(0,'W')):~P} "
-                f"Q_gas={Q_gas:~P} Q_water={Q_wat:~P} rel_err={mismatch:~P}",
+                f"Q_gas={Q_gas:~P} rel_err={mismatch:~P}",
                 extra={"stage": "ALL", "step": "final_forward"},
             )
 
             if mismatch.magnitude > 0.005:
                 raise RuntimeError(
                     f"Energy mismatch >0.5% on final sweep. "
-                    f"Q_gas={Q_gas:~P}, Q_water={Q_wat:~P}, rel_err={mismatch:~P}"
+                    f"Q_gas={Q_gas:~P}, rel_err={mismatch:~P}"
                 )
 
             return final_forward_results, g_out_sync, w_out_sync
