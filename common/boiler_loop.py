@@ -208,6 +208,9 @@ def run_boiler_case(
         P=feed_P,
     )
 
+    log.info(f"Final feedwater inlet mass flow: {water_final_in.mass_flow:~P}")
+    log.info(f"Circulation ratio setting: {circulation_ratio:~P}")
+
     final_result = run_hx(
         stages_raw=stages,
         water=water_final_in,
