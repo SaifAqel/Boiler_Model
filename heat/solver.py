@@ -297,16 +297,22 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
     return dP_fric, dP_minor, dP_total
 
 def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage, i: int, n_steps: int) -> WaterStream:
-    if stage.spec.get("pool_boiling", False):
-        return WaterStream(mass_flow=w.mass_flow, h=w.h, P=w.P)
-
     Q_step = (qprime * dx).to("W")
     dh = (Q_step / w.mass_flow).to("J/kg")
     h_new = (w.h + dh).to("J/kg")
 
+    if stage.spec.get("pool_boiling", False):
+        try:
+            hf = WaterProps.h_f(w.P).to("J/kg")
+            hg = WaterProps.h_g(w.P).to("J/kg")
+            if h_new < hf: h_new = hf
+            if h_new > hg: h_new = hg
+        except Exception:
+            pass
+        return WaterStream(mass_flow=w.mass_flow, h=h_new, P=w.P)
+
     dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
     P_new = (w.P + dP_tot).to("Pa")
-
     return WaterStream(mass_flow=w.mass_flow, h=h_new, P=P_new)
 
 
@@ -567,7 +573,7 @@ def solve_exchanger(
             h_g_out = _gasprops.h(g_out_sync.T, g_out_sync.P, g_out_sync.comp)
             h_w_out = w_out_sync.h
             Q_gas = (gas_in.mass_flow * (h_g_in - h_g_out)).to("W")
-            Q_wat = (water_in.mass_flow * (h_w_out - h_w_in)).to("W")
+            Q_wat = (w_out_sync.mass_flow * (h_w_out - h_w_in)).to("W")
             mismatch = abs(Q_gas - Q_wat) / (abs(Q_wat) + Q_(1e-12, "W"))
 
             log.info(
