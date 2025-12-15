@@ -187,6 +187,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     w_dP_tot_minor = 0.0
     w_dP_tot_total = 0.0 
     stack_T_C = None
+    feedwater_mdot_kg_s = None
+    circulation_mdot_kg_s = None
     flue_mdot_kg_s = None
     boiler_water_in_P_Pa = None
     boiler_water_in_T_C = None
@@ -252,8 +254,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         gas_in_h  = _gas.h_sensible(g_in.T,  g_in.P,  g_in.comp).to("kJ/kg").magnitude
         gas_out_h = _gas.h_sensible(g_out.T, g_out.P, g_out.comp).to("kJ/kg").magnitude
 
-        w_in  = gp.water[idxs[-1]]
-        w_out = gp.water[idxs[0]]
+        w_in  = gp.water[idxs[0]]
+        w_out = gp.water[idxs[-1]]
 
         water_in_h  = w_in.h.to("kJ/kg").magnitude
         water_out_h = w_out.h.to("kJ/kg").magnitude
@@ -273,6 +275,18 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         if k == len(gp.stage_results) - 1:
             boiler_water_in_T_C = water_in_T
             boiler_water_in_P_Pa = water_in_P
+
+            try:
+                feedwater_mdot_kg_s = gp.stage_results[k].steps[0].water.mass_flow.to("kg/s").magnitude
+            except Exception:
+                feedwater_mdot_kg_s = None
+
+            try:
+                circ_guess = gp.stage_results[0].steps[0].water.mass_flow.to("kg/s").magnitude
+                circulation_mdot_kg_s = circ_guess
+            except Exception:
+                circulation_mdot_kg_s = None
+
 
         row = {
             "stage_index": k,
@@ -421,6 +435,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "ΔP_water_stage_minor[Pa]": w_dP_tot_minor,
         "ΔP_water_stage_total[Pa]": w_dP_tot_total, 
         "stack_temperature[°C]": stack_T_C,
+        "feedwater_mdot[kg/s]": feedwater_mdot_kg_s if feedwater_mdot_kg_s is not None else "",
+        "circulation_mdot[kg/s]": circulation_mdot_kg_s if circulation_mdot_kg_s is not None else "",
         "Q_conv_stage[MW]": Q_total_conv,
         "Q_rad_stage[MW]": Q_total_rad,
         "steam_capacity[kg/s]": steam_capacity_total_kg_s,

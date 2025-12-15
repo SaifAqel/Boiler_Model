@@ -192,9 +192,15 @@ def write_results_csvs(
     df_boiler = df_summary[df_summary["stage_name"] == "TOTAL_BOILER"].copy()
 
     try:
-        m_w = global_profile.water[0].mass_flow.to("kg/s").magnitude
+        m_w = global_profile.stage_results[5].steps[0].water.mass_flow.to("kg/s").magnitude
     except Exception:
         m_w = float("nan")
+
+    try:
+        m_circ = global_profile.stage_results[0].steps[0].water.mass_flow.to("kg/s").magnitude
+    except Exception:
+        m_circ = float("nan")
+
 
     df_stages = df_stages.set_index("stage_name")
 
@@ -241,6 +247,7 @@ def write_results_csvs(
         except Exception:
             m_w = float("nan")
         boiler_row["water_mass_flow[kg/s]"] = m_w
+        boiler_row["circulation_mass_flow[kg/s]"] = m_circ
 
         if feed_pressure is not None:
             try:
@@ -304,6 +311,7 @@ def write_results_csvs(
             ("air flow[kg/s]",                  "air_mass_flow[kg/s]"),
             ("excess air ratio[-]",             "excess_air_ratio[-]"),
             ("water flow[kg/s]",                "water_mass_flow[kg/s]"),
+            ("circulation flow[kg/s]",         "circulation_mass_flow[kg/s]"),
             ("steam capacity[t/h]",             "steam_capacity[t/h]"),
             ("eta direct[-]",                   "η_direct[-]"),
             ("eta indirect[-]",                 "η_indirect[-]"),
