@@ -79,14 +79,11 @@ def load_stages(path: str) -> List[HXStage]:
     stages: List[HXStage] = []
 
     for name, node in sdoc.items():
-        for k in ("kind", "inner_diameter", "inner_length"):
-            if k not in node:
-                raise KeyError(f"{name}: '{k}' is required")
 
         spec: Dict[str, Q_] = {
             "inner_diameter": _q(node["inner_diameter"]),
-            "inner_length":   _q(node["inner_length"]),
         }
+        if "inner_length" in node:          spec["inner_length"]     = _q(node["inner_length"]) 
         if "pool_boiling" in node:         spec["pool_boiling"]     = bool(node["pool_boiling"])
         if "curvature_radius" in node:     spec["curvature_radius"] = _q(node["curvature_radius"])
         if "tubes_number" in node:         spec["tubes_number"]     = _q(node["tubes_number"])
@@ -98,6 +95,10 @@ def load_stages(path: str) -> List[HXStage]:
         if "shell_inner_diameter" in node: spec["shell_inner_diameter"] = _q(node["shell_inner_diameter"])
         if "baffle_cut" in node:           spec["baffle_cut"]       = _q(node["baffle_cut"])
         if "bundle_clearance" in node:     spec["bundle_clearance"] = _q(node["bundle_clearance"])
+        if "n_tubes" in node:              spec["n_tubes"]      = _q(node["n_tubes"])
+        if "n_circuits" in node:           spec["n_circuits"]   = _q(node["n_circuits"])
+        if "tube_length" in node:          spec["tube_length"]  = _q(node["tube_length"])
+
 
         _wall_to_spec(_get(node, "wall"), spec)
         _map_K(node, spec)

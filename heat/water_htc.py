@@ -131,7 +131,12 @@ def compute_nusselt(w:WaterStream, stage: HXStage, T_wall: Q_) -> Q_:
 
     if stage.kind == "economiser":
         D = stage.spec["inner_diameter"]
-        L = stage.spec["inner_length"]
+        if "tube_length" in stage.spec:
+            L = stage.spec["tube_length"]
+        elif "inner_length" in stage.spec:
+            L = stage.spec["inner_length"]
+        else:
+            raise KeyError(f"{stage.name}: economiser missing both 'tube_length' and 'inner_length'")
         Aflow = stage.spec["cold_flow_A"]
         T_bulk = WaterProps.T_from_Ph(w.P, w.h)
         umax = stage.spec.get("umax_factor")

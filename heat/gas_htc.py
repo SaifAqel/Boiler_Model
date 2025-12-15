@@ -162,6 +162,6 @@ def gas_htc_parts(g: GasStream, spec: dict, Tgw: Q_, *, stage_kind: str | None =
     h_rad = _h_rad(g, spec, Tgw)
     return h_conv.to("W/m^2/K"), h_rad.to("W/m^2/K")
 
-def gas_htc(g: GasStream, spec: dict, Tgw: Q_) -> Q_:
-    h_conv, h_rad = gas_htc_parts(g, spec, Tgw)
+def gas_htc(g: GasStream, spec: dict, Tgw: Q_, *, stage_kind: str | None = None) -> Q_:
+    h_conv, h_rad = gas_htc_parts(g, spec, Tgw, stage_kind=stage_kind)
     return (h_conv + h_rad).to("W/m^2/K")

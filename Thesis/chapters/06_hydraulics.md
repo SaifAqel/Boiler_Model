@@ -12,6 +12,8 @@ Water side pressure losses are intentionally not included in this model (water i
 
 ## Frictional losses
 
+### Gas side {- .unlisted}
+
 The per step frictional pressure drop follows a standard 1D formulation:
 
 $$
@@ -80,7 +82,39 @@ The friction factor is computed from Reynolds number and relative roughness via 
 
   The iteration is performed on $1/\sqrt{f}$ until convergence.
 
+### Water side {- .unlisted}
+
+Water-side frictional pressure drop uses the same Darcy formulation:
+
+$$
+\Delta P_{\mathrm{fric}} = - f \, \frac{\Delta x}{D_h} \left( \frac{\rho V^2}{2} \right)
+$$
+
+In the implementation this is evaluated in `heat/solver.py::_water_dp_components` using:
+
+- $D_h = \texttt{cold\_Dh}$
+- flow area $A = \texttt{cold\_flow\_A}$
+- relative roughness $\varepsilon/D_h$ from $\varepsilon = \texttt{roughness\_cold\_surface}$
+
+Water properties are evaluated from $(P,h)$ via `common/props.py::WaterProps`:
+
+- $\rho = \rho(P,h)$ via `WaterProps.rho_from_Ph`
+- $\mu = \mu(P,h)$ via `WaterProps.mu_from_Ph`
+
+Local velocity and Reynolds number follow:
+
+$$
+V = \frac{\dot m}{\rho A}, \qquad
+\mathrm{Re} = \frac{\rho V D_h}{\mu}
+$$
+
+The Darcy friction factor $f(\mathrm{Re}, \varepsilon/D_h)$ uses the same `_friction_factor` routine as the gas side (laminar / transitional blend / Colebrook–White in turbulence).
+
+**Stage-kind behavior:** frictional losses are only applied for the `economiser` water side branch in `_water_dp_components`; for other stage kinds the current model sets $\Delta P_{\mathrm{fric}} = 0$ and retains only minor losses (see below).
+
 ## Minor losses
+
+### Gas side {- .unlisted} {#sec-minor}
 
 Minor losses are applied using per stage catalogue $K$ values. For each stage, a total loss coefficient $K_{\mathrm{sum}}$ is assembled from geometry and user inputs:
 
@@ -105,9 +139,41 @@ $$
 
 [@crane_tp410]
 
-## Total gas side pressure drop
+### Water side {- .unlisted} {#sec-minor}
 
-For each step, the total gas–side pressure change is the sum of frictional and minor components:
+Water-side minor losses are applied via per-stage catalogue $K$ values in `heat/solver.py::_water_dp_components`:
+
+- total bend coefficient $K_{\text{cold,bend}} = \texttt{K\_cold\_bend}$
+- inlet coefficient $K_{\text{cold,inlet}} = \texttt{K\_cold\_inlet}$
+- outlet coefficient $K_{\text{cold,outlet}} = \texttt{K\_cold\_outlet}$
+
+The bend loss is distributed uniformly across the $n$ marching steps:
+
+$$
+K_{\text{bend,per-step}} = \frac{K_{\text{cold,bend}}}{n}
+$$
+
+The per-step assembled coefficient is:
+
+$$
+K_{\mathrm{minor}} =
+K_{\text{bend,per-step}}
++ \mathbb{1}_{i=0}\,K_{\text{cold,inlet}}
++ \mathbb{1}_{i=n-1}\,K_{\text{cold,outlet}}
+$$
+
+Using dynamic pressure based on the cold-side velocity:
+
+$$
+q = \frac{\rho V^2}{2}, \qquad
+\Delta P_{\text{minor}} = -K_{\mathrm{minor}}\,q
+$$
+
+where $V = \dot m/(\rho A)$ with $A=\texttt{cold\_flow\_A}$ when available.
+
+## Total pressure drop
+
+For each step, the total side pressure change is the sum of frictional and minor components:
 
 $$
 \Delta P_{\mathrm{total}} = \Delta P_{\mathrm{fric}} + \Delta P_{\mathrm{minor}}
@@ -115,11 +181,11 @@ $$
 
 [@white_fluid_mechanics]
 
-This is what `pressure_drop_gas` returns and what is applied to the gas stream in `update_gas_after_step`.
+This is what `pressure_drop_gas/water` return and what is applied to the streams in `update_gas/water_after_step`.
 
 ## Coupling of ΔP into the energy solver
 
-Gas pressure is updated step–wise using the same ΔP model:
+Gas/water pressure is updated step–wise using the same ΔP model:
 
 $$
 P_{i+1} = P_i + \Delta P_{\mathrm{total}}(P_i, T_i, \dots)
@@ -127,11 +193,10 @@ $$
 
 After each step:
 
-1. The local gas state $(T_i, P_i, \text{composition})$ is used to evaluate
-   $\rho$, $\mu$, $k$, and $c_p$.
+1. The local gas/water state $(T_i, P_i, \text{composition})$ is used to evaluate $\rho$, $\mu$, $k$, and $c_p$.
 2. The friction factor and dynamic pressure are computed from these properties.
 3. $\Delta P_{\mathrm{fric}}$ and $\Delta P_{\mathrm{minor}}$ are formed.
-4. The updated pressure $P_{i+1}$ is used for the next step, so density, viscosity, Reynolds number, and gas side HTC $h_g$ are all evaluated at the updated pressure.
+4. The updated pressure $P_{i+1}$ is used for the next step.
 
 In this way, compressibility enters through the pressure dependence of $\rho(T,P)$ and $\mu(T,P)$ and their effect on $V$, $\mathrm{Re}$, and $f$.
 

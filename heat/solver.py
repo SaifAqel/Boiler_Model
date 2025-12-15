@@ -55,9 +55,12 @@ def _copy_step_with_stage(
         w_dP_tot=w_dP_tot if w_dP_tot is not None else Q_(0.0, "Pa"),
     )
 
-def initial_wall_guesses(g: GasStream, w: WaterStream) -> tuple[Q_, Q_, Q_]:
+def initial_wall_guesses(g: GasStream, w: WaterStream, stage: HXStage) -> tuple[Q_, Q_, Q_]:
     Tg = g.T.to("K")
-    Tw = WaterProps.T_from_Ph(w.P, w.h).to("K")
+    if stage.spec.get("pool_boiling", False):
+        Tw = WaterProps.Tsat(w.P).to("K")
+    else:
+        Tw = WaterProps.T_from_Ph(w.P, w.h).to("K")
     qprime = Q_(1e4, "W/m")
     return Tg, Tw, qprime
 
@@ -117,7 +120,7 @@ def _gas_dp_economiser_crossflow(
     spec = stage.spec
 
     A_hot = spec["hot_flow_A"].to("m^2")
-    L     = spec["inner_length"].to("m")
+    L     = spec["hot_flow_length"].to("m")
     Do    = spec["outer_diameter"].to("m")
     ST    = spec["ST"].to("m")
     SL    = spec["SL"].to("m")
@@ -254,6 +257,10 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
     spec = stage.spec
     kind = stage.kind.lower()
 
+    if spec.get("pool_boiling", False):
+        z = Q_(0.0, "Pa")
+        return z, z, z
+
     dP_fric = Q_(0.0, "Pa")
     dP_minor = Q_(0.0, "Pa")
 
@@ -272,7 +279,10 @@ def _water_dp_components(w: WaterStream, stage: HXStage, dx: Q_, i_step: int, n_
         f = _friction_factor(Re, eps_over_D)
         q = (rho * V**2 / 2.0).to("Pa")
 
-        dP_fric = (-f * (dx / Dh) * q).to("Pa")
+        f_dx = spec.get("water_dx_factor", Q_(1.0, "")).to("").magnitude
+        dx_w = (dx * Q_(f_dx, "")).to("m")
+
+        dP_fric = (-f * (dx_w / Dh) * q).to("Pa")
     else:
         A = spec.get("cold_flow_A", None)
         if A is not None:
@@ -318,8 +328,11 @@ def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage, 
     dh = (Q_step / w.mass_flow).to("J/kg")
     h_new = (w.h + dh).to("J/kg")
 
-    dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
-    P_new = (w.P + dP_tot).to("Pa")
+    if stage.spec.get("pool_boiling", False):
+        P_new = w.P
+    else:
+        dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
+        P_new = (w.P + dP_tot).to("Pa")
 
     return WaterStream(mass_flow=w.mass_flow, h=h_new, P=P_new)
 
@@ -334,7 +347,10 @@ def solve_stage(
     logger_name: str = "solver",
 ) -> tuple[GasStream, WaterStream, StageResult]:
     log = logging.getLogger(logger_name)
-    L = stage.spec["inner_length"].to("m")
+    if stage.kind.lower() == "economiser":
+        L = stage.spec["hot_flow_length"].to("m")
+    else:
+        L = stage.spec["inner_length"].to("m")
     xs, dx = _make_grid(L, n_steps)
 
     K_sum = _stage_minor_K_sum(stage).to("")
@@ -345,7 +361,7 @@ def solve_stage(
 
     g = g_in
     w = w_in
-    Tgw_guess, Tww_guess, qprime_guess = initial_wall_guesses(g, w)
+    Tgw_guess, Tww_guess, qprime_guess = initial_wall_guesses(g, w, stage)
 
     Q_sum = Q_(0.0, "W")
     UA_sum = Q_(0.0, "W/K")
@@ -463,9 +479,24 @@ def solve_exchanger(
         dx_target = target_dx.to("m")
 
     n_steps_by_stage: List[int] = []
+
     for st in stages:
-        L = st.spec["inner_length"].to("m")
-        n = _clamp(int(ceil((L / dx_target).to("").magnitude)), min_steps_per_stage, max_steps_per_stage)
+        if st.kind.lower() == "economiser":
+            if "hot_flow_length" in st.spec:
+                L = st.spec["hot_flow_length"].to("m")
+            elif "inner_length" in st.spec:
+                L = st.spec["inner_length"].to("m")
+            else:
+                raise KeyError(f"{st.name}: economiser missing both 'hot_flow_length' and 'inner_length'")
+        else:
+            L = st.spec["inner_length"].to("m")
+
+
+        n = _clamp(
+            int(ceil((L / dx_target).to("").magnitude)),
+            min_steps_per_stage,
+            max_steps_per_stage
+        )
         n_steps_by_stage.append(n)
 
     prev_Q_total: Optional[Q_] = None

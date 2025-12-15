@@ -22,7 +22,7 @@ def solve_step(g: GasStream, w: WaterStream, stage: HXStage, Tgw_guess: Q_, Tww_
     tolT = Q_(1e-3,"K"); tolq = Q_(1e-3,"W/m"); maxit = 10
 
     for _ in range(maxit):
-        h_g = gas_htc(g, spec, Tgw)
+        h_g = gas_htc(g, spec, Tgw, stage_kind=stage.kind)
         qpp_cold = (qprime / Pw).to("W/m^2")
         h_c, boiling = water_htc(w, stage, Tww, qpp_cold)
         Rfg, Rfc = fouling_resistances(spec)
@@ -48,7 +48,7 @@ def solve_step(g: GasStream, w: WaterStream, stage: HXStage, Tgw_guess: Q_, Tww_
         Tgw = (alpha*Tgw_new + (1-alpha)*Tgw).to("K")
         Tww = (alpha*Tww_new + (1-alpha)*Tww).to("K")
         qprime = (alpha*qprime_new + (1-alpha)*qprime).to("W/m")
-    h_conv, h_rad = gas_htc_parts(g, spec, Tgw)
+    h_conv, h_rad = gas_htc_parts(g, spec, Tgw, stage_kind=stage.kind)
     h_g = (h_conv + h_rad).to("W/m^2/K")
 
     h_tot_mag = h_g.to("W/m^2/K").magnitude

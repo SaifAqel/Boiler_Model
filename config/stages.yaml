@@ -163,8 +163,11 @@ HX_6:
   kind: "economiser"
   pool_boiling: false
   inner_diameter: { value: 0.0337, unit: m }
-  inner_length: { value: 80, unit: m }
-  tubes_number: { value: 3, unit: dimensionless } # 3 circuits
+  n_circuits: { value: 3, unit: dimensionless } # parallel water circuits
+  tube_length: { value: 80, unit: m } # per-circuit developed tube length
+
+  # Gas side (tube bank geometry)
+  n_tubes: { value: 60, unit: dimensionless }
   arrangement: "staggered"
   N_rows: { value: 20, unit: dimensionless }
   ST: { value: 0.09, unit: m }
