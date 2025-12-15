@@ -120,61 +120,35 @@ def _gas_dp_economiser_crossflow(
     spec = stage.spec
 
     A_hot = spec["hot_flow_A"].to("m^2")
-    L     = spec["hot_flow_length"].to("m")
-    Do    = spec["outer_diameter"].to("m")
-    ST    = spec["ST"].to("m")
-    SL    = spec["SL"].to("m")
+    L     = spec["inner_length"].to("m")
 
-    N_rows_q = spec.get("N_rows", None)
-    N_rows = int(round(N_rows_q.to("").magnitude)) if N_rows_q is not None else 1
-    N_rows = max(N_rows, 1)
-
-    arrangement = str(spec.get("arrangement", "inline") or "inline").lower()
+    Dh  = spec["hot_Dh"].to("m")
+    eps = spec.get("roughness_out", Q_(0.0, "m")).to("m")
 
     rho = _gas.rho(g.T, g.P, g.comp)
     mu  = _gas.mu(g.T, g.P, g.comp)
 
     V_bulk = (g.mass_flow / (rho * A_hot)).to("m/s")
-
     umax_factor_q = spec.get("umax_factor", Q_(1.0, ""))
     umax_factor = umax_factor_q.to("").magnitude
-    V_char = (V_bulk * umax_factor).to("m/s")
+    V_char = (V_bulk * max(umax_factor, 1.0)).to("m/s")
 
-    Re_D = (rho * V_char * Do / mu).to("").magnitude
-    Re_D = max(Re_D, 1e-3)
+    Re = max((rho * V_char * Dh / mu).to("").magnitude, 1e-6)
+    eps_over_D = (eps / Dh).to("").magnitude
 
-    ST_over_D = (ST / Do).to("").magnitude
-    SL_over_D = (SL / Do).to("").magnitude
-
-    if arrangement == "staggered":
-        C0 = 1.2
-        m  = -0.15
-    else:
-        C0 = 1.0
-        m  = -0.15
-
-    geom_fac = (ST_over_D / 1.5) ** -0.2 * (SL_over_D / 1.5) ** -0.2
-
-    zeta_row = C0 * (Re_D ** m) * geom_fac
-    zeta_row = max(zeta_row, 1e-4)
-
-    zeta_total = zeta_row * N_rows
+    f = _friction_factor(Re, eps_over_D)
 
     q_dyn = (rho * V_char**2 / 2.0).to("Pa")
 
-    dP_bundle = (-zeta_total * q_dyn).to("Pa")
+    dP_fric = (-Q_(f, "") * (dx / Dh) * q_dyn).to("Pa")
 
-    frac = (dx / L).to("").magnitude
-    dP_fric = (dP_bundle * frac).to("Pa")
     K_bend_per_step = spec.get("_K_bend_per_step", Q_(0.0, "")).to("")
-    K_inlet = spec.get("K_hot_inlet", Q_(0.0, "")).to("")
+    K_inlet  = spec.get("K_hot_inlet",  Q_(0.0, "")).to("")
     K_outlet = spec.get("K_hot_outlet", Q_(0.0, "")).to("")
 
     K_minor = K_bend_per_step
-
     if i_step == 0:
         K_minor = (K_minor + K_inlet).to("")
-
     if i_step == max(n_steps - 1, 0):
         K_minor = (K_minor + K_outlet).to("")
 
