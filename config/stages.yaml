@@ -14,10 +14,8 @@ HX_1:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 20, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0001, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-
   K:
     hot_inlet: 0.5
     hot_outlet: 0.0
@@ -26,6 +24,7 @@ HX_1:
     cold_inlet: 0.0
     cold_outlet: 0.0
     cold_bend: 0.0
+
 HX_2:
   kind: "reversal_chamber"
   pool_boiling: true
@@ -43,10 +42,8 @@ HX_2:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 20, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0001, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-
   K:
     hot_inlet: 0.0
     hot_outlet: 0.0
@@ -55,6 +52,7 @@ HX_2:
     cold_inlet: 0.0
     cold_outlet: 0.0
     cold_bend: 0.0
+
 HX_3:
   kind: "tube_bank"
   pool_boiling: true
@@ -65,9 +63,6 @@ HX_3:
   N_rows: { value: 6, unit: dimensionless }
   ST: { value: 0.11, unit: m }
   SL: { value: 0.11, unit: m }
-  baffle_spacing: { value: 0.45, unit: m }
-  baffle_cut: { value: 0.25, unit: dimensionless }
-  bundle_clearance: { value: 0.010, unit: m }
   wall:
     thickness: { value: 0.0029, unit: m }
     conductivity: { value: 50, unit: W/m/K }
@@ -79,10 +74,8 @@ HX_3:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 20, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0001, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-
   K:
     hot_inlet: 0.5
     hot_outlet: 1.0
@@ -109,10 +102,8 @@ HX_4:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 20, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0001, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-
   K:
     hot_inlet: 0.0
     hot_outlet: 0.0
@@ -132,9 +123,6 @@ HX_5:
   N_rows: { value: 6, unit: dimensionless }
   ST: { value: 0.11, unit: m }
   SL: { value: 0.11, unit: m }
-  baffle_spacing: { value: 0.45, unit: m }
-  baffle_cut: { value: 0.25, unit: dimensionless }
-  bundle_clearance: { value: 0.010, unit: m }
   wall:
     thickness: { value: 0.0029, unit: m }
     conductivity: { value: 50, unit: W/m/K }
@@ -146,10 +134,8 @@ HX_5:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 20, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0001, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-
   K:
     hot_inlet: 0.5
     hot_outlet: 1.0
@@ -170,9 +156,6 @@ HX_6:
   N_rows: { value: 20, unit: dimensionless }
   ST: { value: 0.09, unit: m }
   SL: { value: 0.1, unit: m }
-  baffle_spacing: { value: 0.25, unit: m }
-  baffle_cut: { value: 0.25, unit: dimensionless }
-  bundle_clearance: { value: 0.010, unit: m }
   wall:
     thickness: { value: 0.0026, unit: m }
     conductivity: { value: 50, unit: W/m/K }
@@ -184,11 +167,9 @@ HX_6:
         fouling_conductivity: { value: 0.20, unit: W/m/K }
       outer:
         roughness: { value: 50, unit: micrometer }
-        emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
   shell_inner_diameter: { value: 1.80, unit: m } # Gas side
-
   K:
     hot_inlet: 0.5
     hot_outlet: 1.0

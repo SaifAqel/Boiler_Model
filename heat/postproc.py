@@ -389,17 +389,17 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             steam_capacity_total_tph = None
 
         for r in rows:
-            if r.get("stage_name") in evap_stage_names:
-                r["steam_capacity[kg/s]"] = ""
-                r["steam_capacity[t/h]"] = ""
-
-
-        steam_capacity_total_tph = Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
+            if r.get("stage_name") in evap_stage_names and isinstance(r.get("Q_stage[MW]"), (int, float)):
+                Q_stage_W = Q_(r["Q_stage[MW]"], "MW").to("W")
+                m_s_stage = (Q_stage_W / denom).to("kg/s")
+                r["steam_capacity[kg/s]"] = m_s_stage.magnitude
+                r["steam_capacity[t/h]"]  = m_s_stage.to("tonne/hour").magnitude
 
         if steam_capacity_total_kg_s is not None:
-            steam_capacity_total_tph = (
-                Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
-            )
+            steam_capacity_total_tph = Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
+        else:
+            steam_capacity_total_tph = None
+
 
     Q_useful = Q_total
 
