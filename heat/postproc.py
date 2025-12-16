@@ -371,29 +371,45 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
                 Q_evap_W += Q_(r["Q_stage[MW]"], "MW").to("W").magnitude
         Q_evap = Q_(Q_evap_W, "W")
 
-        if feedwater_mdot_q is not None and econ_out_h_Jkg is not None:
-            x_out = 1.0
-            h_s = (hf + Q_(x_out, "") * (hg - hf)).to("J/kg")
-            denom = (h_s - hf).to("J/kg")
+        x_out = 1.0
+        h_s = (hf + Q_(x_out, "") * (hg - hf)).to("J/kg")
+        denom = (h_s - hf).to("J/kg")
 
-            if denom.magnitude > 0:
-                m_s_q = (Q_evap + feedwater_mdot_q * (econ_out_h_Jkg - hf)) / denom
-                m_s_q = m_s_q.to("kg/s")
-                steam_capacity_total_kg_s = m_s_q.magnitude
-                steam_capacity_total_tph = m_s_q.to("tonne/hour").magnitude
-            else:
-                steam_capacity_total_kg_s = None
-                steam_capacity_total_tph = None
-        else:
+        if denom.magnitude <= 0:
             steam_capacity_total_kg_s = None
             steam_capacity_total_tph = None
+        elif (feedwater_mdot_q is None) or (econ_out_h_Jkg is None):
+            steam_capacity_total_kg_s = None
+            steam_capacity_total_tph = None
+        else:
+            Q_sens = (feedwater_mdot_q * (hf - econ_out_h_Jkg)).to("W")
+            if Q_sens.magnitude < 0:
+                Q_sens = Q_(0.0, "W")
 
-        for r in rows:
-            if r.get("stage_name") in evap_stage_names and isinstance(r.get("Q_stage[MW]"), (int, float)):
-                Q_stage_W = Q_(r["Q_stage[MW]"], "MW").to("W")
-                m_s_stage = (Q_stage_W / denom).to("kg/s")
-                r["steam_capacity[kg/s]"] = m_s_stage.magnitude
-                r["steam_capacity[t/h]"]  = m_s_stage.to("tonne/hour").magnitude
+            Q_evap_net = (Q_evap - Q_sens).to("W")
+            if Q_evap_net.magnitude < 0:
+                Q_evap_net = Q_(0.0, "W")
+
+            m_s_q = (Q_evap_net / denom).to("kg/s")
+            steam_capacity_total_kg_s = m_s_q.magnitude
+            steam_capacity_total_tph = m_s_q.to("tonne/hour").magnitude
+
+            Q_evap_pos = max(Q_evap.to("W").magnitude, 1e-12)
+
+            for r in rows:
+                if r.get("stage_name") in evap_stage_names and isinstance(r.get("Q_stage[MW]"), (int, float)):
+                    Q_stage_W = Q_(r["Q_stage[MW]"], "MW").to("W")
+
+                    frac = Q_stage_W.to("W").magnitude / Q_evap_pos
+                    frac = max(0.0, min(1.0, frac))
+
+                    Q_stage_eff = (Q_stage_W - Q_sens * Q_(frac, "")).to("W")
+                    if Q_stage_eff.magnitude < 0:
+                        Q_stage_eff = Q_(0.0, "W")
+
+                    m_s_stage = (Q_stage_eff / denom).to("kg/s")
+                    r["steam_capacity[kg/s]"] = m_s_stage.magnitude
+                    r["steam_capacity[t/h]"]  = m_s_stage.to("tonne/hour").magnitude
 
         if steam_capacity_total_kg_s is not None:
             steam_capacity_total_tph = Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
