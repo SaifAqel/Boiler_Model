@@ -247,14 +247,7 @@ def write_results_csvs(
         except Exception:
             m_fw = float("nan")
 
-        try:
-            m_circ = global_profile.stage_results[0].steps[0].water.mass_flow.to("kg/s").magnitude
-        except Exception:
-            m_circ = float("nan")
-
         boiler_row["feedwater_mass_flow[kg/s]"] = m_fw
-        boiler_row["circulation_mass_flow[kg/s]"] = m_circ
-
 
         if feed_pressure is not None:
             try:
@@ -318,7 +311,6 @@ def write_results_csvs(
             ("air flow[kg/s]",                  "air_mass_flow[kg/s]"),
             ("excess air ratio[-]",             "excess_air_ratio[-]"),
             ("feedwater flow[kg/s]",            "feedwater_mass_flow[kg/s]"),
-            ("circulation flow[kg/s]",          "circulation_mass_flow[kg/s]"),
             ("steam capacity[t/h]",             "steam_capacity[t/h]"),
             ("eta direct[-]",                   "η_direct[-]"),
             ("eta indirect[-]",                 "η_indirect[-]"),

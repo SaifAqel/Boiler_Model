@@ -396,6 +396,36 @@ def solve_stage(
     g_out = g
     w_out = w
 
+    if steps:
+        last = steps[-1]
+        steps.append(
+            StepResult(
+                i=n_steps,
+                x=L.to("m"),
+                dx=Q_(0.0, "m"),
+                gas=g_out,
+                water=w_out,
+                Tgw=last.Tgw,
+                Tww=last.Tww,
+                UA_prime=Q_(0.0, "W/K/m"),
+                qprime=Q_(0.0, "W/m"),
+                boiling=last.boiling,
+                h_g=Q_(0.0, "W/m^2/K"),
+                h_c=Q_(0.0, "W/m^2/K"),
+                stage_name=stage.name,
+                stage_index=stage_index,
+                dP_fric=Q_(0.0, "Pa"),
+                dP_minor=Q_(0.0, "Pa"),
+                dP_total=Q_(0.0, "Pa"),
+                w_dP_fric=Q_(0.0, "Pa"),
+                w_dP_minor=Q_(0.0, "Pa"),
+                w_dP_tot=Q_(0.0, "Pa"),
+                qprime_conv=Q_(0.0, "W/m"),
+                qprime_rad=Q_(0.0, "W/m"),
+            )
+        )
+
+
     stage_res = StageResult(
         stage_name=stage.name,
         stage_kind=stage.kind,  
@@ -414,7 +444,7 @@ def solve_stage(
         cold_Dh=stage.spec["cold_Dh"],
     )
 
-    recon = sum([(s.qprime * s.dx).to("W") for s in steps], Q_(0.0, "W"))
+    recon = sum([(s.qprime * s.dx).to("W") for s in steps if s.dx.to("m").magnitude > 0], Q_(0.0, "W"))
     if abs((stage_res.Q_stage - recon) / (stage_res.Q_stage + Q_(1e-12, "W"))) > 0.005:
         raise RuntimeError(f"Stage energy accumulation mismatch >0.5% in {stage.name}")
 

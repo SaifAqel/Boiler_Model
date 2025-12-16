@@ -187,7 +187,7 @@ HX_6:
         emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-  shell_inner_diameter: { value: 1.80, unit: m } # Gas side
+  shell_inner_diameter: { value: 0.95, unit: m } # Gas side
 
   K:
     hot_inlet: 0.5
