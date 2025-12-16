@@ -218,7 +218,7 @@ def write_results_csvs(
             "water in enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
             "water in pressure[pa]": df_stages["water_in_P[Pa]"],
             "water out temp[°C]": df_stages["water_out_T[°C]"],
-            "water out enthalpy[kJA/kg]": df_stages["water_out_h[kJ/kg]"],
+            "water out enthalpy[kJ/kg]": df_stages["water_out_h[kJ/kg]"],
             "water out pressure[pa]": df_stages["water_out_P[Pa]"],
             "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
             "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],

@@ -58,16 +58,7 @@ def run_hx(
         P_d = drum_pressure.to("Pa")
         h_f = WaterProps.h_f(P_d).to("J/kg")
 
-        CR = None
-        if circulation_ratio is not None:
-            CR = circulation_ratio if isinstance(circulation_ratio, (int, float)) else circulation_ratio.to("").magnitude
-            CR = max(float(CR), 1.0)
-
-        m_pool = water.mass_flow
-        if CR is not None:
-            m_pool = (water.mass_flow * Q_(CR, "")).to("kg/s")
-
-        drum_pool = WaterStream(mass_flow=m_pool, h=h_f, P=P_d)
+        drum_pool = WaterStream(mass_flow=water.mass_flow, h=h_f, P=P_d)
 
 
     stage_results, gas_out, water_out = solve_exchanger(

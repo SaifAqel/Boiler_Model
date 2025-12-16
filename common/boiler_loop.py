@@ -74,7 +74,6 @@ def run_boiler_case(
                 log.warning(f"GasStream (fuel) has no attribute '{attr}', ignoring override.")
 
     P_drum: Q_ | None = operation.get("drum_pressure", None)
-    circulation_ratio = operation.get("circulation_ratio", Q_(10.0, ""))
     blowdown_fraction = operation.get("blowdown_fraction", Q_(0.0, ""))
     steam_quality_out = float(operation.get("steam_quality_out", Q_(1.0, "")).to("").magnitude)
 
@@ -115,7 +114,6 @@ def run_boiler_case(
             gas=combustion_results.flue,
             drum=drum,
             drum_pressure=P_drum,
-            circulation_ratio=circulation_ratio,
             target_dx="0.1 m",
             combustion=combustion_results,
             write_csv=False,
@@ -159,9 +157,15 @@ def run_boiler_case(
     feed_P: Q_ | None = None
 
     if P_drum is not None and final_m_fw is not None:
-        P_in = (P_drum * Q_(1.1, "")).to("Pa")
+        P_drum_Pa = P_drum.to("Pa")
 
-        max_p_iter = 5
+        # Start guess: above drum pressure
+        P_in = (P_drum_Pa * Q_(1.01, "")).to("Pa")
+
+        max_p_iter = 30
+        tol_P = Q_(1.0, "Pa")
+
+        feed_P = None
         last_result: Dict[str, Any] | None = None
 
         for _ in range(max_p_iter):
@@ -177,7 +181,6 @@ def run_boiler_case(
                 gas=combustion_results.flue,
                 drum=drum,
                 drum_pressure=P_drum,
-                circulation_ratio=circulation_ratio,
                 target_dx="0.1 m",
                 combustion=combustion_results,
                 write_csv=False,
@@ -185,22 +188,27 @@ def run_boiler_case(
 
             P_out = last_result["water_out"].P.to("Pa")
 
-            dP = (P_in - P_out).to("Pa")
+            # Want economiser outlet == drum pressure
+            err = (P_drum_Pa - P_out).to("Pa")
 
-            P_new = (P_drum + dP).to("Pa")
-
-            if abs((P_new - P_in).to("Pa")).magnitude < 1.0:
-                feed_P = P_new
+            if abs(err).to("Pa").magnitude < tol_P.to("Pa").magnitude:
+                feed_P = P_in
                 break
 
-            P_in = P_new
+            # Update inlet pressure by the outlet error
+            P_in = (P_in + err).to("Pa")
+
+            # Physical clamp: feed must be >= drum
+            if P_in < P_drum_Pa:
+                P_in = P_drum_Pa
 
         if feed_P is None:
             feed_P = P_in
 
         log.info(f"Solved feedwater inlet pressure: {feed_P:~P} for drum pressure {P_drum:~P}")
-    else:
-        feed_P = water_template.P
+
+    if feed_P is None:
+        feed_P = P_drum
 
     water_final_in = WaterStream(
         mass_flow=final_m_fw,
@@ -209,7 +217,6 @@ def run_boiler_case(
     )
 
     log.info(f"Final feedwater inlet mass flow: {water_final_in.mass_flow:~P}")
-    log.info(f"Circulation ratio setting: {circulation_ratio:~P}")
 
     final_result = run_hx(
         stages_raw=stages,
@@ -217,7 +224,6 @@ def run_boiler_case(
         gas=combustion_results.flue,
         drum=drum,
         drum_pressure=P_drum,
-        circulation_ratio=circulation_ratio,
         target_dx="0.1 m",
         combustion=combustion_results,
         write_csv=write_csv,

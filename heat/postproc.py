@@ -194,6 +194,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     boiler_water_in_T_C = None
     boiler_water_out_T_C = None
     boiler_water_Tsat_C = None
+    econ_out_h_Jkg = None
+    feedwater_mdot_q = None
+
 
     import itertools
     for k, grp in itertools.groupby(range(len(gp.x)), key=lambda i: gp.stage_index[i]):
@@ -277,15 +280,17 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             boiler_water_in_P_Pa = water_in_P
 
             try:
-                feedwater_mdot_kg_s = gp.stage_results[k].steps[0].water.mass_flow.to("kg/s").magnitude
+                feedwater_mdot_q = gp.stage_results[k].steps[0].water.mass_flow.to("kg/s")
+                feedwater_mdot_kg_s = feedwater_mdot_q.magnitude
             except Exception:
+                feedwater_mdot_q = None
                 feedwater_mdot_kg_s = None
 
             try:
-                circ_guess = gp.stage_results[0].steps[0].water.mass_flow.to("kg/s").magnitude
-                circulation_mdot_kg_s = circ_guess
+                econ_out_h_Jkg = w_out.h.to("J/kg")
             except Exception:
-                circulation_mdot_kg_s = None
+                econ_out_h_Jkg = None
+
 
 
         row = {
@@ -355,26 +360,39 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     if P_for_evap is not None:
         P_q = P_for_evap.to("Pa")
         boiler_water_Tsat_C = WaterProps.Tsat(P_q).to("degC").magnitude
-        h_fg = (WaterProps.h_g(P_q) - WaterProps.h_f(P_q)).to("J/kg")
 
-        steam_capacity_total_kg_s = 0.0
+        hf = WaterProps.h_f(P_q).to("J/kg")
+        hg = WaterProps.h_g(P_q).to("J/kg")
 
-        evap_stage_names = set([f"HX_{i}" for i in range(1, 6)])
+        evap_stage_names = {f"HX_{i}" for i in range(1, 6)}
+        Q_evap_W = 0.0
+        for r in rows:
+            if r.get("stage_name") in evap_stage_names and isinstance(r.get("Q_stage[MW]"), (int, float)):
+                Q_evap_W += Q_(r["Q_stage[MW]"], "MW").to("W").magnitude
+        Q_evap = Q_(Q_evap_W, "W")
 
-        steam_capacity_total_kg_s = 0.0
+        if feedwater_mdot_q is not None and econ_out_h_Jkg is not None:
+            x_out = 1.0
+            h_s = (hf + Q_(x_out, "") * (hg - hf)).to("J/kg")
+            denom = (h_s - hf).to("J/kg")
+
+            if denom.magnitude > 0:
+                m_s_q = (Q_evap + feedwater_mdot_q * (econ_out_h_Jkg - hf)) / denom
+                m_s_q = m_s_q.to("kg/s")
+                steam_capacity_total_kg_s = m_s_q.magnitude
+                steam_capacity_total_tph = m_s_q.to("tonne/hour").magnitude
+            else:
+                steam_capacity_total_kg_s = None
+                steam_capacity_total_tph = None
+        else:
+            steam_capacity_total_kg_s = None
+            steam_capacity_total_tph = None
 
         for r in rows:
-            if r.get("stage_name") not in evap_stage_names:
+            if r.get("stage_name") in evap_stage_names:
                 r["steam_capacity[kg/s]"] = ""
                 r["steam_capacity[t/h]"] = ""
-                continue
 
-            Q_stage_MW = r["Q_stage[MW]"]
-            if isinstance(Q_stage_MW, (int, float)):
-                m_dot_q = (Q_(Q_stage_MW, "MW").to("W") / h_fg).to("kg/s")
-                r["steam_capacity[kg/s]"] = m_dot_q.to("kg/s").magnitude
-                r["steam_capacity[t/h]"] = m_dot_q.to("tonne/hour").magnitude
-                steam_capacity_total_kg_s += r["steam_capacity[kg/s]"]
 
         steam_capacity_total_tph = Q_(steam_capacity_total_kg_s, "kg/s").to("tonne/hour").magnitude
 

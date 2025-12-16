@@ -308,14 +308,8 @@ def update_water_after_step(w: WaterStream, qprime: Q_, dx: Q_, stage: HXStage, 
     h_new = (w.h + dh).to("J/kg")
 
     if stage.spec.get("pool_boiling", False):
-        try:
-            hf = WaterProps.h_f(w.P).to("J/kg")
-            hg = WaterProps.h_g(w.P).to("J/kg")
-            if h_new < hf: h_new = hf
-            if h_new > hg: h_new = hg
-        except Exception:
-            pass
-        return WaterStream(mass_flow=w.mass_flow, h=h_new, P=w.P)
+        hf = WaterProps.h_f(w.P).to("J/kg")
+        return WaterStream(mass_flow=w.mass_flow, h=hf, P=w.P)
 
     dP_fric, dP_minor, dP_tot = _water_dp_components(w, stage, dx, i, n_steps)
     P_new = (w.P + dP_tot).to("Pa")
