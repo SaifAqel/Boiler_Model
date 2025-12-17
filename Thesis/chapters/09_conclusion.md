@@ -1,37 +1,39 @@
-# Conclusion
+# Conclusion and summary
 
-This thesis developed and validated a coupled combustion–heat-transfer–hydraulics model for a three-pass fire-tube industrial shell boiler. The framework integrates detailed fuel–air combustion using Cantera, multi-stage radiative and convective heat-transfer modelling across six sequential heat-exchange sections, and a resistance-based hydraulic model for gas-side pressure losses. The approach captures the dominant physical mechanisms governing boiler performance while remaining computationally tractable for iterative operating-point calculations and sensitivity studies.
+This thesis presented a physics based modelling framework for a three pass fire tube industrial shell boiler, integrating combustion, heat transfer, and hydraulic behavior within a single tool. The model was implemented in Python and structured around a one dimensional marching solver that resolves gas side and water/steam side processes consistently along the boiler flow path.
 
-The modelling framework successfully reproduces the expected qualitative behaviour of industrial shell boilers:
+The developed framework couples three main sub models:
 
-- The adiabatic flame temperature $T_\mathrm{ad}$ is predicted from full HP-equilibrium chemistry, providing a physically consistent upper-bound reference state for the flue gas.
-- Radiative transfer in the furnace (HX$_1$) dominates high-temperature heat exchange, while the downstream tube banks (HX$_3$ and HX$_5$) provide the bulk of convective duty.
-- The economiser (HX$_6$) is correctly characterised as a single-phase internal flow exchanger, with performance governed largely by gas-side convection.
+**Combustion model**
+A detailed fuel air combustion model computes the stoichiometric requirements, excess air effects, lower and higher heating values, and the total heat release from natural gas firing. Chemical equilibrium calculations provide the adiabatic flame temperature, while a chemically frozen, fully burnt flue gas composition is used for subsequent heat transfer and hydraulic calculations.
 
-At the boiler scale, the simulation produces converged operating conditions by solving a fixed-point iteration linking efficiency, combustion heat input, and steam mass flow. This procedure captures the inherent coupling between water/steam generation and flue-gas cooling, ensuring global energy consistency.
+**Heat transfer model**
+Heat transfer is resolved across six sequential gas side stages, representing the furnace, reversal chambers, convective tube banks, and economizer. The model combines:
 
-The sensitivity studies demonstrate three principal findings:
+- gas side convection and radiation, wall conduction with fouling layers,
+- water side pool boiling, flow boiling, and single phase convection.
 
-1. **Excess air ratio $\lambda$.**  
-   Efficiency exhibits a shallow optimum close to the design value. Increasing $\lambda$ beyond this point lowers furnace temperatures, reduces radiative heat transfer, increases stack losses, and raises overall gas-side pressure drop. The model quantifies these effects and highlights the operational importance of controlling excess air.
+A full thermal resistance network is solved locally at each marching step, updating wall temperatures, heat transfer coefficients, and linear heat flux $q'(x)$.
 
-2. **Drum/feedwater pressure.**  
-   Pressure mainly influences _steam quantity_ rather than _efficiency_. Higher pressures increase saturation temperature and reduce latent heat, leading to lower steam mass flow for the same heat input. The indirect efficiency varies only mildly across the investigated pressure range.
+**Hydraulic model**
+Gas side pressure losses are computed concurrently with heat transfer, using Darcy Weisbach friction for internal flow sections and a drag based bundle loss formulation for economizer crossflow. Minor losses from expansions, contractions, and bends are included. Water side pressure losses are evaluated for the economizer circuit.
 
-3. **Firing rate (fuel mass flow).**  
-   Useful duty and steam flow scale nearly linearly with firing rate over a broad operating window. Efficiency remains relatively stable at mid-loads, with penalties at both low and high firing rates due to deteriorated heat-transfer coefficients and increased stack temperatures. Gas-side pressure drop increases strongly with load, reflecting the quadratic dependence on velocity.
+The steady state simulations and sensitivity studies presented in the previous chapter lead to the following main conclusions:
 
-Overall, the model provides a physics-based, modular, and extensible framework suitable for performance assessment, operational optimisation, and early-stage design exploration of industrial shell boilers. It enables quantitative evaluation of how geometry, combustion conditions, and operating parameters influence heat-transfer distribution, steam capacity, efficiency, and hydraulic behaviour.
+**Excess air ratio**
+Boiler efficiency exhibits a shallow optimum near the design excess air setting ($\lambda \approx 1.1$). At low excess air, efficiency is limited by combustion margins, while higher excess air increases flue gas mass flow and stack losses, raising the stack temperature and total gas side pressure drop. This confirms that excess air control is primarily an efficiency and hydraulics trade off rather than a strong heat transfer limitation.
 
-Future work could extend the present model by incorporating:
+**Fuel firing rate**
+Steam generation scales approximately linearly with fuel mass flow over the investigated load range, indicating that the available heat transfer surface is sufficient at part load. At higher firing rates, stack temperature increases and efficiency decreases slightly, reflecting reduced effectiveness of downstream heat recovery.
 
-- transient operation and burner cycling,
-- advanced radiation models (spectral or WSGG-based),
-- two-phase water/steam circulation modelling within the pressure parts,
-- fouling, slagging, and degradation effects over time,
-- NO$_x$ formation and emissions modelling coupled to flame-temperature predictions.
+**Drum pressure**
+Drum pressure has a relatively minor effect on overall boiler efficiency but strongly influences steam capacity. Increasing pressure reduces the latent heat of vaporization, allowing higher steam mass flow for the same absorbed duty. Higher saturation temperatures reduce the gas water temperature driving force, leading to higher stack temperatures and marginally lower efficiencies.
 
-Such extensions would further enhance the model’s fidelity and applicability across a wider range of industrial boiler configurations and operating regimes.
+Efficiency is most sensitive to excess air and stack losses, firing rate governs absolute duty and steam capacity, pressure mainly affects steam quantity rather than thermal efficiency.
+
+The modelling framework successfully captures the coupled thermal and hydraulic behavior of an industrial shell boiler using physically interpretable sub models and standard correlations. The results are consistent with known operational trends of fire tube boilers and demonstrate that:
+
+The developed tool provides a flexible basis for performance evaluation, operational optimization, and design exploration of shell boilers.
 
 \newpage
 

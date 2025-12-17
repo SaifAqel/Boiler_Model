@@ -1,4 +1,4 @@
-# Boiler performance analysis
+# Performance analysis
 
 The present chapter evaluates the thermal and hydraulic performance of the fire tube boiler model based on steady state simulations of a reference control case and systematic parameter variations. The analysis is structured to introduce the control case first and then to discuss the influence of excess air factor, fuel mass flow, and drum pressure.
 
