@@ -212,10 +212,52 @@ Steam generation increases with fuel mass flow, indicating that the available he
 
 Drum pressure has a relatively minor effect on overall boiler efficiency but strongly influences steam capacity. Increasing pressure reduces the latent heat of vaporization, allowing higher steam mass flow for the same absorbed duty. Higher saturation temperatures reduce the gas water temperature driving force, leading to higher stack temperatures and marginally lower efficiencies.
 
-## Fouling Effects
+\newpage
+
+## Influence of fouling
 
 $$
-f = [50, 100, 200]\; \mathrm{\%}
+f = [0.5,\; 1.0,\; 2.0]\;[-]
 $$
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/per_run/performance_fouling.png}
+\caption{Boiler performance as a function of fouling factor}
+\label{fig:performance_fouling}
+\end{figure}
+
+The fouling factor represents a degradation of the effective heat transfer surfaces on the gas side and water side heat exchangers. Increasing fouling reduces the overall heat transfer coefficient, directly lowering the effective conductance, weakening heat recovery throughout the boiler, resulting in higher stack temperatures and reduced boiler efficiency.
+
+The effect of fouling is distributed across all stages, but its impact is most pronounced in the downstream convective sections where heat transfer is already limited by smaller temperature differences. As fouling increases, these sections lose effectiveness first.
+
+Table: Fouling performance analysis.
+
+| fouling [-]                          |    0.50 |    1.00 |    2.00 |
+| :----------------------------------- | ------: | ------: | ------: |
+| fuel mass flow[kg/s]                 |     0.1 |     0.1 |     0.1 |
+| air flow[kg/s]                       |    1.77 |    1.77 |    1.77 |
+| excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |
+| feedwater flow[kg/s]                 |     1.8 |     1.8 |     1.8 |
+| steam capacity[t/h]                  |    6.48 |    6.48 |    6.47 |
+| $\eta_{\mathrm{direct}} [-]$         |     0.9 |    0.89 |    0.89 |
+| $\eta_{\mathrm{indirect}} [-]$       |    0.89 |    0.89 |    0.89 |
+| conductance [MW/K]                   |    0.01 |    0.01 |    0.01 |
+| input heat [MW]                      |     4.7 |     4.7 |     4.7 |
+| useful heat [MW]                     |     4.2 |     4.2 |     4.2 |
+| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |
+| firing rate [MW]                     |     4.7 |     4.7 |     4.7 |
+| adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 |
+| stack temperature[°c]                |  168.67 |  169.39 |  170.94 |
+| pressure drop fric total[kpa]        |   -0.34 |   -0.34 |   -0.34 |
+| pressure drop minor total[kpa]       |   -0.76 |   -0.76 |   -0.76 |
+| pressure drop total[kpa]             |    -1.1 |    -1.1 |   -1.11 |
+| water pressure drop fric total[kpa]  |   -6.92 |   -6.92 |   -6.91 |
+| water pressure drop minor total[kpa] |   -0.24 |   -0.24 |   -0.24 |
+| water pressure drop total[kpa]       |   -7.16 |   -7.16 |   -7.15 |
+| feedwater pressure[kpa]              | 1007.16 | 1007.16 | 1007.15 |
+| drum pressure[kpa]                   |    1000 |    1000 |    1000 |
+
+While the boiler can continue to operate under fouled conditions, the results highlight the importance of maintaining clean heat transfer surfaces to ensure higher efficiency.
 
 \newpage

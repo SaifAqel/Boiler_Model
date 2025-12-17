@@ -722,7 +722,7 @@ def generate_default_case_steps_figure(
     required = [
         "x[m]",
         "gas_T[°C]", "water_T[°C]",
-        "gas_P[Pa]", "water_P[Pa]",
+        "gas_P[kPa]", "water_P[kPa]",
         "gas_V[m/s]", "water_V[m/s]",
         "h_gas[W/m^2/K]", "h_water[W/m^2/K]",
     ]
@@ -752,11 +752,11 @@ def generate_default_case_steps_figure(
     ax_T.legend(loc="best", framealpha=0.8)
 
     # --- Plot 2: Pressure
-    ax_P.plot(x, dfp["gas_P[Pa]"],   label="Gas P [Pa]")
-    ax_P.plot(x, dfp["water_P[Pa]"], label="Water P [Pa]")
+    ax_P.plot(x, dfp["gas_P[kPa]"],   label="Gas P [kPa]")
+    ax_P.plot(x, dfp["water_P[kPa]"], label="Water P [kPa]")
     ax_P.set_title("Pressure")
     ax_P.set_xlabel("x [m]")
-    ax_P.set_ylabel("P [Pa]")
+    ax_P.set_ylabel("P [kPa]")
     ax_P.legend(loc="best", framealpha=0.8)
 
     # --- Plot 3: Velocity
