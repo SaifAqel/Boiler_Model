@@ -24,15 +24,16 @@ def run_water_pressure_sensitivity() -> None:
     Pbar_values = [4.0, 10.0, 16.0]
 
     for P_bar in Pbar_values:
-        logging.getLogger(__name__).info(f"Running case with water pressure={P_bar} bar")
+        logging.getLogger(__name__).info(f"Running case with drum pressure={P_bar} bar")
 
         run_boiler_case(
-            water_overrides={"P": Q_(P_bar, "bar")},
+            operation_overrides={"drum_pressure": Q_(P_bar, "bar")},
             tol_m=Q_(1e-3, "kg/s"),
             max_iter=20,
             write_csv=True,
-            run_id=f"water_pressure_{P_bar}bar",
+            run_id=f"drum_pressure_{P_bar}bar",
         )
+
 
 def run_fuel_flow_sensitivity() -> None:
     mdot_values = [0.20, 0.10, 0.075, 0.050, 0.025]  # kg/s
@@ -55,9 +56,9 @@ def main() -> None:
 
 
 
-    run_default_case()
-    run_excess_air_sensitivity()
-    run_water_pressure_sensitivity()
+    # run_default_case()
+    # run_excess_air_sensitivity()
+    # run_water_pressure_sensitivity()
     run_fuel_flow_sensitivity() 
 
 

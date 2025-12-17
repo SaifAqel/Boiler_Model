@@ -75,12 +75,7 @@ Table: Excess air performance analysis. {#tbl:excess_air_performance}
 | Adiabatic temperature [°C]     | 2036.41 | 1900.61 | 1782.51 | 1678.83 |
 | stack temperature[°C]          |  175.78 |  181.41 |  186.78 |  191.89 |
 
-Key observations from [@tbl:excess_air_performance] are:
-
-- Increasing excess air from $\lambda = 1.0$ to $\lambda = 1.3$ decreases the direct efficiency from about $0.891$ to $0.876$ ($\approx 1.5\%$).
-- Over the same range, stack temperature increases from approximately 176 °C to 192 °C, indicating higher sensible heat losses with the flue gas.
-- The total gas side pressure drop rises from about −62 Pa to −104 Pa as air flow and hence gas mass flow increase.
-- The useful heat $Q_\mathrm{useful}$ decreases slightly with $\lambda$, while the overall conductance $UA$ increases modestly due to higher gas side Reynolds numbers.
+Increasing the excess air ratio from $\lambda = 1.0$ to $\lambda = 1.3$ reduces the direct efficiency from about $0.891$ to $0.876$ (approximately $1.5\%$), primarily due to increased sensible heat losses, as evidenced by the rise in stack temperature from roughly $176\,^\circ\mathrm{C}$ to $192\,^\circ\mathrm{C}$. Over the same range, the total gas-side pressure drop increases from about $-62\ \mathrm{Pa}$ to $-104\ \mathrm{Pa}$ as higher air flow leads to greater flue-gas mass flow. While the useful heat transfer $Q_\mathrm{useful}$ decreases slightly with increasing $\lambda$, the overall heat-transfer conductance $UA$ shows a modest increase, attributable to higher gas-side Reynolds numbers.
 
 \newpage
 
@@ -121,12 +116,7 @@ Table: Fuel flow performance analysis. {#tbl:fuel_flow_performance}
 | Adiabatic temperature [°C]     | 1900.61 | 1900.61 | 1900.61 | 1900.61 |
 | stack temperature[°C]          |  131.25 |  150.24 |  166.78 |  181.41 |
 
-Key observations from [@tbl:fuel_flow_performance] are:
-
-- As fuel mass flow increases from 0.025 to 0.1 kg/s (25% to 100% load), steam capacity rises from about 1.9 t/h to 7.4 t/h.
-- The direct efficiency decreases slightly with load, from around 0.908 at 25% load to 0.887 at 100% load.
-- The gas-side pressure drop increases strongly with load, from about −3 Pa to −75 Pa, reflecting the approximate quadratic dependence on gas mass flow.
-- Stack temperature increases from roughly 131 °C at 25% load to 181 °C at full load, which indicates less complete heat recovery at high firing rates.
+As the fuel mass flow increases from $0.025$ to $0.1\ \mathrm{kg\,s^{-1}}$ (corresponding to 25\% to 100\% load), the steam generation capacity rises from approximately $1.9\ \mathrm{t\,h^{-1}}$ to $7.4\ \mathrm{t\,h^{-1}}$. Over this range, the direct efficiency decreases slightly, from about $0.908$ at 25\% load to $0.887$ at full load. The gas-side pressure drop increases markedly from roughly $-3\ \mathrm{Pa}$ to $-75\ \mathrm{Pa}$, consistent with an approximately quadratic dependence on gas mass flow rate. In parallel, the stack temperature increases from around $131\,^\circ\mathrm{C}$ at low load to about $181\,^\circ\mathrm{C}$ at full load, indicating reduced effectiveness of heat recovery at higher firing rates.
 
 \newpage
 
@@ -167,12 +157,7 @@ Table: Drum pressure performance analysis. {#tbl:drum_pressure_performance}
 | Adiabatic temperature [°C]     | 1900.61 | 1900.61 | 1900.61 |
 | stack temperature[°C]          |  162.68 |  181.41 |  192.08 |
 
-Key observations from [@tbl:drum_pressure_performance] are:
-
-- At fixed fuel and air flows, increasing drum pressure from 4 bar to 16 bar increases steam capacity from about 7.1 t/h to 7.7 t/h due to higher steam enthalpy.
-- The direct efficiency decreases from about 0.895 at 4 bar to 0.882 at 16 bar, as higher water/steam temperatures reduce the driving temperature difference on the gas side.
-- Stack temperature increases from approximately 163 °C at 4 bar to 192 °C at 16 bar, reflecting the reduced potential for additional heat recovery.
-- Gas-side pressure drops remain essentially unchanged with drum pressure because gas mass flow and gas-side geometry are not affected.
+At fixed fuel and air flow rates, increasing the drum pressure from $4\ \mathrm{bar}$ to $16\ \mathrm{bar}$ raises the steam capacity from approximately $7.1\ \mathrm{t\,h^{-1}}$ to $7.7\ \mathrm{t\,h^{-1}}$ due to the higher specific enthalpy of the produced steam. Over the same pressure range, the direct efficiency decreases from about $0.895$ at $4\ \mathrm{bar}$ to $0.882$ at $16\ \mathrm{bar}$, since higher water and steam temperatures reduce the available driving temperature difference on the gas side. Consistent with this, the stack temperature increases from roughly $163\,^\circ\mathrm{C}$ to $192\,^\circ\mathrm{C}$, indicating a diminished potential for further heat recovery. The gas-side pressure drop remains essentially unchanged with drum pressure, as neither the gas mass flow rate nor the gas-side flow geometry is affected.
 
 ## Stage wise heat transfer behavior
 

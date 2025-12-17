@@ -66,14 +66,14 @@ All six pressure part stages of the simulated boiler are represented with a cons
 
 Table: Flue gas stages key parameters
 
-|     Element     | Kind         | Di [m] | L [m] | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
-| :-------------: | ------------ | :----: | :---: | :---------: | :---------: | :------------: | :--------------: |
-| $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276 |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_2}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975 |     118     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_4}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620 |     100     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_6}$ | economizer   | 0.076  | 7.50  |     160     |     2.5     |      0.5       |      false       |
+|     Element     | Kind         | Di [m] | L [m]  | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
+| :-------------: | ------------ | :----: | :----: | :---------: | :---------: | :------------: | :--------------: |
+| $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276  |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_2}$ | reversal_ch. |  1.60  |  0.80  |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975  |     118     |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_4}$ | reversal_ch. |  1.60  |  0.80  |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620  |     100     |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_6}$ | economizer   | 0.0337 | 80 x 3 |   40 x 3    |     2.6     |      0.5       |      false       |
 
 The input file `stages.yaml`, provided in Annex A, contain the complete detailed specifications and is parsed at runtime by the configuration loader (`new_loader.py`). This separates numerical solution algorithms from geometry and surface data, and allows different boiler variants to be simulated by simply modifying the YAML files.
 
@@ -84,7 +84,7 @@ The input file `stages.yaml`, provided in Annex A, contain the complete detailed
 \label{fig:boiler-cross-section-2}
 \end{figure}
 
-All pressure part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 16$ $\text{W/m/K}$. The economizer ($\mathrm{HX_6}$) is modelled with a higher wall conductivity $\mathrm{k_{wall}} = 30$ $\text{W/m/K}$ and a clean surface (zero fouling thickness) to represent a best-case heat-recovery configuration.
+All pressure part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 50$ $\text{W/m/K}$.
 
 The YAML configuration supplies wall, surface, and hydraulic properties not captured in the tabulated geometry. Each pressure-part exchanger defines wall thickness, wall conductivity, surface roughness, emissivity, and optional fouling layers with specified thickness and conductivity. Most stages use a uniform carbon-steel wall with smooth surfaces and thin fouling layers, while the economizer uses a thinner, higher-conductivity wall and no fouling to reflect a cleaned section.
 
@@ -92,7 +92,7 @@ The steam drum defines diameter, length, and internal surface properties with it
 
 Reversal chambers specify curvature radius and nozzle minor-loss coefficients used in pressure-drop calculations.
 
-Tube-bank stages define full shell-side layout: shell diameter, tube count and pitch, tube-row arrangement (staggered or inline), baffle spacing and cut, and bundle clearances. Evaporator banks use tighter pitch and spacing to enhance shell-side transfer, whereas the economizer uses a more open inline layout with a larger tube count and longer tubes.
+Economizer defines shell side cross section, where flue gas flows as a cylindrical drum of 0.95 m diameter, containing 3 circuit of tube bundles where each circuit is of 60 tubes of 33.7 mm.
 
 These YAML entries are translated by the loader into the geometric and hydraulic quantities required for cross-flow areas, Reynolds numbers, and shell-side heat-transfer evaluation.
 

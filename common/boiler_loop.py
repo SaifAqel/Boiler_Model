@@ -42,7 +42,6 @@ def run_boiler_case(
     max_iter: int = 20,
     write_csv: bool = True,
     operation_overrides: Dict[str, Q_] | None = None,
-    water_overrides: Dict[str, Q_] | None = None,
     fuel_overrides: Dict[str, Q_] | None = None,
     run_id: str | None = None,
 ) -> Dict[str, Any]:
@@ -58,13 +57,6 @@ def run_boiler_case(
 
     if operation_overrides:
         operation.update(operation_overrides)
-
-    if water_overrides:
-        for attr, val in water_overrides.items():
-            if hasattr(water, attr):
-                setattr(water, attr, val)
-            else:
-                log.warning(f"WaterStream has no attribute '{attr}', ignoring override.")
 
     if fuel_overrides:
         for attr, val in fuel_overrides.items():
