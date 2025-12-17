@@ -75,6 +75,14 @@ def load_data(csv_path: str) -> pd.DataFrame:
     df["param_value"] = pd.to_numeric(df["param_value"], errors="coerce")
     return df
 
+def _sweep_percent(series: pd.Series) -> pd.Series:
+    s = pd.to_numeric(series, errors="coerce")
+    smin = s.min()
+    smax = s.max()
+    if pd.isna(smin) or pd.isna(smax) or smax == smin:
+        return pd.Series([0.0] * len(s), index=s.index)
+    return (s - smin) / (smax - smin) * 100.0
+
 def _get_marker(param_group: str):
     return style_markers.get(param_group, None)
 
@@ -240,8 +248,12 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
     fig, axes = plt.subplots(4, 2, figsize=(9, 10))
     axes_flat = axes.flatten()
 
+    for ax in axes_flat:
+        ax.set_xlim(0, 100)
+        ax.set_xticks([0, 25, 50, 75, 100])
+
     for ax, kpi in zip(axes_flat, kpi_defs):
-        ax.set_xlabel("Parameter value [-]")
+        ax.set_xlabel("Sweep [%]")
         ax.set_ylabel(kpi["ylabel"])
         ax.grid(True, which="both")
 
@@ -249,7 +261,7 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
 
     for param_group, df_group in df.groupby("param_group"):
         df_group_sorted = df_group.sort_values("param_value")
-        x = df_group_sorted["param_value"]
+        x = _sweep_percent(df_group_sorted["param_value"])
 
         pg_style = _get_pg_style(param_group)
         marker = pg_style["marker"]
@@ -298,6 +310,79 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
 
     out_path = out_dir / "kpi_overview_all_param_groups.png"
     fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+def generate_eff_stack_scatter(
+    csv_path: str = "results/summary/boiler_kpis_all_runs.csv",
+    output_dir: str = "figures",
+) -> None:
+    df = load_data(csv_path)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Keep only rows with the needed columns
+    needed = ["param_group", "stack temperature[°C]", "eta direct[-]", "eta indirect[-]"]
+    missing = [c for c in needed if c not in df.columns]
+    if missing:
+        raise KeyError(f"Missing columns for scatter: {missing}")
+
+    dfp = df.dropna(subset=["stack temperature[°C]", "eta direct[-]", "eta indirect[-]"]).copy()
+
+    fig, ax_dir = plt.subplots(1, 1, figsize=(7.5, 4))
+
+    # Plot non-control first, then control last so it is on top
+    df_non_control = dfp[dfp["param_group"].astype(str).str.lower() != "control"].copy()
+    df_control     = dfp[dfp["param_group"].astype(str).str.lower() == "control"].copy()
+
+    # 1) non-control groups
+    for pg, dpg in df_non_control.groupby("param_group"):
+        st = _get_pg_style(str(pg))
+        ax_dir.scatter(
+            dpg["stack temperature[°C]"],
+            dpg["eta direct[-]"],
+            label=str(pg),
+            color=st["color"],
+            marker=st["marker"],
+            s=28,
+            alpha=0.85,
+            zorder=2,
+        )
+
+    # 2) control group LAST (strongest marker, on top)
+    if not df_control.empty:
+        stc = _get_pg_style("control")
+        ax_dir.scatter(
+            df_control["stack temperature[°C]"],
+            df_control["eta direct[-]"],
+            label="control",
+            color=stc["color"],
+            marker=stc["marker"],
+            s=60,            # bigger than others
+            alpha=1.0,       # fully opaque
+            edgecolors="black",
+            linewidths=0.6,
+            zorder=10,       # ensures on top
+        )
+
+    ax_dir.set_title("Direct efficiency vs stack temperature")
+    ax_dir.set_xlabel("Stack temperature [°C]")
+    ax_dir.set_ylabel("Direct efficiency [-]")
+    ax_dir.grid(True, which="both")
+
+    # Legend (from the single axis)
+    handles, labels = ax_dir.get_legend_handles_labels()
+    if handles:
+        ax_dir.legend(
+            handles=handles,
+            labels=labels,
+            loc="best",
+            framealpha=0.8,
+        )
+
+    fig.tight_layout()
+
+    out_path = out_dir / "scatter_efficiency_vs_stack_temperature_all_runs.png"
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 def generate_stage_heat_figure(
@@ -656,6 +741,8 @@ if __name__ == "__main__":
     generate_all_figures(csv_arg, output_dir=out_arg)
 
     generate_overall_kpi_figure(csv_arg, output_dir=out_arg)
+
+    generate_eff_stack_scatter(csv_arg, output_dir=out_arg)
 
     stage_csv = "results/summary/stages_summary_all_runs.csv"
     generate_stage_heat_figure(stage_csv, output_dir=out_arg)

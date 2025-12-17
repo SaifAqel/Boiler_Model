@@ -62,7 +62,7 @@ def main():
         "control": ("Control", "control"),
         "excess_air": ("Excess air", "excess air [-]"),
         "fuel_flow": ("Fuel flow", "fuel flow [kg/s]"),
-        "water_pressure": ("Water pressure", "water pressure [bar]"),
+        "drum_pressure": ("Drum pressure", "drum pressure [bar]"),
     }
 
     lines = []
