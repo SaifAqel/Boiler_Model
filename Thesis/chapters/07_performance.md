@@ -108,48 +108,4 @@ The water/steam mass flow rate is obtained iteratively from an assumed overall b
    < 10^{-3}\,\text{kg/s}
    $$
 
-## Stage level performance
-
-Stage level performance table returned by the post processor `heat/postproc.py`. For each stage $k$ the following quantities are available:
-
-- Heat duty: `Q_stage[MW]`
-- Overall conductance: `UA_stage[MW/K]`
-- Gas inlet/outlet temperatures: `gas_in_T[°C]`, `gas_out_T[°C]`
-- Water inlet/outlet temperatures: `water_in_T[°C]`, `water_out_T[°C]`
-- Gas side pressure drops: `ΔP_stage_fric[Pa]`, `ΔP_stage_minor[Pa]`, `ΔP_stage_total[Pa]`
-- Decomposition of duty into convection and radiation: `Q_conv_stage[MW]`, `Q_rad_stage[MW]`
-
-Table: Stages summary results.
-
-| Kind         | $T_{g,\text{in}}$ [°C] | $T_{g,\text{out}}$ [°C] | $T_{w,\text{in}}$ [°C] | $T_{w,\text{out}}$ [°C] | $Q_\text{stage}$ [MW] | $UA_\text{stage}$ [MW/K] | $\Delta P_\text{stage}$ [Pa] |
-| ------------ | ---------------------- | ----------------------- | ---------------------- | ----------------------- | --------------------- | ------------------------ | ---------------------------- |
-| single tube  | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-| reversal ch. | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-| tube bank    | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-| reversal ch. | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-| tube bank    | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-| economizer   | [·]                    | [·]                     | [·]                    | [·]                     | [·]                   | [·]                      | [·]                          |
-
-## Boiler performance
-
-The overall boiler performance is summarized using the boiler summary table, supplied by `heat/postproc.py`:
-
-Table: Boiler summary results.
-
-| Quantity                       | Symbol                  | Value |
-| ------------------------------ | ----------------------- | ----- |
-| Fuel firing (LHV basis)        | $P_\text{LHV}$          |       |
-| Total heat input (combustion)  | $Q_\text{in}$           |       |
-| Useful heat to water/steam     | $Q_\text{useful}$       |       |
-| Direct efficiency (LHV basis)  | $\eta_\text{direct}$    |       |
-| Indirect efficiency            | $\eta_\text{indirect}$  |       |
-| Stack gas temperature          | $T_\text{stack}$        |       |
-| Gas side friction loss         | $\Delta P_\text{fric}$  |       |
-| Gas side minor losses          | $\Delta P_\text{minor}$ |       |
-| Total gas side pressure drop   | $\Delta P_\text{tot}$   |       |
-| Total convective heat transfer | $Q_\text{conv}$         |       |
-| Total radiative heat transfer  | $Q_\text{rad}$          |       |
-
-These boiler level results provide the basis for the sensitivity analysis in Section 8 and for comparing alternative design or operating scenarios.
-
 \newpage

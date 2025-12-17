@@ -66,14 +66,14 @@ All six pressure part stages of the simulated boiler are represented with a cons
 
 Table: Flue gas stages key parameters
 
-|     Element     | Kind         | Di [m] | L [m]  | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
-| :-------------: | ------------ | :----: | :----: | :---------: | :---------: | :------------: | :--------------: |
-| $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_2}$ | reversal_ch. |  1.60  |  0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975  |     118     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_4}$ | reversal_ch. |  1.60  |  0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620  |     100     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_6}$ | economizer   | 0.0337 | 80 x 3 |   40 x 3    |     2.6     |      0.5       |      false       |
+|     Element     | Kind         | Di [m] | L [m] | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
+| :-------------: | ------------ | :----: | :---: | :---------: | :---------: | :------------: | :--------------: |
+| $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276 |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_2}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975 |     118     |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_4}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620 |     100     |     2.9     |      0.5       |       true       |
+| $\mathrm{HX_6}$ | economizer   | 0.0337 | 8 x 3 |   40 x 3    |     2.6     |      0.5       |      false       |
 
 The input file `stages.yaml`, provided in Annex A, contain the complete detailed specifications and is parsed at runtime by the configuration loader (`new_loader.py`). This separates numerical solution algorithms from geometry and surface data, and allows different boiler variants to be simulated by simply modifying the YAML files.
 
