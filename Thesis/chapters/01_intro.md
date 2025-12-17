@@ -22,7 +22,7 @@ representing the furnace, reversal chambers, convective tube banks, and the econ
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{Thesis\figures\t-q diagram.png}
+\includegraphics[width=\textwidth]{Thesis/figures/t-q diagram.png}
 \caption{$T$–$Q$ diagram for the three pass boiler with economizer.}
 \label{fig:TQ-diagram}
 \end{figure}
