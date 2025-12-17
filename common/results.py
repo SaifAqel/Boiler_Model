@@ -35,12 +35,12 @@ class StepResult:
     h_c: Q_
     stage_name: str = ""
     stage_index: int = -1
-    dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    w_dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    w_dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    w_dP_tot: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_total: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    w_dP_fric: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    w_dP_minor: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    w_dP_tot: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
     qprime_conv: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
     qprime_rad: Q_ = field(default_factory=lambda: Q_(0.0, "W/m"))
 
@@ -51,12 +51,12 @@ class StageResult:
     steps: Sequence[StepResult]
     Q_stage: Q_
     UA_stage: Q_
-    dP_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
-    dP_water_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "Pa"))
+    dP_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_water_stage_fric: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_water_stage_minor: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
+    dP_water_stage_total: Q_ = field(default_factory=lambda: Q_(0.0, "kPa"))
     hot_flow_A: Q_ = field(default_factory=lambda: Q_(0.0, "m^2"))
     cold_flow_A: Q_ = field(default_factory=lambda: Q_(0.0, "m^2"))
     hot_Dh: Q_ = field(default_factory=lambda: Q_(0.0, "m"))
@@ -166,16 +166,16 @@ def write_results_csvs(
             "stage_index", "stage_name", "stage_kind",
             "Q_stage[MW]", "UA_stage[MW/K]",
 
-            "gas_in_P[Pa]", "gas_in_T[°C]", "gas_in_h[kJ/kg]",
-            "gas_out_P[Pa]", "gas_out_T[°C]", "gas_out_h[kJ/kg]",
+            "gas_in_P[kPa]", "gas_in_T[°C]", "gas_in_h[kJ/kg]",
+            "gas_out_P[kPa]", "gas_out_T[°C]", "gas_out_h[kJ/kg]",
 
-            "water_in_P[Pa]", "water_in_T[°C]", "water_in_h[kJ/kg]",
-            "water_out_P[Pa]", "water_out_T[°C]", "water_out_h[kJ/kg]",
+            "water_in_P[kPa]", "water_in_T[°C]", "water_in_h[kJ/kg]",
+            "water_out_P[kPa]", "water_out_T[°C]", "water_out_h[kJ/kg]",
 
             "gas_V_avg[m/s]", "water_V_avg[m/s]",
 
-            "ΔP_stage_fric[Pa]", "ΔP_stage_minor[Pa]", "ΔP_stage_total[Pa]",
-            "ΔP_water_stage_fric[Pa]", "ΔP_water_stage_minor[Pa]", "ΔP_water_stage_total[Pa]",
+            "ΔP_stage_fric[kPa]", "ΔP_stage_minor[kPa]", "ΔP_stage_total[kPa]",
+            "ΔP_water_stage_fric[kPa]", "ΔP_water_stage_minor[kPa]", "ΔP_water_stage_total[kPa]",
             "stack_temperature[°C]",
             "Q_conv_stage[MW]", "Q_rad_stage[MW]",
 
@@ -191,43 +191,32 @@ def write_results_csvs(
     df_stages = df_summary[df_summary["stage_name"] != "TOTAL_BOILER"].copy()
     df_boiler = df_summary[df_summary["stage_name"] == "TOTAL_BOILER"].copy()
 
-    try:
-        m_w = global_profile.stage_results[5].steps[0].water.mass_flow.to("kg/s").magnitude
-    except Exception:
-        m_w = float("nan")
-
-    try:
-        m_circ = global_profile.stage_results[0].steps[0].water.mass_flow.to("kg/s").magnitude
-    except Exception:
-        m_circ = float("nan")
-
-
     df_stages = df_stages.set_index("stage_name")
 
     table = pd.DataFrame(
         {
             "name": df_stages.index,
             "kind": df_stages["stage_kind"],
-            "gas in pressure[pa]": df_stages["gas_in_P[Pa]"],
+            "gas in pressure[kpa]": df_stages["gas_in_P[kPa]"],
             "gas in temp[°C]": df_stages["gas_in_T[°C]"],
             "gas in enthalpy[kJ/kg]": df_stages["gas_in_h[kJ/kg]"],
-            "gas out pressure[pa]": df_stages["gas_out_P[Pa]"],
+            "gas out pressure[kpa]": df_stages["gas_out_P[kPa]"],
             "gas out temp[°C]": df_stages["gas_out_T[°C]"],
             "gas out enthalpy[kJ/kg]": df_stages["gas_out_h[kJ/kg]"],
             "water in temp[°C]": df_stages["water_in_T[°C]"],
             "water in enthalpy[kJ/kg]": df_stages["water_in_h[kJ/kg]"],
-            "water in pressure[pa]": df_stages["water_in_P[Pa]"],
+            "water in pressure[kpa]": df_stages["water_in_P[kPa]"],
             "water out temp[°C]": df_stages["water_out_T[°C]"],
             "water out enthalpy[kJ/kg]": df_stages["water_out_h[kJ/kg]"],
-            "water out pressure[pa]": df_stages["water_out_P[Pa]"],
+            "water out pressure[kpa]": df_stages["water_out_P[kPa]"],
             "gas avg velocity[m/s]": df_stages["gas_V_avg[m/s]"],
             "water avg velocity[m/s]": df_stages["water_V_avg[m/s]"],
-            "pressure drop fric[pa]": df_stages["ΔP_stage_fric[Pa]"],
-            "pressure drop minor[pa]": df_stages["ΔP_stage_minor[Pa]"],
-            "pressure drop total[pa]": df_stages["ΔP_stage_total[Pa]"],
-            "water pressure drop fric[pa]": df_stages["ΔP_water_stage_fric[Pa]"],
-            "water pressure drop minor[pa]": df_stages["ΔP_water_stage_minor[Pa]"],
-            "water pressure drop total[pa]": df_stages["ΔP_water_stage_total[Pa]"],
+            "pressure drop fric[kpa]": df_stages["ΔP_stage_fric[kPa]"],
+            "pressure drop minor[kpa]": df_stages["ΔP_stage_minor[kPa]"],
+            "pressure drop total[kpa]": df_stages["ΔP_stage_total[kPa]"],
+            "water pressure drop fric[kpa]": df_stages["ΔP_water_stage_fric[kPa]"],
+            "water pressure drop minor[kpa]": df_stages["ΔP_water_stage_minor[kPa]"],
+            "water pressure drop total[kpa]": df_stages["ΔP_water_stage_total[kPa]"],
             "Q conv[MW]": df_stages["Q_conv_stage[MW]"],
             "Q rad[MW]": df_stages["Q_rad_stage[MW]"],
             "Q total[MW]": df_stages["Q_stage[MW]"],
@@ -251,19 +240,19 @@ def write_results_csvs(
 
         if feed_pressure is not None:
             try:
-                boiler_row["feedwater_P[Pa]"] = feed_pressure.to("Pa").magnitude
+                boiler_row["feedwater_P[kPa]"] = feed_pressure.to("kPa").magnitude
             except Exception:
-                boiler_row["feedwater_P[Pa]"] = ""
+                boiler_row["feedwater_P[kPa]"] = ""
         else:
-            boiler_row["feedwater_P[Pa]"] = ""
+            boiler_row["feedwater_P[kPa]"] = ""
 
         if drum_pressure is not None:
             try:
-                boiler_row["drum_P[Pa]"] = drum_pressure.to("Pa").magnitude
+                boiler_row["drum_P[kPa]"] = drum_pressure.to("kPa").magnitude
             except Exception:
-                boiler_row["drum_P[Pa]"] = ""
+                boiler_row["drum_P[kPa]"] = ""
         else:
-            boiler_row["drum_P[Pa]"] = ""
+            boiler_row["drum_P[kPa]"] = ""
 
         if combustion is not None:
             try:
@@ -317,18 +306,18 @@ def write_results_csvs(
             ("UA[MW/K]",                        "UA_stage[MW/K]"),
             ("Q_in total[MW]",                  "Q_in_total[MW]"),
             ("Q_useful[MW]",                     "Q_total_useful[MW]"),
-            ("pressure drop fric total[Pa]",     "ΔP_stage_fric[Pa]"),
-            ("pressure drop minor total[Pa]",   "ΔP_stage_minor[Pa]"),
-            ("pressure drop total[Pa]",         "ΔP_stage_total[Pa]"),
-            ("water pressure drop fric total[Pa]",  "ΔP_water_stage_fric[Pa]"),
-            ("water pressure drop minor total[Pa]", "ΔP_water_stage_minor[Pa]"),
-            ("water pressure drop total[Pa]",       "ΔP_water_stage_total[Pa]"), 
+            ("pressure drop fric total[kPa]",     "ΔP_stage_fric[kPa]"),
+            ("pressure drop minor total[kPa]",   "ΔP_stage_minor[kPa]"),
+            ("pressure drop total[kPa]",         "ΔP_stage_total[kPa]"),
+            ("water pressure drop fric total[kPa]",  "ΔP_water_stage_fric[kPa]"),
+            ("water pressure drop minor total[kPa]", "ΔP_water_stage_minor[kPa]"),
+            ("water pressure drop total[kPa]",       "ΔP_water_stage_total[kPa]"), 
             ("LHV[kJ/kg]",                      "LHV_mass[kJ/kg]"),
             ("P-LHV[MW]",                       "P_LHV[MW]"),
             ("Tad[°C]",                         "T_ad[°C]"),
             ("stack temperature[°C]",           "stack_temperature[°C]"),
-            ("feedwater pressure[Pa]",              "feedwater_P[Pa]"),
-            ("drum pressure[Pa]",                   "drum_P[Pa]"),
+            ("feedwater pressure[kPa]",              "feedwater_P[kPa]"),
+            ("drum pressure[kPa]",                   "drum_P[kPa]"),
         ]
 
         out_row = {}

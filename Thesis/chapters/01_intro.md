@@ -20,6 +20,13 @@ representing the furnace, reversal chambers, convective tube banks, and the econ
 \label{fig:labeled_stages}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis\figures\t-q diagram.png}
+\caption{$T$–$Q$ diagram for the three pass boiler with economizer.}
+\label{fig:TQ-diagram}
+\end{figure}
+
 The overall objectives of the study are:
 
 1. To construct a unified combustion-boiler model capable of predicting flue gas temperature, composition, adiabatic flame temperature, and total heat input based on fuel composition and excess air settings.

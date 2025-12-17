@@ -6,7 +6,7 @@ RESULTS_DIR = Path("results/runs")
 SUMMARY_DIR = Path("results/summary")
 
 FILE_RE = re.compile(
-    r"^(?P<case>(?P<param>excess_air|fuel_flow|drum_pressure)_(?P<value>[^_]+)|default_case)_(?P<kind>boiler_summary|stages_summary|steps)\.csv$"
+    r"^(?P<case>(?P<param>excess_air|fuel_flow|drum_pressure|fouling)_(?P<value>[^_]+)|default_case)_(?P<kind>boiler_summary|stages_summary|steps)\.csv$"
 )
 
 def parse_param_value(raw):
@@ -113,6 +113,13 @@ def main():
         ordered_cols = ["run", "param_group", "param_value"] + cols
         boiler_df = boiler_df[ordered_cols]
 
+        boiler_df = boiler_df.sort_values(
+            by=["param_group", "param_value"],
+            ascending=[True, True],
+            kind="mergesort",
+            na_position="last",
+        )
+
         boiler_df.to_csv(SUMMARY_DIR / "boiler_kpis_all_runs.csv", index=False)
         print(f"[INFO] Wrote boiler KPIs table (with deviations): {SUMMARY_DIR / 'boiler_kpis_all_runs.csv'}")
     else:
@@ -123,6 +130,14 @@ def main():
 
         if non_empty_stage_rows:
             stages_df = pd.concat(non_empty_stage_rows, ignore_index=True)
+
+            stages_df = stages_df.sort_values(
+                by=["param_group", "param_value"],
+                ascending=[True, True],
+                kind="mergesort",
+                na_position="last",
+            )
+            
             stages_df.to_csv(SUMMARY_DIR / "stages_summary_all_runs.csv", index=False)
             print(f"[INFO] Wrote stages summary table: {SUMMARY_DIR / 'stages_summary_all_runs.csv'}")
         else:

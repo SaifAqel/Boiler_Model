@@ -65,9 +65,7 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             w_rho = WaterProps.rho_from_Ph(w.P, w.h)
 
         g_h   = _gas.h_sensible(g.T, g.P, g.comp)
-        g_cp  = _gas.cp(g.T, g.P, g.comp)
         g_mu  = _gas.mu(g.T, g.P, g.comp)
-        g_k   = _gas.k(g.T, g.P, g.comp)
         g_rho = _gas.rho(g.T, g.P, g.comp)
 
         gas_V = (g.mass_flow / (g_rho * A_hot)).to("m/s")
@@ -142,10 +140,10 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             "dx[m]": gp.dx[i].to("m").magnitude,
             "qprime[MW/m]": gp.qprime[i].to("MW/m").magnitude,
             "UA_prime[MW/K/m]": gp.UA_prime[i].to("MW/K/m").magnitude,
-            "gas_P[Pa]": g.P.to("Pa").magnitude,
+            "gas_P[kPa]": g.P.to("kPa").magnitude,
             "gas_T[°C]": g.T.to("degC").magnitude,
             "gas_h[kJ/kg]": g_h.to("kJ/kg").magnitude,
-            "water_P[Pa]": w.P.to("Pa").magnitude,
+            "water_P[kPa]": w.P.to("kPa").magnitude,
             "water_T[°C]": Tw.to("degC").magnitude,
             "water_h[kJ/kg]": w.h.to("kJ/kg").magnitude,
             "gas_eps[-]": gas_eps,
@@ -157,12 +155,12 @@ def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "p
             "water_V[m/s]": (_mag_or_nan(water_V, "m/s") if isinstance(water_V, Q_) else float("nan")),
             "Re_water[-]": Re_water,
             "h_water[W/m^2/K]": gp.h_c[i].to("W/m^2/K").magnitude,
-            "dP_fric[Pa]": gp.dP_fric[i].to("Pa").magnitude,
-            "dP_minor[Pa]": gp.dP_minor[i].to("Pa").magnitude,
-            "dP_total[Pa]": gp.dP_total[i].to("Pa").magnitude,
-            "water_dP_fric[Pa]":  (w_dP_fric if disable_water_hydraulics else gp.w_dP_fric[i].to("Pa").magnitude),
-            "water_dP_minor[Pa]": (w_dP_minor if disable_water_hydraulics else gp.w_dP_minor[i].to("Pa").magnitude),
-            "water_dP_total[Pa]": (w_dP_tot if disable_water_hydraulics else gp.w_dP_tot[i].to("Pa").magnitude),
+            "dP_fric[kPa]": gp.dP_fric[i].to("kPa").magnitude,
+            "dP_minor[kPa]": gp.dP_minor[i].to("kPa").magnitude,
+            "dP_total[kPa]": gp.dP_total[i].to("kPa").magnitude,
+            "water_dP_fric[kPa]":  (w_dP_fric if disable_water_hydraulics else gp.w_dP_fric[i].to("kPa").magnitude),
+            "water_dP_minor[kPa]": (w_dP_minor if disable_water_hydraulics else gp.w_dP_minor[i].to("kPa").magnitude),
+            "water_dP_total[kPa]": (w_dP_tot if disable_water_hydraulics else gp.w_dP_tot[i].to("kPa").magnitude),
             "water_cp[kJ/kg/K]": _mag_or_nan(w_cp, "kJ/kg/K"),
             "water_mu[Pa*s]": _mag_or_nan(w_mu, "Pa*s"),
             "water_k[W/m/K]": _mag_or_nan(w_k, "W/m/K"),
@@ -190,7 +188,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     feedwater_mdot_kg_s = None
     circulation_mdot_kg_s = None
     flue_mdot_kg_s = None
-    boiler_water_in_P_Pa = None
+    boiler_water_in_P_kPa = None
     boiler_water_in_T_C = None
     boiler_water_out_T_C = None
     boiler_water_Tsat_C = None
@@ -237,13 +235,13 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         Q_stage_conv = sum((st.qprime_conv * st.dx).to("MW").magnitude for st in sr_stage.steps)
         Q_stage_rad  = sum((st.qprime_rad  * st.dx).to("MW").magnitude for st in sr_stage.steps)
 
-        dP_fric = sum(gp.dP_fric[i].to("Pa").magnitude for i in idxs)
-        dP_minor = sum(gp.dP_minor[i].to("Pa").magnitude for i in idxs)
-        dP_total = sum(gp.dP_total[i].to("Pa").magnitude for i in idxs)
+        dP_fric = sum(gp.dP_fric[i].to("kPa").magnitude for i in idxs)
+        dP_minor = sum(gp.dP_minor[i].to("kPa").magnitude for i in idxs)
+        dP_total = sum(gp.dP_total[i].to("kPa").magnitude for i in idxs)
     
-        w_dP_fric = sum(gp.w_dP_fric[i].to("Pa").magnitude for i in idxs)
-        w_dP_minor = sum(gp.w_dP_minor[i].to("Pa").magnitude for i in idxs)
-        w_dP_tot = sum(gp.w_dP_tot[i].to("Pa").magnitude for i in idxs) 
+        w_dP_fric = sum(gp.w_dP_fric[i].to("kPa").magnitude for i in idxs)
+        w_dP_minor = sum(gp.w_dP_minor[i].to("kPa").magnitude for i in idxs)
+        w_dP_tot = sum(gp.w_dP_tot[i].to("kPa").magnitude for i in idxs) 
 
         g_in  = gp.gas[idxs[0]]
         g_out = gp.gas[idxs[-1]]
@@ -251,8 +249,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         gas_in_T  = g_in.T.to("degC").magnitude
         gas_out_T = g_out.T.to("degC").magnitude
 
-        gas_in_P  = g_in.P.to("Pa").magnitude
-        gas_out_P = g_out.P.to("Pa").magnitude
+        gas_in_P  = g_in.P.to("kPa").magnitude
+        gas_out_P = g_out.P.to("kPa").magnitude
 
         gas_in_h  = _gas.h_sensible(g_in.T,  g_in.P,  g_in.comp).to("kJ/kg").magnitude
         gas_out_h = _gas.h_sensible(g_out.T, g_out.P, g_out.comp).to("kJ/kg").magnitude
@@ -263,8 +261,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         water_in_h  = w_in.h.to("kJ/kg").magnitude
         water_out_h = w_out.h.to("kJ/kg").magnitude
 
-        water_in_P  = w_in.P.to("Pa").magnitude
-        water_out_P = w_out.P.to("Pa").magnitude
+        water_in_P  = w_in.P.to("kPa").magnitude
+        water_out_P = w_out.P.to("kPa").magnitude
 
         water_in_T  = WaterProps.T_from_Ph(w_in.P,  w_in.h).to("degC").magnitude
         water_out_T = WaterProps.T_from_Ph(w_out.P, w_out.h).to("degC").magnitude
@@ -277,7 +275,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
 
         if k == len(gp.stage_results) - 1:
             boiler_water_in_T_C = water_in_T
-            boiler_water_in_P_Pa = water_in_P
+            boiler_water_in_P_kPa = water_in_P
 
             try:
                 feedwater_mdot_q = gp.stage_results[k].steps[0].water.mass_flow.to("kg/s")
@@ -301,24 +299,24 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "UA_stage[MW/K]": UA_stage,
             "gas_V_avg[m/s]": gas_V_avg,
             "water_V_avg[m/s]": water_V_avg,
-            "gas_in_P[Pa]": gas_in_P,
+            "gas_in_P[kPa]": gas_in_P,
             "gas_in_T[°C]": gas_in_T,
             "gas_in_h[kJ/kg]": gas_in_h,
-            "gas_out_P[Pa]": gas_out_P,
+            "gas_out_P[kPa]": gas_out_P,
             "gas_out_T[°C]": gas_out_T,
             "gas_out_h[kJ/kg]": gas_out_h,
-            "water_in_P[Pa]": water_in_P,
+            "water_in_P[kPa]": water_in_P,
             "water_in_T[°C]": water_in_T,
             "water_in_h[kJ/kg]": water_in_h,
-            "water_out_P[Pa]": water_out_P,
+            "water_out_P[kPa]": water_out_P,
             "water_out_T[°C]": water_out_T,
             "water_out_h[kJ/kg]": water_out_h,
-            "ΔP_stage_fric[Pa]": dP_fric,
-            "ΔP_stage_minor[Pa]": dP_minor,
-            "ΔP_stage_total[Pa]": dP_total,
-            "ΔP_water_stage_fric[Pa]": (float("nan") if disable_water_hydraulics else w_dP_fric),
-            "ΔP_water_stage_minor[Pa]": (float("nan") if disable_water_hydraulics else w_dP_minor),
-            "ΔP_water_stage_total[Pa]": (float("nan") if disable_water_hydraulics else w_dP_tot),
+            "ΔP_stage_fric[kPa]": dP_fric,
+            "ΔP_stage_minor[kPa]": dP_minor,
+            "ΔP_stage_total[kPa]": dP_total,
+            "ΔP_water_stage_fric[kPa]": (float("nan") if disable_water_hydraulics else w_dP_fric),
+            "ΔP_water_stage_minor[kPa]": (float("nan") if disable_water_hydraulics else w_dP_minor),
+            "ΔP_water_stage_total[kPa]": (float("nan") if disable_water_hydraulics else w_dP_tot),
             "Q_conv_stage[MW]": Q_stage_conv,
             "Q_rad_stage[MW]": Q_stage_rad,
             "steam_capacity[kg/s]": "",
@@ -332,7 +330,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             "flue_mdot[kg/s]": "",
             "boiler_water_in_T[°C]": "",
             "boiler_water_out_T[°C]": "",
-            "boiler_water_P[Pa]": "",
+            "boiler_water_P[kPa]": "",
             "boiler_water_Tsat[°C]": "",
         }
         
@@ -354,8 +352,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     steam_capacity_total_tph = None
 
     P_for_evap: Q_ | None = drum_pressure
-    if P_for_evap is None and boiler_water_in_P_Pa is not None:
-        P_for_evap = Q_(boiler_water_in_P_Pa, "Pa")
+    if P_for_evap is None and boiler_water_in_P_kPa is not None:
+        P_for_evap = Q_(boiler_water_in_P_kPa, "kPa")
 
     if P_for_evap is not None:
         P_q = P_for_evap.to("Pa")
@@ -450,24 +448,24 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "UA_stage[MW/K]": UA_total,
         "gas_V_avg[m/s]": "",
         "water_V_avg[m/s]": "",
-        "gas_in_P[Pa]": "",
+        "gas_in_P[kPa]": "",
         "gas_in_T[°C]": "",
         "gas_in_h[kJ/kg]": "",
-        "gas_out_P[Pa]": "",
+        "gas_out_P[kPa]": "",
         "gas_out_T[°C]": "",
         "gas_out_h[kJ/kg]": "",
-        "water_in_P[Pa]": "",
+        "water_in_P[kPa]": "",
         "water_in_T[°C]": "",
         "water_in_h[kJ/kg]": "",
-        "water_out_P[Pa]": "",
+        "water_out_P[kPa]": "",
         "water_out_T[°C]": "",
         "water_out_h[kJ/kg]": "",
-        "ΔP_stage_fric[Pa]": dP_total_fric,
-        "ΔP_stage_minor[Pa]": dP_total_minor,
-        "ΔP_stage_total[Pa]": dP_total_total,
-        "ΔP_water_stage_fric[Pa]": w_dP_tot_fric,
-        "ΔP_water_stage_minor[Pa]": w_dP_tot_minor,
-        "ΔP_water_stage_total[Pa]": w_dP_tot_total, 
+        "ΔP_stage_fric[kPa]": dP_total_fric,
+        "ΔP_stage_minor[kPa]": dP_total_minor,
+        "ΔP_stage_total[kPa]": dP_total_total,
+        "ΔP_water_stage_fric[kPa]": w_dP_tot_fric,
+        "ΔP_water_stage_minor[kPa]": w_dP_tot_minor,
+        "ΔP_water_stage_total[kPa]": w_dP_tot_total, 
         "stack_temperature[°C]": stack_T_C,
         "feedwater_mdot[kg/s]": feedwater_mdot_kg_s if feedwater_mdot_kg_s is not None else "",
         "circulation_mdot[kg/s]": circulation_mdot_kg_s if circulation_mdot_kg_s is not None else "",
@@ -484,7 +482,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "flue_mdot[kg/s]": flue_mdot_kg_s if flue_mdot_kg_s is not None else "",
         "boiler_water_in_T[°C]": boiler_water_in_T_C if boiler_water_in_T_C is not None else "",
         "boiler_water_out_T[°C]": boiler_water_out_T_C if boiler_water_out_T_C is not None else "",
-        "boiler_water_P[Pa]": boiler_water_in_P_Pa if boiler_water_in_P_Pa is not None else "",
+        "boiler_water_P[kPa]": boiler_water_in_P_kPa if boiler_water_in_P_kPa is not None else "",
         "boiler_water_Tsat[°C]": boiler_water_Tsat_C if boiler_water_Tsat_C is not None else "",
     }
 

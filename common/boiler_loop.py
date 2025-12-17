@@ -43,6 +43,7 @@ def run_boiler_case(
     write_csv: bool = True,
     operation_overrides: Dict[str, Q_] | None = None,
     fuel_overrides: Dict[str, Q_] | None = None,
+    fouling_factor: float = 1.0,
     run_id: str | None = None,
 ) -> Dict[str, Any]:
     log.info(f"Load config")
@@ -54,6 +55,18 @@ def run_boiler_case(
         drum_path=drum_path,
         operation_path=operation_path,
     )
+
+    f = float(fouling_factor)
+    if f <= 0.0:
+        raise ValueError(f"fouling_factor must be > 0. Got {fouling_factor!r}")
+
+    if abs(f - 1.0) > 1e-12:
+        for st in stages:
+            spec = st.spec
+            if "foul_t_in" in spec:
+                spec["foul_t_in"] = (spec["foul_t_in"] * Q_(f, "")).to(spec["foul_t_in"].units)
+            if "foul_t_out" in spec:
+                spec["foul_t_out"] = (spec["foul_t_out"] * Q_(f, "")).to(spec["foul_t_out"].units)
 
     if operation_overrides:
         operation.update(operation_overrides)

@@ -49,7 +49,19 @@ def run_fuel_flow_sensitivity() -> None:
             run_id=f"fuel_flow_{mdot}kgs",
         )
 
+def run_fouling_sensitivity() -> None:
+    factors = [0.5, 1.0, 2.0]
 
+    for f in factors:
+        logging.getLogger(__name__).info(f"Running case with fouling_factor={f}")
+
+        run_boiler_case(
+            fouling_factor=f,
+            tol_m=Q_(1e-3, "kg/s"),
+            max_iter=20,
+            write_csv=True,
+            run_id=f"fouling_{f}",
+        )
 
 def main() -> None:
     setup_logging("INFO")
@@ -59,7 +71,8 @@ def main() -> None:
     # run_default_case()
     # run_excess_air_sensitivity()
     # run_water_pressure_sensitivity()
-    run_fuel_flow_sensitivity() 
+    # run_fuel_flow_sensitivity() 
+    run_fouling_sensitivity()
 
 
 

@@ -212,4 +212,10 @@ Steam generation increases with fuel mass flow, indicating that the available he
 
 Drum pressure has a relatively minor effect on overall boiler efficiency but strongly influences steam capacity. Increasing pressure reduces the latent heat of vaporization, allowing higher steam mass flow for the same absorbed duty. Higher saturation temperatures reduce the gas water temperature driving force, leading to higher stack temperatures and marginally lower efficiencies.
 
+## Fouling Effects
+
+$$
+f = [50, 100, 200]\; \mathrm{\%}
+$$
+
 \newpage

@@ -63,6 +63,7 @@ def main():
         "excess_air": ("Excess air", "excess air [-]"),
         "fuel_flow": ("Fuel flow", "fuel flow [kg/s]"),
         "drum_pressure": ("Drum pressure", "drum pressure [bar]"),
+        "fouling": ("Fouling", "fouling [-]"), 
     }
 
     lines = []
@@ -105,7 +106,7 @@ def main():
                 seen.add(v)
                 ordered.append(v)
 
-        if group_name == "water_pressure":
+        if group_name == "drum_pressure":
             desired = [4.0, 10.0, 16.0]
             present = {float(v) for v in ordered if is_number(v)}
             ordered = [v for v in desired if v in present]

@@ -32,17 +32,18 @@ style_markers: Dict[str, str] = {
     "fuel_flow": "s",
     "drum_pressure": "D",
     "control": "x",
+    "fouling": "^",
 }
 
 param_xlabels: Dict[str, str] = {
-    "excess_air": r"Excess air $\lambda$ [-]",
+    "excess_air": "Excess air $/lambda$ [-]",
     "fuel_flow": "Fuel flow [kg/s]",
     "drum_pressure": "Water pressure [bar]",
     "control": "Control setting [-]",
+    "fouling": "Fouling factor [-]", 
 }
 
 def _get_xlabel(param_group: str) -> str:
-    """Return x-axis label for a given parameter group."""
     return param_xlabels.get(param_group, "Parameter value [-]")
 
 param_group_style = {
@@ -50,6 +51,7 @@ param_group_style = {
     "fuel_flow":     dict(color="tab:orange", marker="s", linestyle="--"),
     "drum_pressure": dict(color="tab:green",  marker="D", linestyle="-"),
     "control":       dict(color="tab:red",    marker="x", linestyle=":"),
+    "fouling":       dict(color="tab:purple", marker="^", linestyle="-."),
 }
 
 def _get_pg_style(param_group: str) -> dict:
@@ -74,6 +76,24 @@ def load_data(csv_path: str) -> pd.DataFrame:
     df = pd.read_csv(csv_file)
     df["param_value"] = pd.to_numeric(df["param_value"], errors="coerce")
     return df
+
+def load_steps_data(csv_path: str) -> pd.DataFrame:
+    csv_file = Path(csv_path)
+    df = pd.read_csv(csv_file)
+
+    num_cols = [
+        "x[m]",
+        "gas_T[°C]", "water_T[°C]",
+        "gas_P[Pa]", "water_P[Pa]",
+        "gas_V[m/s]", "water_V[m/s]",
+        "h_gas[W/m^2/K]", "h_water[W/m^2/K]",
+    ]
+    for c in num_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    return df
+
 
 def _sweep_percent(series: pd.Series) -> pd.Series:
     s = pd.to_numeric(series, errors="coerce")
@@ -692,6 +712,79 @@ def generate_stage_hydraulics_figure(
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
+def generate_default_case_steps_figure(
+    csv_path: str = r"results\runs\default_case_steps.csv",
+    output_dir: str = "figures",
+) -> None:
+    df = load_steps_data(csv_path)
+
+    # Basic column presence check (fail early with a clear message)
+    required = [
+        "x[m]",
+        "gas_T[°C]", "water_T[°C]",
+        "gas_P[Pa]", "water_P[Pa]",
+        "gas_V[m/s]", "water_V[m/s]",
+        "h_gas[W/m^2/K]", "h_water[W/m^2/K]",
+    ]
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise KeyError(f"Missing columns in {csv_path}: {missing}")
+
+    # Keep only rows with x
+    dfp = df.dropna(subset=["x[m]"]).sort_values("x[m]").copy()
+    x = dfp["x[m]"]
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+    ax_T   = axes[0, 0]
+    ax_P   = axes[0, 1]
+    ax_V   = axes[1, 0]
+    ax_htc = axes[1, 1]
+
+    # --- Plot 1: Temperature
+    ax_T.plot(x, dfp["gas_T[°C]"],   label="Gas T [°C]")
+    ax_T.plot(x, dfp["water_T[°C]"], label="Water T [°C]")
+    ax_T.set_title("Temperature")
+    ax_T.set_xlabel("x [m]")
+    ax_T.set_ylabel("T [°C]")
+    ax_T.legend(loc="best", framealpha=0.8)
+
+    # --- Plot 2: Pressure
+    ax_P.plot(x, dfp["gas_P[Pa]"],   label="Gas P [Pa]")
+    ax_P.plot(x, dfp["water_P[Pa]"], label="Water P [Pa]")
+    ax_P.set_title("Pressure")
+    ax_P.set_xlabel("x [m]")
+    ax_P.set_ylabel("P [Pa]")
+    ax_P.legend(loc="best", framealpha=0.8)
+
+    # --- Plot 3: Velocity
+    ax_V.plot(x, dfp["gas_V[m/s]"],   label="Gas V [m/s]")
+    ax_V.plot(x, dfp["water_V[m/s]"], label="Water V [m/s]")
+    ax_V.set_title("Velocity")
+    ax_V.set_xlabel("x [m]")
+    ax_V.set_ylabel("V [m/s]")
+    ax_V.legend(loc="best", framealpha=0.8)
+
+    # --- Plot 4: Heat transfer coefficient (HTC)
+    ax_htc.plot(x, dfp["h_gas[W/m^2/K]"],   label="Gas h [W/m²/K]")
+    ax_htc.plot(x, dfp["h_water[W/m^2/K]"], label="Water h [W/m²/K]")
+    ax_htc.set_title("Heat transfer coefficient")
+    ax_htc.set_xlabel("x [m]")
+    ax_htc.set_ylabel("h [W/m²/K]")
+    ax_htc.legend(loc="best", framealpha=0.8)
+
+    # Match your global rcParams grid, but ensure on
+    for ax in (ax_T, ax_P, ax_V, ax_htc):
+        ax.grid(True, which="both")
+
+    fig.tight_layout()
+
+    out_path = out_dir / "default_case_steps_2x2.png"
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
 def generate_all_figures(csv_path: str, output_dir: str = "figures") -> None:
 
     df = load_data(csv_path)
@@ -748,3 +841,6 @@ if __name__ == "__main__":
     generate_stage_heat_figure(stage_csv, output_dir=out_arg)
 
     generate_stage_hydraulics_figure(stage_csv, output_dir=out_arg)
+
+    steps_csv = "results/runs/default_case_steps.csv"
+    generate_default_case_steps_figure(steps_csv, output_dir=out_arg)
