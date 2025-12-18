@@ -38,7 +38,7 @@ def run_water_pressure_sensitivity() -> None:
 
 
 def run_fuel_flow_sensitivity() -> None:
-    mdot_values = [0.025, 0.050, 0.075, 0.10, 0.20]  # kg/s
+    mdot_values = [0.025, 0.050, 0.075, 0.10, 0.125]  # kg/s
 
     for mdot in mdot_values:
         logging.getLogger(__name__).info(f"Running case with fuel mass_flow={mdot} kg/s")
@@ -69,11 +69,11 @@ def main() -> None:
 
     log.info("start")
 
-    run_default_case()
-    run_excess_air_sensitivity()
-    run_water_pressure_sensitivity()
+    # run_default_case()
+    # run_excess_air_sensitivity()
+    # run_water_pressure_sensitivity()
     run_fuel_flow_sensitivity() 
-    run_fouling_sensitivity()
+    # run_fouling_sensitivity()
     log.info("end")
 
 

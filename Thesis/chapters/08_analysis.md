@@ -42,8 +42,6 @@ Table: Control case performance.
 \label{fig:kpi_overview_all_param_groups}
 \end{figure}
 
-This figure provides a compact summary of how the different parameter groups shift the global performance relative to the control case introduced above. In the remainder of the chapter, each parameter group is analyzed separately.
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{results/plots/per_run/scatter_efficiency_vs_stack_temperature_all_runs.png}
@@ -235,7 +233,7 @@ Table: Fouling performance analysis.
 
 While the boiler can continue to operate under fouled conditions, the results highlight the importance of maintaining clean heat transfer surfaces to ensure higher efficiency.
 
-## Stage wise heat transfer and hydraulics
+## Stage-wise heat transfer and hydraulics
 
 \begin{figure}[H]
 \centering
