@@ -3,6 +3,8 @@ from common.logging_utils import setup_logging
 from common.units import Q_
 from common.boiler_loop import run_boiler_case
 
+log = logging.getLogger(__name__)
+
 def run_default_case() -> None:
     run_boiler_case(run_id="default_case")
 
@@ -50,8 +52,7 @@ def run_fuel_flow_sensitivity() -> None:
         )
 
 def run_fouling_sensitivity() -> None:
-    factors = [0.5, 1.0, 2.0]
-
+    factors = [1, 5, 10]
     for f in factors:
         logging.getLogger(__name__).info(f"Running case with fouling_factor={f}")
 
@@ -66,14 +67,14 @@ def run_fouling_sensitivity() -> None:
 def main() -> None:
     setup_logging("INFO")
 
-
+    log.info("start")
 
     run_default_case()
     run_excess_air_sensitivity()
-    # run_water_pressure_sensitivity()
-    # run_fuel_flow_sensitivity() 
-    # run_fouling_sensitivity()
-
+    run_water_pressure_sensitivity()
+    run_fuel_flow_sensitivity() 
+    run_fouling_sensitivity()
+    log.info("end")
 
 
 if __name__ == "__main__":
