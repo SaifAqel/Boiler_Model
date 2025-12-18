@@ -17,9 +17,9 @@ def pretty_kpi_label(name: str) -> str:
     b = base.lower()
 
     if b.startswith("eta direct"):
-        return r"$\eta_{\mathrm{direct}} [-]$"
+        return r"$\eta_{\mathrm{direct}}$ [-]"
     if b.startswith("eta indirect"):
-        return r"$\eta_{\mathrm{indirect}} [-]$"
+        return r"$\eta_{\mathrm{indirect}}$ [-]"
     if b.startswith("tad"):
         return f"adiabatic temperature {unit}".strip()
     if b.startswith("ua"):

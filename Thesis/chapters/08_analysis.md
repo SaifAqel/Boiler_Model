@@ -1,37 +1,37 @@
 # Performance analysis
 
-The present chapter evaluates the thermal and hydraulic performance of the fire tube boiler model based on steady state simulations of a reference control case and systematic parameter variations. The analysis is structured to introduce the control case first and then to discuss the influence of excess air factor, fuel mass flow, and drum pressure.
+The present chapter evaluates the thermal and hydraulic performance of the fire tube boiler model based on steady state simulations of a reference control case and systematic parameter variations.
 
 ## Control case
 
+The control case is defined by a fuel mass flow of $\dot m_\mathrm{fuel}=0.1\ \mathrm{kg\,s^{-1}}$, an excess air ratio of $\lambda=1.1$, and a drum pressure of $P_\mathrm{drum}=10\ \mathrm{bar}$. These values represent the nominal operating point of the boiler and are used as the reference state throughout this chapter.
+
 Table: Control case performance.
 
-| control                             |     control |
-| :---------------------------------- | ----------: |
-| fuel mass flow[kg/s]                |         0.1 |
-| air flow[kg/s]                      |        1.77 |
-| excess air ratio[-]                 |         1.1 |
-| feedwater flow[kg/s]                |         1.8 |
-| steam capacity[t/h]                 |        6.48 |
-| $\eta_{\mathrm{direct}} [-]$        |        0.89 |
-| $\eta_{\mathrm{indirect}} [-]$      |           0 |
-| conductance [MW/K]                  |        0.01 |
-| input heat [MW]                     |         4.7 |
-| useful heat [MW]                    |         4.2 |
-| pressure drop fric total[pa]        |      -342.6 |
-| pressure drop minor total[pa]       |     -760.56 |
-| pressure drop total[pa]             |    -1103.16 |
-| water pressure drop fric total[pa]  |    -6918.12 |
-| water pressure drop minor total[pa] |     -240.98 |
-| water pressure drop total[pa]       |     -7159.1 |
-| lhv [mj/kg]                         |       46.97 |
-| firing rate [MW]                    |         4.7 |
-| adiabatic temperature [°C]          |     1915.54 |
-| stack temperature[°c]               |      169.39 |
-| feedwater pressure[pa]              | 1.00716e+06 |
-| drum pressure[pa]                   |       1e+06 |
-
-The control case is explicitly defined by a fuel mass flow of $\dot m_\mathrm{fuel}=0.1\ \mathrm{kg\,s^{-1}}$, an excess air ratio of $\lambda=1.1$, and a drum pressure of $P_\mathrm{drum}=10\ \mathrm{bar}$. These values represent the nominal operating point of the boiler and are used as the reference state throughout this chapter.
+| control                              | control |
+| :----------------------------------- | ------: |
+| fuel mass flow[kg/s]                 |     0.1 |
+| air flow[kg/s]                       |    1.77 |
+| excess air ratio[-]                  |     1.1 |
+| feedwater flow[kg/s]                 |     1.8 |
+| steam capacity[t/h]                  |    6.48 |
+| $\eta_{\mathrm{direct}}$ [-]         |    0.89 |
+| $\eta_{\mathrm{indirect}}$ [-]       |    0.89 |
+| conductance [MW/K]                   |    0.01 |
+| input heat [MW]                      |     4.7 |
+| useful heat [MW]                     |     4.2 |
+| pressure drop fric total[kpa]        |   -0.34 |
+| pressure drop minor total[kpa]       |   -0.76 |
+| pressure drop total[kpa]             |    -1.1 |
+| water pressure drop fric total[kpa]  |   -6.92 |
+| water pressure drop minor total[kpa] |   -0.24 |
+| water pressure drop total[kpa]       |   -7.16 |
+| lhv [mj/kg]                          |   46.97 |
+| firing rate [MW]                     |     4.7 |
+| adiabatic temperature [°C]           | 1915.54 |
+| stack temperature[°c]                |  169.39 |
+| feedwater pressure[kpa]              | 1007.16 |
+| drum pressure[kpa]                   |    1000 |
 
 ## Global boiler performance
 
@@ -44,12 +44,19 @@ The control case is explicitly defined by a fuel mass flow of $\dot m_\mathrm{fu
 
 This figure provides a compact summary of how the different parameter groups shift the global performance relative to the control case introduced above. In the remainder of the chapter, each parameter group is analyzed separately.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/per_run/scatter_efficiency_vs_stack_temperature_all_runs.png}
+\caption{Scatter diagram showing stack temperature and direct efficiency}
+\label{fig:scatter_stack_eta}
+\end{figure}
+
 \newpage
 
 ## Influence of excess air factor
 
 $$
-\lambda = [1.0, 1.1, 1.2, 1.3]\; [-]
+\lambda = [1.00, 1.05, 1.10, 1.15, 1.20, 1.30]\; [-]
 $$
 
 \begin{figure}[H]
@@ -59,47 +66,43 @@ $$
 \label{fig:performance_excess_air}
 \end{figure}
 
-At constant fuel input, increasing the excess air ratio reduces the useful heat. At low excess air levels, a moderate increase in $\lambda$ improves combustion completeness and slightly stabilizes heat release, resulting in nearly constant efficiency around the control point. Beyond this region, additional air primarily increases the sensible heat carried by the flue gas, which directly increases stack losses and reduces both direct and indirect efficiency.
-
-The stack temperature increases with excess air. This behavior is caused by the increased flue gas mass flow rate, which raises the total sensible heat capacity of the gas stream and reduces the effective residence time within the convective heat exchanger banks.
+At low excess air levels, a moderate increase in $\lambda$ improves combustion completeness and slightly stabilizes heat release, resulting in nearly constant efficiency around the control point. Beyond this region, additional air primarily increases the sensible heat carried by the flue gas, which directly increases stack losses and reduces efficiency.
 
 Table: Excess air performance analysis.
 
-| excess air [-]                      |        1.05 |        1.00 |        1.15 |        1.10 |       1.20 |        1.30 |
-| :---------------------------------- | ----------: | ----------: | ----------: | ----------: | ---------: | ----------: |
-| fuel mass flow[kg/s]                |         0.1 |         0.1 |         0.1 |         0.1 |        0.1 |         0.1 |
-| air flow[kg/s]                      |        1.69 |        1.61 |        1.85 |        1.77 |       1.93 |        2.09 |
-| excess air ratio[-]                 |        1.05 |           1 |        1.15 |         1.1 |        1.2 |         1.3 |
-| feedwater flow[kg/s]                |         1.8 |         1.8 |        1.79 |         1.8 |       1.79 |        1.78 |
-| steam capacity[t/h]                 |        6.49 |         6.5 |        6.46 |        6.48 |       6.44 |        6.41 |
-| $\eta_{\mathrm{direct}} [-]$        |         0.9 |         0.9 |        0.89 |        0.89 |       0.89 |        0.89 |
-| $\eta_{\mathrm{indirect}} [-]$      |         0.9 |         0.9 |        0.89 |        0.89 |       0.89 |        0.89 |
-| conductance [MW/K]                  |        0.01 |        0.01 |        0.01 |        0.01 |       0.01 |        0.01 |
-| input heat [MW]                     |         4.7 |         4.7 |         4.7 |         4.7 |        4.7 |         4.7 |
-| useful heat [MW]                    |        4.21 |        4.22 |        4.19 |         4.2 |       4.18 |        4.16 |
-| pressure drop fric total[pa]        |      -313.3 |     -285.37 |     -373.28 |      -342.6 |    -405.33 |     -473.58 |
-| pressure drop minor total[pa]       |     -692.36 |     -627.65 |     -832.28 |     -760.56 |    -907.54 |    -1068.75 |
-| pressure drop total[pa]             |    -1005.66 |     -913.02 |    -1205.56 |    -1103.16 |   -1312.87 |    -1542.32 |
-| water pressure drop fric total[pa]  |    -6944.61 |    -6967.55 |    -6888.79 |    -6918.12 |   -6856.89 |    -6786.36 |
-| water pressure drop minor total[pa] |     -241.86 |     -242.61 |     -239.99 |     -240.98 |     -238.9 |     -236.46 |
-| water pressure drop total[pa]       |    -7186.47 |    -7210.16 |    -7128.78 |     -7159.1 |   -7095.79 |    -7022.82 |
-| lhv [mj/kg]                         |       46.97 |       46.97 |       46.97 |       46.97 |      46.97 |       46.97 |
-| firing rate [MW]                    |         4.7 |         4.7 |         4.7 |         4.7 |        4.7 |         4.7 |
-| adiabatic temperature [°C]          |      1981.5 |     2052.36 |     1854.03 |     1915.54 |    1796.53 |     1692.05 |
-| stack temperature[°c]               |      167.01 |       164.6 |      171.74 |      169.39 |     174.05 |      178.56 |
-| feedwater pressure[pa]              | 1.00719e+06 | 1.00721e+06 | 1.00713e+06 | 1.00716e+06 | 1.0071e+06 | 1.00702e+06 |
-| drum pressure[pa]                   |       1e+06 |       1e+06 |       1e+06 |       1e+06 |      1e+06 |       1e+06 |
+| excess air [-]                       |    1.00 |    1.05 |    1.10 |    1.15 |    1.20 |    1.30 |
+| :----------------------------------- | ------: | ------: | ------: | ------: | ------: | ------: |
+| fuel mass flow[kg/s]                 |     0.1 |     0.1 |     0.1 |     0.1 |     0.1 |     0.1 |
+| air flow[kg/s]                       |    1.61 |    1.69 |    1.77 |    1.85 |    1.93 |    2.09 |
+| excess air ratio[-]                  |       1 |    1.05 |     1.1 |    1.15 |     1.2 |     1.3 |
+| feedwater flow[kg/s]                 |     1.8 |     1.8 |     1.8 |    1.79 |    1.79 |    1.78 |
+| steam capacity[t/h]                  |     6.5 |    6.49 |    6.48 |    6.46 |    6.44 |    6.41 |
+| $\eta_{\mathrm{direct}}$ [-]         |     0.9 |     0.9 |    0.89 |    0.89 |    0.89 |    0.89 |
+| $\eta_{\mathrm{indirect}}$ [-]       |     0.9 |     0.9 |    0.89 |    0.89 |    0.89 |    0.89 |
+| conductance [MW/K]                   |    0.01 |    0.01 |    0.01 |    0.01 |    0.01 |    0.01 |
+| input heat [MW]                      |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |
+| useful heat [MW]                     |    4.22 |    4.21 |     4.2 |    4.19 |    4.18 |    4.16 |
+| pressure drop fric total[kpa]        |   -0.29 |   -0.31 |   -0.34 |   -0.37 |   -0.41 |   -0.47 |
+| pressure drop minor total[kpa]       |   -0.63 |   -0.69 |   -0.76 |   -0.83 |   -0.91 |   -1.07 |
+| pressure drop total[kpa]             |   -0.91 |   -1.01 |    -1.1 |   -1.21 |   -1.31 |   -1.54 |
+| water pressure drop fric total[kpa]  |   -6.97 |   -6.94 |   -6.92 |   -6.89 |   -6.86 |   -6.79 |
+| water pressure drop minor total[kpa] |   -0.24 |   -0.24 |   -0.24 |   -0.24 |   -0.24 |   -0.24 |
+| water pressure drop total[kpa]       |   -7.21 |   -7.19 |   -7.16 |   -7.13 |    -7.1 |   -7.02 |
+| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |   46.97 |   46.97 |   46.97 |
+| firing rate [MW]                     |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |
+| adiabatic temperature [°C]           | 2052.36 |  1981.5 | 1915.54 | 1854.03 | 1796.53 | 1692.05 |
+| stack temperature[°c]                |   164.6 |  167.01 |  169.39 |  171.74 |  174.05 |  178.56 |
+| feedwater pressure[kpa]              | 1007.21 | 1007.19 | 1007.16 | 1007.13 |  1007.1 | 1007.02 |
+| drum pressure[kpa]                   |    1000 |    1000 |    1000 |    1000 |    1000 |    1000 |
 
-Increasing the excess air ratio reduces the direct efficiency, the total gas side pressure drop increases as higher air flow leads to greater flue gas mass flow.
-
-From an operational perspective, the results indicate an optimal excess air range rather than a single value. Around the control point at $\lambda \approx 1.1$, the boiler achieves a favorable balance between thermal efficiency, acceptable gas side pressure drop, and sufficient combustion stability margin. Further increases in excess air provide limited operational benefit while incurring efficiency and hydraulic penalties.
+Increasing the excess air ratio increases the total gas side pressure drop as higher air flow leads to greater flue gas mass flow.
 
 \newpage
 
 ## Influence of fuel mass flow
 
 $$
-\dot{m}_\mathrm{fuel} = [0.10, 0.075, 0.050, 0.025]\; \frac{kg}{s}
+\dot{m}_\mathrm{fuel} = [0.025, 0.050, 0.075, 0.10, 0.20]\; \frac{kg}{s}
 $$
 
 \begin{figure}[H]
@@ -109,38 +112,34 @@ $$
 \label{fig:performance_fuel_flow}
 \end{figure}
 
-At low firing rates, steam capacity increases approximately linearly with fuel input, indicating that the available heat transfer surface is sufficient to absorb the additional duty. As the firing rate approaches the nominal design value, deviations from linearity become apparent, reflecting increasing limitations in heat transfer effectiveness rather than fuel input.
-
-Radiative heat transfer increases with fuel mass flow due to its strong dependence on flame temperature. Since radiative heat flux scales approximately with $T_\mathrm{flame}^4$ according to the Stefan Boltzmann relation, even moderate increases in flame temperature lead to a strong rise in radiative duty in the upstream sections. This effect explains the increasing dominance of the radiant section at high load.
+Steam capacity increases approximately linearly with fuel input, indicating that the available heat transfer surface is sufficient to absorb the additional duty. As the firing rate approaches the nominal design value, deviations from linearity become apparent, reflecting increasing limitations in heat transfer effectiveness rather than fuel input.
 
 Table: Fuel flow performance analysis.
 
-| fuel flow [kg/s]                    |        0.02 |        0.05 |        0.08 |        0.10 |
-| :---------------------------------- | ----------: | ----------: | ----------: | ----------: |
-| fuel mass flow[kg/s]                |        0.02 |        0.05 |        0.08 |         0.1 |
-| air flow[kg/s]                      |        0.44 |        0.89 |        1.33 |        1.77 |
-| excess air ratio[-]                 |         1.1 |         1.1 |         1.1 |         1.1 |
-| feedwater flow[kg/s]                |        0.46 |        0.91 |        1.36 |         1.8 |
-| steam capacity[t/h]                 |        1.65 |        3.27 |        4.88 |        6.48 |
-| $\eta_{\mathrm{direct}} [-]$        |        0.91 |         0.9 |         0.9 |        0.89 |
-| $\eta_{\mathrm{indirect}} [-]$      |        0.91 |         0.9 |         0.9 |        0.89 |
-| conductance [MW/K]                  |           0 |        0.01 |        0.01 |        0.01 |
-| input heat [MW]                     |        1.18 |        2.35 |        3.53 |         4.7 |
-| useful heat [MW]                    |        1.07 |        2.12 |        3.17 |         4.2 |
-| pressure drop fric total[pa]        |      -22.96 |      -88.51 |     -194.04 |      -342.6 |
-| pressure drop minor total[pa]       |      -43.57 |     -179.44 |     -415.82 |     -760.56 |
-| pressure drop total[pa]             |      -66.53 |     -267.95 |     -609.86 |    -1103.16 |
-| water pressure drop fric total[pa]  |     -572.65 |    -1974.81 |    -4106.66 |    -6918.12 |
-| water pressure drop minor total[pa] |      -15.54 |      -61.48 |     -136.98 |     -240.98 |
-| water pressure drop total[pa]       |     -588.19 |    -2036.29 |    -4243.64 |     -7159.1 |
-| lhv [mj/kg]                         |       46.97 |       46.97 |       46.97 |       46.97 |
-| firing rate [MW]                    |        1.17 |        2.35 |        3.52 |         4.7 |
-| adiabatic temperature [°C]          |     1915.54 |     1915.54 |     1915.54 |     1915.54 |
-| stack temperature[°c]               |      135.16 |      146.82 |      158.25 |      169.39 |
-| feedwater pressure[pa]              | 1.00059e+06 | 1.00204e+06 | 1.00424e+06 | 1.00716e+06 |
-| drum pressure[pa]                   |       1e+06 |       1e+06 |       1e+06 |       1e+06 |
-
-As the fuel mass flow increases, the steam generation capacity rises, the direct efficiency decreases slightly, and the stack temperature increases, indicating reduced effectiveness of heat recovery at higher firing rates.
+| fuel flow [kg/s]                     |    0.02 |    0.05 |    0.08 |    0.10 |    0.20 |
+| :----------------------------------- | ------: | ------: | ------: | ------: | ------: |
+| fuel mass flow[kg/s]                 |    0.02 |    0.05 |    0.08 |     0.1 |     0.2 |
+| air flow[kg/s]                       |    0.44 |    0.89 |    1.33 |    1.77 |    3.54 |
+| excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |     1.1 |     1.1 |
+| feedwater flow[kg/s]                 |    0.46 |    0.91 |    1.36 |     1.8 |    3.53 |
+| steam capacity[t/h]                  |    1.65 |    3.27 |    4.88 |    6.48 |    12.7 |
+| $\eta_{\mathrm{direct}}$ [-]         |    0.91 |     0.9 |     0.9 |    0.89 |    0.88 |
+| $\eta_{\mathrm{indirect}}$ [-]       |    0.91 |     0.9 |     0.9 |    0.89 |    0.88 |
+| conductance [MW/K]                   |       0 |    0.01 |    0.01 |    0.01 |    0.02 |
+| input heat [MW]                      |    1.18 |    2.35 |    3.53 |     4.7 |     9.4 |
+| useful heat [MW]                     |    1.07 |    2.12 |    3.17 |     4.2 |    8.24 |
+| pressure drop fric total[kpa]        |   -0.02 |   -0.09 |   -0.19 |   -0.34 |   -1.42 |
+| pressure drop minor total[kpa]       |   -0.04 |   -0.18 |   -0.42 |   -0.76 |   -3.38 |
+| pressure drop total[kpa]             |   -0.07 |   -0.27 |   -0.61 |    -1.1 |   -4.79 |
+| water pressure drop fric total[kpa]  |   -0.57 |   -1.97 |   -4.11 |   -6.92 |  -24.46 |
+| water pressure drop minor total[kpa] |   -0.02 |   -0.06 |   -0.14 |   -0.24 |   -0.93 |
+| water pressure drop total[kpa]       |   -0.59 |   -2.04 |   -4.24 |   -7.16 |  -25.38 |
+| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |   46.97 |   46.97 |
+| firing rate [MW]                     |    1.17 |    2.35 |    3.52 |     4.7 |    9.39 |
+| adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 | 1915.54 | 1915.54 |
+| stack temperature[°c]                |  135.16 |  146.82 |  158.25 |  169.39 |  209.97 |
+| feedwater pressure[kpa]              | 1000.59 | 1002.04 | 1004.24 | 1007.16 | 1025.38 |
+| drum pressure[kpa]                   |    1000 |    1000 |    1000 |    1000 |    1000 |
 
 \newpage
 
@@ -161,56 +160,32 @@ The drum pressure variation modifies the steam saturation temperature and thus t
 
 Table: Drum pressure performance analysis. {#tbl:drum_pressure_performance}
 
-| drum pressure [bar]                 |       10.00 |     16.00 |     4.00 |
-| :---------------------------------- | ----------: | --------: | -------: |
-| fuel mass flow[kg/s]                |         0.1 |       0.1 |      0.1 |
-| air flow[kg/s]                      |        1.77 |      1.77 |     1.77 |
-| excess air ratio[-]                 |         1.1 |       1.1 |      1.1 |
-| feedwater flow[kg/s]                |         1.8 |      1.78 |     1.84 |
-| steam capacity[t/h]                 |        6.48 |       6.4 |     6.64 |
-| $\eta_{\mathrm{direct}} [-]$        |        0.89 |      0.89 |      0.9 |
-| $\eta_{\mathrm{indirect}} [-]$      |        0.89 |      0.89 |      0.9 |
-| conductance [MW/K]                  |        0.01 |      0.01 |     0.01 |
-| input heat [MW]                     |         4.7 |       4.7 |      4.7 |
-| useful heat [MW]                    |         4.2 |      4.18 |     4.24 |
-| pressure drop fric total[pa]        |      -342.6 |   -353.29 |  -324.65 |
-| pressure drop minor total[pa]       |     -760.56 |   -781.92 |   -724.6 |
-| pressure drop total[pa]             |    -1103.16 |  -1135.22 | -1049.24 |
-| water pressure drop fric total[pa]  |    -6918.12 |  -6766.22 | -7257.95 |
-| water pressure drop minor total[pa] |     -240.98 |   -235.71 |  -252.98 |
-| water pressure drop total[pa]       |     -7159.1 |  -7001.93 | -7510.92 |
-| lhv [mj/kg]                         |       46.97 |     46.97 |    46.97 |
-| firing rate [MW]                    |         4.7 |       4.7 |      4.7 |
-| adiabatic temperature [°C]          |     1915.54 |   1915.54 |  1915.54 |
-| stack temperature[°c]               |      169.39 |    179.55 |   152.15 |
-| feedwater pressure[pa]              | 1.00716e+06 | 1.607e+06 |   407511 |
-| drum pressure[pa]                   |       1e+06 |   1.6e+06 |   400000 |
+| drum pressure [bar]                  |    4.00 |   10.00 |   16.00 |
+| :----------------------------------- | ------: | ------: | ------: |
+| fuel mass flow[kg/s]                 |     0.1 |     0.1 |     0.1 |
+| air flow[kg/s]                       |    1.77 |    1.77 |    1.77 |
+| excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |
+| feedwater flow[kg/s]                 |    1.84 |     1.8 |    1.78 |
+| steam capacity[t/h]                  |    6.64 |    6.48 |     6.4 |
+| $\eta_{\mathrm{direct}}$ [-]         |     0.9 |    0.89 |    0.89 |
+| $\eta_{\mathrm{indirect}}$ [-]       |     0.9 |    0.89 |    0.89 |
+| conductance [MW/K]                   |    0.01 |    0.01 |    0.01 |
+| input heat [MW]                      |     4.7 |     4.7 |     4.7 |
+| useful heat [MW]                     |    4.24 |     4.2 |    4.18 |
+| pressure drop fric total[kpa]        |   -0.32 |   -0.34 |   -0.35 |
+| pressure drop minor total[kpa]       |   -0.72 |   -0.76 |   -0.78 |
+| pressure drop total[kpa]             |   -1.05 |    -1.1 |   -1.14 |
+| water pressure drop fric total[kpa]  |   -7.26 |   -6.92 |   -6.77 |
+| water pressure drop minor total[kpa] |   -0.25 |   -0.24 |   -0.24 |
+| water pressure drop total[kpa]       |   -7.51 |   -7.16 |      -7 |
+| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |
+| firing rate [MW]                     |     4.7 |     4.7 |     4.7 |
+| adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 |
+| stack temperature[°c]                |  152.15 |  169.39 |  179.55 |
+| feedwater pressure[kpa]              |  407.51 | 1007.16 |    1607 |
+| drum pressure[kpa]                   |     400 |    1000 |    1600 |
 
 Increasing the drum pressure, raises the steam capacity because the latent heat of vaporization decreases with increasing pressure, allowing a larger steam mass flow to be generated for the same absorbed thermal duty. The direct efficiency decreases, since higher water and steam temperatures reduce the available driving temperature difference on the gas side. Consistent with this, the stack temperature increases, indicating a diminished potential for further heat recovery.
-
-## Stage wise heat transfer and hydraulics
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_heat.png}
-\caption{Stage wise heat transfer profile}
-\label{fig:stages_param_groups}
-\end{figure}
-
-Across all runs the stage pattern stays the same: gas temperature drops from HX 1 to HX 6, stage heat duty is highest in the first stages and decreases downstream, and early stages are driven mainly by radiative transfer while later stages are relatively more convective. Control cases sit between the minimum and maximum parameter cases, showing smooth scaling rather than any stage wise regime change.
-
-Excess air mainly shifts and weakens heat transfer: higher excess air lowers upstream gas temperatures and reduces early stage duties, pushes a larger share of recovery downstream, and increases gas velocity and total pressure drop across stages. Fuel flow scales everything up or down: higher fuel flow increases gas temperatures, stage duties, and both convective and radiative contributions in all stages, with the biggest absolute changes in the first tube bank section and upstream units, while also increasing pressure drop. Drum pressure has a smaller gas side impact but adjusts downstream recovery through water side conditions, slightly shifting late stage duties and conductance without changing the overall stage wise shape.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_hydraulics.png}
-\caption{Stage wise hydraulics and conductance profile }
-\label{fig:stages_velocity_pressure_Qsum_UA}
-\end{figure}
-
-Steam generation increases with fuel mass flow, indicating that the available heat transfer surface is sufficient at part load. At higher firing rates, stack temperature increases and efficiency decreases slightly, reflecting reduced effectiveness of downstream heat recovery.
-
-Drum pressure has a relatively minor effect on overall boiler efficiency but strongly influences steam capacity. Increasing pressure reduces the latent heat of vaporization, allowing higher steam mass flow for the same absorbed duty. Higher saturation temperatures reduce the gas water temperature driving force, leading to higher stack temperatures and marginally lower efficiencies.
 
 \newpage
 
@@ -233,31 +208,51 @@ The effect of fouling is distributed across all stages, but its impact is most p
 
 Table: Fouling performance analysis.
 
-| fouling [-]                          |    0.50 |    1.00 |    2.00 |
-| :----------------------------------- | ------: | ------: | ------: |
-| fuel mass flow[kg/s]                 |     0.1 |     0.1 |     0.1 |
-| air flow[kg/s]                       |    1.77 |    1.77 |    1.77 |
-| excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |
-| feedwater flow[kg/s]                 |     1.8 |     1.8 |     1.8 |
-| steam capacity[t/h]                  |    6.48 |    6.48 |    6.47 |
-| $\eta_{\mathrm{direct}} [-]$         |     0.9 |    0.89 |    0.89 |
-| $\eta_{\mathrm{indirect}} [-]$       |    0.89 |    0.89 |    0.89 |
-| conductance [MW/K]                   |    0.01 |    0.01 |    0.01 |
-| input heat [MW]                      |     4.7 |     4.7 |     4.7 |
-| useful heat [MW]                     |     4.2 |     4.2 |     4.2 |
-| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |
-| firing rate [MW]                     |     4.7 |     4.7 |     4.7 |
-| adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 |
-| stack temperature[°c]                |  168.67 |  169.39 |  170.94 |
-| pressure drop fric total[kpa]        |   -0.34 |   -0.34 |   -0.34 |
-| pressure drop minor total[kpa]       |   -0.76 |   -0.76 |   -0.76 |
-| pressure drop total[kpa]             |    -1.1 |    -1.1 |   -1.11 |
-| water pressure drop fric total[kpa]  |   -6.92 |   -6.92 |   -6.91 |
-| water pressure drop minor total[kpa] |   -0.24 |   -0.24 |   -0.24 |
-| water pressure drop total[kpa]       |   -7.16 |   -7.16 |   -7.15 |
-| feedwater pressure[kpa]              | 1007.16 | 1007.16 | 1007.15 |
-| drum pressure[kpa]                   |    1000 |    1000 |    1000 |
+| fouling [-]                          |    0.50 |    1.00 |    2.00 |    5.00 |   10.00 |
+| :----------------------------------- | ------: | ------: | ------: | ------: | ------: |
+| fuel mass flow[kg/s]                 |     0.1 |     0.1 |     0.1 |     0.1 |     0.1 |
+| air flow[kg/s]                       |    1.77 |    1.77 |    1.77 |    1.77 |    1.77 |
+| excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |     1.1 |     1.1 |
+| feedwater flow[kg/s]                 |     1.8 |     1.8 |     1.8 |    1.79 |    1.78 |
+| steam capacity[t/h]                  |    6.48 |    6.48 |    6.47 |    6.45 |    6.42 |
+| $\eta_{\mathrm{direct}}$ [-]         |     0.9 |    0.89 |    0.89 |    0.89 |    0.89 |
+| $\eta_{\mathrm{indirect}}$ [-]       |    0.89 |    0.89 |    0.89 |    0.89 |    0.89 |
+| conductance [MW/K]                   |    0.01 |    0.01 |    0.01 |    0.01 |    0.01 |
+| input heat [MW]                      |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |
+| useful heat [MW]                     |     4.2 |     4.2 |     4.2 |    4.19 |    4.17 |
+| pressure drop fric total[kpa]        |   -0.34 |   -0.34 |   -0.34 |   -0.35 |   -0.37 |
+| pressure drop minor total[kpa]       |   -0.76 |   -0.76 |   -0.76 |   -0.78 |    -0.8 |
+| pressure drop total[kpa]             |    -1.1 |    -1.1 |   -1.11 |   -1.13 |   -1.17 |
+| water pressure drop fric total[kpa]  |   -6.92 |   -6.92 |   -6.91 |   -6.87 |    -6.8 |
+| water pressure drop minor total[kpa] |   -0.24 |   -0.24 |   -0.24 |   -0.24 |   -0.24 |
+| water pressure drop total[kpa]       |   -7.16 |   -7.16 |   -7.15 |   -7.11 |   -7.04 |
+| lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |   46.97 |   46.97 |
+| firing rate [MW]                     |     4.7 |     4.7 |     4.7 |     4.7 |     4.7 |
+| adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 | 1915.54 | 1915.54 |
+| stack temperature[°c]                |  168.67 |  169.39 |  170.94 |  176.36 |  187.53 |
+| feedwater pressure[kpa]              | 1007.16 | 1007.16 | 1007.15 | 1007.11 | 1007.04 |
+| drum pressure[kpa]                   |    1000 |    1000 |    1000 |    1000 |    1000 |
 
 While the boiler can continue to operate under fouled conditions, the results highlight the importance of maintaining clean heat transfer surfaces to ensure higher efficiency.
+
+## Stage wise heat transfer and hydraulics
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/per_run/stages_heat.png}
+\caption{Stage wise heat transfer profile}
+\label{fig:stages_param_groups}
+\end{figure}
+
+Across all runs the stage pattern stays the same: gas temperature drops from HX 1 to HX 6, stage heat duty is highest in the first stages and decreases downstream, and early stages are driven mainly by radiative transfer while later stages are relatively more convective. Control cases sit between the minimum and maximum parameter cases, showing smooth scaling rather than any stage wise regime change.
+
+Excess air mainly shifts and weakens heat transfer: higher excess air lowers upstream gas temperatures and reduces early stage duties, pushes a larger share of recovery downstream, and increases gas velocity and total pressure drop across stages. Fuel flow scales everything up or down: higher fuel flow increases gas temperatures, stage duties, and both convective and radiative contributions in all stages, with the biggest absolute changes in the first tube bank section and upstream units, while also increasing pressure drop. Drum pressure has a smaller gas side impact but adjusts downstream recovery through water side conditions, slightly shifting late stage duties and conductance without changing the overall stage wise shape.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/per_run/stages_hydraulics.png}
+\caption{Stage wise hydraulics and conductance profile }
+\label{fig:stages_velocity_pressure_Qsum_UA}
+\end{figure}
 
 \newpage

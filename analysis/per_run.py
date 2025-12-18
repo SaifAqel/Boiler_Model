@@ -36,7 +36,7 @@ style_markers: Dict[str, str] = {
 }
 
 param_xlabels: Dict[str, str] = {
-    "excess_air": "Excess air $/lambda$ [-]",
+    "excess_air": "Excess air [-]",
     "fuel_flow": "Fuel flow [kg/s]",
     "drum_pressure": "Water pressure [bar]",
     "control": "Control setting [-]",
@@ -84,7 +84,7 @@ def load_steps_data(csv_path: str) -> pd.DataFrame:
     num_cols = [
         "x[m]",
         "gas_T[°C]", "water_T[°C]",
-        "gas_P[Pa]", "water_P[Pa]",
+        "gas_P[kPa]", "water_P[kPa]",
         "gas_V[m/s]", "water_V[m/s]",
         "h_gas[W/m^2/K]", "h_water[W/m^2/K]",
     ]
@@ -216,7 +216,7 @@ def plot_stack_pressure(ax, df_group: pd.DataFrame, param_group: str) -> None:
 
     x = df_plot["param_value"]
     y_stack = df_plot["stack temperature[°C]"]
-    y_dp = df_plot["pressure drop total[Pa]"].abs()
+    y_dp = df_plot["pressure drop total[kPa]"].abs()
 
     line_stack, = ax.plot(
         x,
@@ -261,7 +261,7 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
         {"column": "feedwater flow[kg/s]",        "ylabel": "feedwater flow [kg/s]"},
         {"column": "Q_in total[MW]",          "ylabel": "Heat input $Q_{in}$ [MW]"},
         {"column": "steam capacity[t/h]",     "ylabel": "Steam capacity [t/h]"},
-        {"column": "pressure drop total[Pa]", "ylabel": "Total pressure drop [Pa]", "abs": True},
+        {"column": "pressure drop total[kPa]", "ylabel": "Total pressure drop [kPa]", "abs": True},
         {"column": "eta direct[-]",           "ylabel": "Direct efficiency [-]"},
     ]
 
@@ -379,7 +379,6 @@ def generate_eff_stack_scatter(
             marker=stc["marker"],
             s=60,            # bigger than others
             alpha=1.0,       # fully opaque
-            edgecolors="black",
             linewidths=0.6,
             zorder=10,       # ensures on top
         )
@@ -656,8 +655,8 @@ def generate_stage_hydraulics_figure(
             df_run_sorted = df_run.sort_values("stage_index")
             x     = df_run_sorted["stage_index"]
             y_vel = df_run_sorted["gas avg velocity[m/s]"]
-            y_p   = df_run_sorted["gas out pressure[pa]"]
-            y_dp  = df_run_sorted["pressure drop total[pa]"].abs()
+            y_p   = df_run_sorted["gas out pressure[kpa]"]
+            y_dp  = df_run_sorted["pressure drop total[kpa]"].abs()
             y_UA  = df_run_sorted["UA[MW/K]"]
 
             legend_label = f"{param_group} ({case})" if case != "control" else "control"

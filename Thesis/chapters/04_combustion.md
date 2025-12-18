@@ -114,7 +114,7 @@ For the current working fuel:
 - Equivalent mass requirement:
   $\dot{m}_{\mathrm{O_2,stoich}} = 3.75 \text{ kg $\mathrm{O_2}$ per kg fuel}$
 
-### Air–fuel ratio and excess air $\lambda$
+### Air-fuel ratio and excess air $\lambda$
 
 The simulation specifies an excess air ratio $\lambda = 1.1$
 
