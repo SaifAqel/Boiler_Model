@@ -100,7 +100,7 @@ Increasing the excess air ratio increases the total gas side pressure drop as hi
 ## Influence of fuel mass flow
 
 $$
-\dot{m}_\mathrm{fuel} = [0.025, 0.050, 0.075, 0.10, 0.20]\; \frac{kg}{s}
+\dot{m}_\mathrm{fuel} = [0.025, 0.050, 0.075, 0.10, 0.125]\; \frac{kg}{s}
 $$
 
 \begin{figure}[H]
@@ -114,29 +114,29 @@ Steam capacity increases approximately linearly with fuel input, indicating that
 
 Table: Fuel flow performance analysis.
 
-| fuel flow [kg/s]                     |    0.02 |    0.05 |    0.08 |    0.10 |    0.20 |
+| fuel flow [kg/s]                     |    0.02 |    0.05 |    0.08 |    0.10 |    0.12 |
 | :----------------------------------- | ------: | ------: | ------: | ------: | ------: |
-| fuel mass flow[kg/s]                 |    0.02 |    0.05 |    0.08 |     0.1 |     0.2 |
-| air flow[kg/s]                       |    0.44 |    0.89 |    1.33 |    1.77 |    3.54 |
+| fuel mass flow[kg/s]                 |    0.02 |    0.05 |    0.08 |     0.1 |    0.12 |
+| air flow[kg/s]                       |    0.44 |    0.89 |    1.33 |    1.77 |    2.21 |
 | excess air ratio[-]                  |     1.1 |     1.1 |     1.1 |     1.1 |     1.1 |
-| feedwater flow[kg/s]                 |    0.46 |    0.91 |    1.36 |     1.8 |    3.53 |
-| steam capacity[t/h]                  |    1.65 |    3.27 |    4.88 |    6.48 |    12.7 |
-| $\eta_{\mathrm{direct}}$ [-]         |    0.91 |     0.9 |     0.9 |    0.89 |    0.88 |
-| $\eta_{\mathrm{indirect}}$ [-]       |    0.91 |     0.9 |     0.9 |    0.89 |    0.88 |
-| conductance [MW/K]                   |       0 |    0.01 |    0.01 |    0.01 |    0.02 |
-| input heat [MW]                      |    1.18 |    2.35 |    3.53 |     4.7 |     9.4 |
-| useful heat [MW]                     |    1.07 |    2.12 |    3.17 |     4.2 |    8.24 |
-| pressure drop fric total[kpa]        |   -0.02 |   -0.09 |   -0.19 |   -0.34 |   -1.42 |
-| pressure drop minor total[kpa]       |   -0.04 |   -0.18 |   -0.42 |   -0.76 |   -3.38 |
-| pressure drop total[kpa]             |   -0.07 |   -0.27 |   -0.61 |    -1.1 |   -4.79 |
-| water pressure drop fric total[kpa]  |   -0.57 |   -1.97 |   -4.11 |   -6.92 |  -24.46 |
-| water pressure drop minor total[kpa] |   -0.02 |   -0.06 |   -0.14 |   -0.24 |   -0.93 |
-| water pressure drop total[kpa]       |   -0.59 |   -2.04 |   -4.24 |   -7.16 |  -25.38 |
+| feedwater flow[kg/s]                 |    0.46 |    0.91 |    1.36 |     1.8 |    2.24 |
+| steam capacity[t/h]                  |    1.65 |    3.27 |    4.88 |    6.48 |    8.05 |
+| $\eta_{\mathrm{direct}}$ [-]         |    0.91 |     0.9 |     0.9 |    0.89 |    0.89 |
+| $\eta_{\mathrm{indirect}}$ [-]       |    0.91 |     0.9 |     0.9 |    0.89 |    0.89 |
+| conductance [MW/K]                   |       0 |    0.01 |    0.01 |    0.01 |    0.01 |
+| input heat [MW]                      |    1.18 |    2.35 |    3.53 |     4.7 |    5.88 |
+| useful heat [MW]                     |    1.07 |    2.12 |    3.17 |     4.2 |    5.23 |
+| pressure drop fric total[kpa]        |   -0.02 |   -0.09 |   -0.19 |   -0.34 |   -0.54 |
+| pressure drop minor total[kpa]       |   -0.04 |   -0.18 |   -0.42 |   -0.76 |   -1.22 |
+| pressure drop total[kpa]             |   -0.07 |   -0.27 |   -0.61 |    -1.1 |   -1.76 |
+| water pressure drop fric total[kpa]  |   -0.57 |   -1.97 |   -4.11 |   -6.92 |  -10.38 |
+| water pressure drop minor total[kpa] |   -0.02 |   -0.06 |   -0.14 |   -0.24 |   -0.37 |
+| water pressure drop total[kpa]       |   -0.59 |   -2.04 |   -4.24 |   -7.16 |  -10.75 |
 | lhv [mj/kg]                          |   46.97 |   46.97 |   46.97 |   46.97 |   46.97 |
-| firing rate [MW]                     |    1.17 |    2.35 |    3.52 |     4.7 |    9.39 |
+| firing rate [MW]                     |    1.17 |    2.35 |    3.52 |     4.7 |    5.87 |
 | adiabatic temperature [°C]           | 1915.54 | 1915.54 | 1915.54 | 1915.54 | 1915.54 |
-| stack temperature[°c]                |  135.16 |  146.82 |  158.25 |  169.39 |  209.97 |
-| feedwater pressure[kpa]              | 1000.59 | 1002.04 | 1004.24 | 1007.16 | 1025.38 |
+| stack temperature[°c]                |  135.16 |  146.82 |  158.25 |  169.39 |  180.27 |
+| feedwater pressure[kpa]              | 1000.59 | 1002.04 | 1004.24 | 1007.16 | 1010.75 |
 | drum pressure[kpa]                   |    1000 |    1000 |    1000 |    1000 |    1000 |
 
 \newpage
