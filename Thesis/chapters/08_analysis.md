@@ -190,7 +190,7 @@ Increasing the drum pressure, raises the steam capacity because the latent heat 
 ## Influence of fouling
 
 $$
-f = [0.5,\; 1.0,\; 2.0]\;[-]
+f = [0.5,\; 1.0,\; 2.0,\; 5.0,\; 10.0]\;[-]
 $$
 
 \begin{figure}[H]
