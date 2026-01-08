@@ -1,6 +1,6 @@
 # config and input
 
-## Air Properties ($config/air.yaml$) {.unlisted}
+## Air Properties ($config/air.yaml$) {- .unlisted}
 
 Table: Air parameters.
 

@@ -6,7 +6,7 @@ bibliography: "Thesis/refs/library.bib"
 csl: "Thesis/refs/ieee.csl"
 reference-section-title: "References"
 citeproc: true
-toc: true
+toc: false
 numbersections: true
 mainfont: "Arial"
 sansfont: "Arial"
@@ -15,7 +15,9 @@ monofontoptions:
   - Scale=0.85
   - Ligatures=TeX
 fontsize: 12pt
-geometry: margin=1in
+geometry:
+  - a4paper
+  - margin=1in
 documentclass: report
 pdf-engine: xelatex
 highlight-style: tango
@@ -28,9 +30,18 @@ header-includes:
   - \numberwithin{equation}{chapter}
   - \usepackage{caption}
   - \captionsetup[table]{font=small}
+  - \usepackage{pdfpages}
 autoEqnLabels: true
 filters:
   - pandoc-crossref
 ---
 
+\includepdf[
+pages=1,
+fitpaper=true,
+pagecommand={}
+]{Thesis/figures/task_page.pdf}
+\clearpage
+\tableofcontents
+\clearpage
 \newpage
