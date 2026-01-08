@@ -2,7 +2,7 @@
 
 Hydraulic behavior is extracted directly from the solver through the per step pressure drop decomposition implemented in `heat/solver.py` (`_gas_dp_components`, `pressure_drop_gas`) and accumulated at the stage level in `heat/solver.py::solve_stage`.
 
-The model divides gas side pressure losses into:
+The model divides pressure losses into:
 
 - Frictional losses
 - Minor losses (inlet, outlet, bends, etc.)
@@ -86,19 +86,14 @@ V = \frac{\dot m}{\rho A}, \qquad
 \mathrm{Re} = \frac{\rho V D_h}{\mu}
 $$
 
-Frictional losses are only applied for the `economiser` water side branch in `_water_dp_components`; for other stage kinds the current model sets $\Delta P_{\mathrm{fric}} = 0$.
+Frictional losses are only applied for the `economizer` water side branch in `_water_dp_components`; for other stage kinds the current model sets $\Delta P_{\mathrm{fric}} = 0$.
 
-## Gas-side pressure drop in the economiser
+## Gas side pressure drop in the economizer
 
-The economiser gas-side hydraulics differ fundamentally from all other modeled stages.  
-While other stages assume **internal flow** and apply a Darcy–Weisbach formulation, the economiser models **external crossflow over a tube bank**, and gas-side pressure losses are therefore computed using a **bundle loss (drag-based) formulation** rather than a wall-friction model.
-
-Accordingly, the standard Darcy friction term described above is **not used** for the economiser gas side.
+The economizer gas side hydraulics differ fundamentally from all other modeled stages.  
+While other stages assume internal flow and apply a Darcy–Weisbach formulation, the economizer models external crossflow over a tube bank, and gas side pressure losses are therefore computed using a bundle loss (drag-based) formulation rather than a wall-friction model.
 
 ### Crossflow bundle formulation {- .unlisted}
-
-For an economiser stage, the solver uses a tube-bank pressure loss model implemented in  
-`heat/solver.py::_gas_dp_economiser_crossflow`.
 
 The gas flows across a bank of tubes arranged either inline or staggered.  
 A characteristic velocity is defined using a bulk velocity corrected by a geometry-dependent maximum-velocity factor:
@@ -113,19 +108,11 @@ where:
 - $A_{\mathrm{hot}} = \texttt{hot\_flow\_A}$ is the free crossflow area,
 - $u_{\max} = \texttt{umax\_factor}$ accounts for flow acceleration between tubes.
 
-**Note on velocity definitions.**  
-For economiser gas-side pressure losses, the solver uses the _maximum inter-tube velocity_ $V_{\mathrm{char}} = u_{\max} V_{\mathrm{bulk}}$ to form Reynolds number and dynamic pressure.
-
-However, reported gas velocities in summaries and post-processing are based on the bulk velocity $V_{\mathrm{bulk}}$.  
-As a result, economiser pressure losses should not be correlated directly with reported average velocities without accounting for $u_{\max}$.
-
 The Reynolds number is formed using the tube outer diameter:
 
 $$
 \mathrm{Re}_D = \frac{\rho V_{\mathrm{char}} D_o}{\mu}
 $$
-
-with $D_o = \texttt{outer\_diameter}$.
 
 ### Bundle loss coefficient {- .unlisted}
 
@@ -154,7 +141,7 @@ $$
 \zeta_{\text{bundle}} = N_{\mathrm{rows}} \, \zeta_{\text{row}}
 $$
 
-where $N_{\mathrm{rows}} = \texttt{N\_rows}$ is the number of tube rows in the flow direction.
+where $N_{\mathrm{rows}}$ is the number of tube rows in the flow direction.
 
 ### Distributed pressure loss {- .unlisted}
 
@@ -170,7 +157,7 @@ $$
 \Delta P_{\text{bundle}} = -\zeta_{\text{bundle}} \, q
 $$
 
-This loss is **distributed uniformly** along the economiser length $L$ across the marching steps:
+This loss is distributed uniformly along the economizer length $L$ across the marching steps:
 
 $$
 \Delta P_{\mathrm{fric,step}} =
@@ -178,42 +165,6 @@ $$
 $$
 
 where $\Delta x$ is the local marching step length.
-
-### Minor losses in the economiser {- .unlisted}
-
-In addition to the distributed bundle loss, inlet, outlet, and bend losses are applied using standard $K$-coefficients:
-
-$$
-\Delta P_{\text{minor}} = -K_{\mathrm{minor}} \, q
-$$
-
-with:
-
-$$
-K_{\mathrm{minor}} =
-K_{\text{bend,per-step}}
-+ \mathbb{1}_{i=0}\,K_{\text{hot,inlet}}
-+ \mathbb{1}_{i=n-1}\,K_{\text{hot,outlet}}
-$$
-
-The bend loss is distributed uniformly across the $n$ marching steps.
-
-### Total gas-side pressure drop (economiser) {- .unlisted}
-
-For an economiser step, the total gas-side pressure change is therefore:
-
-$$
-\Delta P_{\mathrm{total}} =
-\Delta P_{\mathrm{bundle,step}} + \Delta P_{\mathrm{minor}}
-$$
-
-This value replaces the Darcy-based formulation used in all other stages and is applied step-wise in the same manner:
-
-$$
-P_{i+1} = P_i + \Delta P_{\mathrm{total}}
-$$
-
-Gas compressibility effects are captured through the dependence of $\rho(T,P)$ and $\mu(T,P)$ on the local thermodynamic state.
 
 ## Minor losses
 
@@ -229,7 +180,7 @@ The total minor-loss coefficient $K_{\mathrm{minor}}$ is assembled differently f
 
 ### Coefficient assembly {- .unlisted}
 
-**Gas side.**  
+Gas side.  
 For each stage, the total loss coefficient is assembled from geometry and user inputs:
 
 $$
@@ -241,16 +192,12 @@ $$
 
 Where:
 
-- $K_{\mathrm{contraction}}$: accounts for sudden expansion of flow area (e.g. $\mathrm{HX_2} \rightarrow \mathrm{HX_3}$), default $= 0.5$.
-- $K_{\mathrm{expansion}}$ (Borda–Carnot): losses caused by sudden expansion of flow area (e.g. $\mathrm{HX_1} \rightarrow \mathrm{HX_2}$), default $= 1$.
-- $K_{\mathrm{bend}}$: losses due to gas flow rotation in reversal chambers, default $= 0$.
-
-**Water side.**  
-Water-side minor losses are applied via per-stage catalogue coefficients in `heat/solver.py::_water_dp_components`:
-
-- $K_{\text{cold,bend}} = \texttt{K\_cold\_bend}$
-- $K_{\text{cold,inlet}} = \texttt{K\_cold\_inlet}$
-- $K_{\text{cold,outlet}} = \texttt{K\_cold\_outlet}$
+- $K_{\mathrm{contraction}}$:
+  accounts for sudden expansion of flow area (e.g. $\mathrm{HX_2} \rightarrow \mathrm{HX_3}$), default $= 0.5$.
+- $K_{\mathrm{expansion}}$ (Borda–Carnot):
+  losses caused by sudden expansion of flow area (e.g. $\mathrm{HX_1} \rightarrow \mathrm{HX_2}$), default $= 1$.
+- $K_{\mathrm{bend}}$:
+  losses due to gas flow rotation in reversal chambers, default $= 0$.
 
 The bend loss is distributed uniformly across the $n$ marching steps:
 
@@ -277,7 +224,7 @@ q = \frac{\rho V^2}{2}, \qquad
 \Delta P_{\text{minor}} = -K_{\mathrm{minor}}\,q
 $$
 
-where $A$ is the relevant side flow area ($A=\texttt{cold\_flow\_A}$ for water, gas-side area otherwise).
+where $A$ is the relevant side flow area ($A=\texttt{cold\_flow\_A}$ for water, gas side area otherwise).
 
 ## Total pressure drop
 

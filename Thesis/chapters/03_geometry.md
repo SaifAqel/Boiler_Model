@@ -54,29 +54,6 @@ with the following interpretation:
 
 ## Geometry and surface specification
 
-### Drum configuration {- .unlisted}
-
-The boiler has a single horizontal steam drum. Its inner diameter is $D_{i,\text{drum}} = 4.5\ \text{m}$ and its length $L_{\text{drum}} = 5.0\ \text{m}$.
-
-The drum is not modelled with internal separators or circulation hardware. It simply supplies the saturated water/steam state at boiler pressure, while all circulation effects are represented by the single 1-D water/steam stream used in the heat-transfer stages.
-
-### Flue gas passes {- .unlisted}
-
-All six pressure part stages of the simulated boiler are represented with a consolidated geometric and surface specification.
-
-Table: Flue gas stages key parameters
-
-|     Element     | Kind         | Di [m] | L [m] | N_tubes [-] | Wall t [mm] | Roughness [µm] | Pool boiling [-] |
-| :-------------: | ------------ | :----: | :---: | :---------: | :---------: | :------------: | :--------------: |
-| $\mathrm{HX_1}$ | single_tube  |  1.40  | 5.276 |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_2}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_3}$ | tube_bank    | 0.076  | 4.975 |     118     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_4}$ | reversal_ch. |  1.60  | 0.80  |      1      |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_5}$ | tube_bank    | 0.076  | 5.620 |     100     |     2.9     |      0.5       |       true       |
-| $\mathrm{HX_6}$ | economizer   | 0.0337 | 8 x 3 |   40 x 3    |     2.6     |      0.5       |      false       |
-
-The input file `stages.yaml`, provided in Annex A, contain the complete detailed specifications and is parsed at runtime by the configuration loader (`new_loader.py`). This separates numerical solution algorithms from geometry and surface data, and allows different boiler variants to be simulated by simply modifying the YAML files.
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_cross_section.jpg}
@@ -84,17 +61,55 @@ The input file `stages.yaml`, provided in Annex A, contain the complete detailed
 \label{fig:boiler-cross-section-2}
 \end{figure}
 
-All pressure part stages ($\mathrm{HX_1}$–$\mathrm{HX_5}$) share the same steel wall thermal conductivity of $\mathrm{k_{wall}} = 50$ $\text{W/m/K}$.
+### Drum {- .unlisted}
 
-The YAML configuration supplies wall, surface, and hydraulic properties not captured in the tabulated geometry. Each pressure-part exchanger defines wall thickness, wall conductivity, surface roughness, emissivity, and optional fouling layers with specified thickness and conductivity. Most stages use a uniform carbon-steel wall with smooth surfaces and thin fouling layers, while the economizer uses a thinner, higher-conductivity wall and no fouling to reflect a cleaned section.
+The boiler drum is modelled as a single horizontal cylindrical vessel without internal separators or circulation devices. It provides saturated liquid and vapour at drum pressure.
 
-The steam drum defines diameter, length, and internal surface properties with its own roughness and fouling settings.
+The inner diameter of the drum is $D_{i,\text{drum}} = 4.5\ \text{m}$ and the total length is $L_{\text{drum}} = 5.0\ \text{m}$
 
-Reversal chambers specify curvature radius and nozzle minor-loss coefficients used in pressure-drop calculations.
+The drum wall is made of carbon steel with a uniform thickness of $t_{\text{drum}} = 0.05\ \text{m}$ and thermal conductivity $k_{\text{drum}} = 40\ \text{W m}^{-1}\text{K}^{-1}$
 
-Economizer defines shell side cross section, where flue gas flows as a cylindrical drum of 0.95 m diameter, containing 3 circuit of tube bundles where each circuit is of 60 tubes of 33.7 mm.
+A fouling layer of thickness $0.1\ \text{mm}$ and conductivity $0.2\ \text{W m}^{-1}\text{K}^{-1}$ is applied on the inner surface.
 
-These YAML entries are translated by the loader into the geometric and hydraulic quantities required for cross-flow areas, Reynolds numbers, and shell-side heat-transfer evaluation.
+### Pool boiling stages {- .unlisted}
+
+All five pressure part stages located inside the drum are modelled under pool boiling conditions. These stages represent the furnace and convective passes before the economizer. Internal flow is one dimensional while external boiling occurs at drum saturation conditions.
+
+All stages use steel walls with thermal conductivity $k_{\text{wall}} = 50\ \text{W m}^{-1}\text{K}^{-1}$, with internal roughness $\zeta_{\text{gas}} = 50\ \mu\text{m}$, and outer roughness $\zeta_{\text{water}} = 20\ \mu\text{m}$, while surface emissivity is $0.80$.
+
+Fouling resistance is included via a uniform fouling layer of thickness $0.1\ \text{mm}$ and conductivity $0.2\ \text{W m}^{-1}\text{K}^{-1}$.
+
+The main geometric parameters of the pool boiling stages are summarized in Table~\ref{tab:stages_geom}.
+
+Table: Pool boiling pressure part geometry
+\label{tab:stages_geom}
+
+| Element | Kind             | $D_i$ [m] | $L$ [m] | Tube no. | Wall thickness [mm] | Roughness [$\mu$m] |
+| :-----: | :--------------- | :-------: | :-----: | :------: | :-----------------: | :----------------: |
+|   HX1   | single tube      |   1.40    |  5.276  |    1     |         20          |         50         |
+|   HX2   | reversal chamber |   1.60    |  0.80   |    1     |         20          |         50         |
+|   HX3   | tube bank        |   0.076   |  4.975  |   118    |         2.9         |         50         |
+|   HX4   | reversal chamber |   1.60    |  0.80   |    1     |         20          |         50         |
+|   HX5   | tube bank        |   0.076   |  5.620  |   100    |         2.9         |         50         |
+
+The tube banks HX3 and HX5 are staggered arrangements with six tube rows. The transverse and longitudinal pitches are both $S_T = S_L = 0.11\ \text{m}$.
+
+Reversal chambers HX2 and HX4 include curvature effects through a bend radius of $0.8\ \text{m}$
+
+### Economizer {- .unlisted}
+
+The economizer is modelled as a shell and tube heat exchanger operating under single phase conditions on both sides. It is located downstream of the final pool boiling stage.
+
+Flue gas flows on the shell side through a cylindrical duct of inner diameter
+$D_{\text{shell}} = 0.95\ \text{m}$.
+
+The tube side consists of four parallel circuits. Each circuit contains sixty tubes of inner diameter $D_{i,\text{eco}} = 0.0337\ \text{m}$ with a total developed tube length of $L_{\text{tube}} = 80\ \text{m}$ per circuit.
+
+The tube bundle is arranged in a staggered configuration. Transverse and longitudinal pitches are $S_T = 0.09\ \text{m}$ and $S_L = 0.10\ \text{m}$ respectively.
+
+Baffle spacing is $0.25\ \text{m}$ with a baffle cut of $0.25$ and a bundle clearance of $10\ \text{mm}$.
+
+The economizer tubes are made of steel with wall thickness $t_{\text{eco}} = 2.6\ \text{mm}$ and thermal conductivity $k_{\text{eco}} = 50\ \text{W m}^{-1}\text{K}^{-1}$. Inner surface roughness is $20\ \mu\text{m}$ and outer surface roughness is $50\ \mu\text{m}$. No fouling resistance is applied in the economizer.
 
 \newpage
 
@@ -122,7 +137,5 @@ These YAML entries are translated by the loader into the geometric and hydraulic
    - 1D, steady, single phase flow.
    - Constant mass flow along each stage.
    - Compressibility effects appear only through property variations $\rho(T,P)$ and $\mu(T,P)$ in $\mathrm{Re}$ and $\rho V^2 / 2$.
-   - Stage level minor loss coefficients are lumped, and uniformly distributed along the stage.
-   - Gas side ΔP in economizer stage is neglected.
 
 \newpage

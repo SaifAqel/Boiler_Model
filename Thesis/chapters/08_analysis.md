@@ -42,6 +42,8 @@ Table: Control case performance.
 \label{fig:kpi_overview_all_param_groups}
 \end{figure}
 
+Overall, the results show that fuel flow is the dominant factor affecting boiler performance. Increasing fuel flow strongly increases heat input, steam production, stack temperature, pressure drop, and leads to a noticeable reduction in direct efficiency at higher values. In contrast, changes in excess air, drum pressure, and fouling mainly cause smaller, secondary shifts, primarily influencing stack temperature and efficiency, but leave most other boiler variables relatively unchanged.
+
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{results/plots/per_run/scatter_efficiency_vs_stack_temperature_all_runs.png}
