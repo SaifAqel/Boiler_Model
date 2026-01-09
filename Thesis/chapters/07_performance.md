@@ -2,7 +2,7 @@
 
 This section summarizes the boiler level performance obtained from the coupled combustion heat transfer simulation. All numerical values are extracted from the stages summary and boiler summary data produced by the post-processing step `heat/postproc.py`.
 
-## solution procedure
+## Solution procedure
 
 For any given operating conditions, the main solver `run_boiler_case()` performs an outer fixed point iteration, on boiler efficiency, and water mass flow:
 

@@ -59,7 +59,7 @@ Declaration about the acceptability of the thesis
 
 This thesis fulfills every formal and content requirements of the regulation of the Budapest University of Technology and Economics, moreover it fulfills the assignment of the final project. This thesis is suitable for a review and an open defense.
 
-Budapest, DATE
+Budapest,
 
 \vspace{2cm}
 
@@ -77,7 +77,7 @@ I, Saif-Aldain Ahmad Deeb Aqel (QTY3S6), hereby declare that the Thesis submitte
 
 I accept that the scientific results presented in my Thesis can be utilized by the Department of the supervisor for further research or teaching purposes.
 
-Budapest, DATE
+Budapest,
 
 \vspace{2cm}
 

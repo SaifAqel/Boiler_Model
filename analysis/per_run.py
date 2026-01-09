@@ -39,7 +39,7 @@ param_xlabels: Dict[str, str] = {
     "excess_air": "Excess air [-]",
     "fuel_flow": "Fuel flow [kg/s]",
     "drum_pressure": "Drum pressure [bar]",
-    "control": "Control setting [-]",
+    "control": "Control case [-]",
     "fouling": "Fouling factor [-]", 
 }
 
@@ -50,7 +50,7 @@ param_group_style = {
     "excess_air":    dict(color="tab:blue",   marker="o", linestyle="-"),
     "fuel_flow":     dict(color="tab:orange", marker="s", linestyle="--"),
     "drum_pressure": dict(color="tab:green",  marker="D", linestyle="-"),
-    "control":       dict(color="tab:red",    marker="x", linestyle=":"),
+    "control":       dict(color="tab:red",    marker="x", linestyle="-"),
     "fouling":       dict(color="tab:purple", marker="^", linestyle="-."),
 }
 
@@ -341,7 +341,6 @@ def generate_eff_stack_scatter(
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Keep only rows with the needed columns
     needed = ["param_group", "stack temperature[°C]", "eta direct[-]", "eta indirect[-]"]
     missing = [c for c in needed if c not in df.columns]
     if missing:
@@ -351,11 +350,9 @@ def generate_eff_stack_scatter(
 
     fig, ax_dir = plt.subplots(1, 1, figsize=(7.5, 4))
 
-    # Plot non-control first, then control last so it is on top
     df_non_control = dfp[dfp["param_group"].astype(str).str.lower() != "control"].copy()
     df_control     = dfp[dfp["param_group"].astype(str).str.lower() == "control"].copy()
 
-    # 1) non-control groups
     for pg, dpg in df_non_control.groupby("param_group"):
         st = _get_pg_style(str(pg))
         ax_dir.scatter(
@@ -369,7 +366,6 @@ def generate_eff_stack_scatter(
             zorder=2,
         )
 
-    # 2) control group LAST (strongest marker, on top)
     if not df_control.empty:
         stc = _get_pg_style("control")
         ax_dir.scatter(
@@ -378,10 +374,10 @@ def generate_eff_stack_scatter(
             label="control",
             color=stc["color"],
             marker=stc["marker"],
-            s=60,            # bigger than others
-            alpha=1.0,       # fully opaque
+            s=60,
+            alpha=1.0,
             linewidths=0.6,
-            zorder=10,       # ensures on top
+            zorder=10,
         )
 
     ax_dir.set_title("Direct efficiency vs stack temperature")
@@ -389,7 +385,6 @@ def generate_eff_stack_scatter(
     ax_dir.set_ylabel("Direct efficiency [-] (LHV)")
     ax_dir.grid(True, which="both")
 
-    # Legend (from the single axis)
     handles, labels = ax_dir.get_legend_handles_labels()
     if handles:
         ax_dir.legend(
@@ -405,384 +400,109 @@ def generate_eff_stack_scatter(
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-def generate_stage_heat_figure(
+def generate_stage_combined_control_figure(
     csv_path: str = "results/summary/stages_summary_all_runs.csv",
     output_dir: str = "figures",
 ) -> None:
-
     df = load_data(csv_path)
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    CASE_MARKERS = {
-        "min": "o",
-        "max": "s",
-        "control": None,
-    }
-
+    df = df[df["param_group"].astype(str).str.lower() == "control"].copy()
+    if df.empty:
+        raise ValueError("No rows found for param_group == 'control' in stages summary CSV.")
 
     if df["stage"].dtype == object:
         df["stage_index"] = (
-            df["stage"]
-            .astype(str)
-            .str.extract(r"(\d+)", expand=False)
-            .astype(int)
+            df["stage"].astype(str).str.extract(r"(\d+)", expand=False).astype(int)
         )
     else:
         df["stage_index"] = df["stage"].astype(int)
 
     df = df.dropna(subset=["stage_index"]).copy()
 
-    if "param_value" not in df.columns:
-        raise KeyError("stages_summary_all_runs.csv must include 'param_value' to select min/max per param_group.")
+    plot_cols = [
+        "gas out temp[°C]",
+        "Q total[MW]",
+        "Q rad[MW]",
+        "Q conv[MW]",
+        "UA[MW/K]",
+        "gas out pressure[kpa]",
+        "pressure drop total[kpa]",
+        "gas avg velocity[m/s]",
+    ]
+    for c in plot_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
 
-    df["param_value"] = pd.to_numeric(df["param_value"], errors="coerce")
-
-    selected_parts = []
-
-    for pg, df_pg in df.groupby("param_group"):
-        if str(pg).lower() == "control":
-            df_pg = df_pg.copy()
-            df_pg["case"] = "control"
-            selected_parts.append(df_pg)
-            continue
-
-        df_pg = df_pg.dropna(subset=["param_value"]).copy()
-        if df_pg.empty:
-            continue
-
-        pv_min = df_pg["param_value"].min()
-        pv_max = df_pg["param_value"].max()
-
-        run_min = df_pg.loc[df_pg["param_value"].eq(pv_min), "run"].sort_values().iloc[0]
-        run_max = df_pg.loc[df_pg["param_value"].eq(pv_max), "run"].sort_values().iloc[0]
-
-        df_min = df_pg[df_pg["run"].eq(run_min)].copy()
-        df_min["case"] = "min"
-
-        df_max = df_pg[df_pg["run"].eq(run_max)].copy()
-        df_max["case"] = "max"
-
-        selected_parts.append(df_min)
-        if run_max != run_min:
-            selected_parts.append(df_max)
-
-    df = pd.concat(selected_parts, ignore_index=True)
-
-    fig, axes = plt.subplots(2, 2, figsize=(8, 6))
-    ax_Tg    = axes[0, 0]
-    ax_duty  = axes[0, 1]
-    ax_Qrad  = axes[1, 0]
-    ax_Qconv = axes[1, 1]
+    fig, axes = plt.subplots(4, 2, figsize=(10, 10))
+    ax_Tg   = axes[0, 0]
+    ax_Q    = axes[0, 1]
+    ax_Qrad = axes[1, 0]
+    ax_Qconv= axes[1, 1]
+    ax_UA   = axes[2, 0]
+    ax_p    = axes[2, 1]
+    ax_dp   = axes[3, 0]
+    ax_vel  = axes[3, 1]
 
     stage_ticks = sorted(df["stage_index"].unique())
-
-    for ax in (ax_Tg, ax_duty, ax_Qrad, ax_Qconv):
+    for ax in (ax_Tg, ax_Q, ax_Qrad, ax_Qconv, ax_UA, ax_p, ax_dp, ax_vel):
         ax.set_xlabel("Stage [-]")
         ax.set_xticks(stage_ticks)
         ax.grid(True, which="both")
 
     ax_Tg.set_ylabel("Gas outlet temperature [°C]")
-    ax_duty.set_ylabel("Stage duty $Q_{\\mathrm{stage}}$ [MW]")
+    ax_Q.set_ylabel("Stage duty $Q_{\\mathrm{stage}}$ [MW]")
     ax_Qrad.set_ylabel("$Q_{\\mathrm{rad}}$ [MW]")
     ax_Qconv.set_ylabel("$Q_{\\mathrm{conv}}$ [MW]")
-
-
-
-    legend_handles = {}
-
-    for (param_group, case), df_pg in df.groupby(["param_group", "case"]):
-        marker = CASE_MARKERS.get(case)
-        if marker is None:
-            marker = _get_pg_style(param_group)["marker"]
-        pg_style = _get_pg_style(param_group)
-        color = pg_style["color"]
-        line_style = pg_style["linestyle"]
-        lw = 0.7
-
-        for run_name, df_run in df_pg.groupby("run"):
-            df_run_sorted = df_run.sort_values("stage_index")
-            x      = df_run_sorted["stage_index"]
-            y_Tg   = df_run_sorted["gas out temp[°C]"]
-            y_Q    = df_run_sorted["Q total[MW]"]
-            y_Qrad = df_run_sorted["Q rad[MW]"]
-            y_Qconv= df_run_sorted["Q conv[MW]"]
-
-            legend_label = f"{param_group} ({case})" if case != "control" else "control"
-
-            line_Tg, = ax_Tg.plot(
-                x,
-                y_Tg,
-                marker=marker,
-                linestyle=line_style,
-                color=color,
-                linewidth=lw,
-                label=legend_label,
-            )
-
-            ax_duty.plot(x, y_Q,     marker=marker, linestyle=line_style, color=color, linewidth=lw)
-            ax_Qrad.plot(x, y_Qrad,  marker=marker, linestyle=line_style, color=color, linewidth=lw)
-            ax_Qconv.plot(x, y_Qconv,marker=marker, linestyle=line_style, color=color, linewidth=lw)
-
-            if param_group not in legend_handles:
-                legend_handles[param_group] = line_Tg
-
-    if legend_handles:
-        fig.legend(
-            handles=list(legend_handles.values()),
-            labels=list(legend_handles.keys()),
-            loc="lower center",
-            ncol=min(len(legend_handles), 4),
-            framealpha=0.8,
-            bbox_to_anchor=(0.5, 0.02),
-        )
-
-    marker_legend_handles = [
-        Line2D([], [], color="black", marker="o", linestyle="None", label="Min"),
-        Line2D([], [], color="black", marker="s", linestyle="None", label="Max"),
-        Line2D([], [], color="black", marker=_get_marker("control") or "o",
-            linestyle="None", label="Control"),
-    ]
-
-    fig.legend(
-        handles=marker_legend_handles,
-        loc="lower center",
-        ncol=3,
-        framealpha=0.8,
-        bbox_to_anchor=(0.5, -0.02),
-    )
-
-    fig.tight_layout(rect=(0.0, 0.12, 1.0, 1.0))
-
-    out_path = out_dir / "stages_heat.png"
-    fig.savefig(out_path, dpi=300)
-    plt.close(fig)
-
-def generate_stage_hydraulics_figure(
-    csv_path: str = "results/summary/stages_summary_all_runs.csv",
-    output_dir: str = "figures",
-) -> None:
-    
-    df = load_data(csv_path)
-    out_dir = Path(output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    CASE_MARKERS = {
-        "min": "o",
-        "max": "s",
-        "control": None,
-    }
-
-
-    if df["stage"].dtype == object:
-        df["stage_index"] = (
-            df["stage"]
-            .astype(str)
-            .str.extract(r"(\d+)", expand=False)
-            .astype(int)
-        )
-    else:
-        df["stage_index"] = df["stage"].astype(int)
-
-    df = df.dropna(subset=["stage_index"]).copy()
-
-    if "param_value" not in df.columns:
-        raise KeyError("stages_summary_all_runs.csv must include 'param_value' to select min/max per param_group.")
-
-    df["param_value"] = pd.to_numeric(df["param_value"], errors="coerce")
-
-    selected_parts = []
-
-    for pg, df_pg in df.groupby("param_group"):
-        if str(pg).lower() == "control":
-            df_pg = df_pg.copy()
-            df_pg["case"] = "control"
-            selected_parts.append(df_pg)
-            continue
-
-        df_pg = df_pg.dropna(subset=["param_value"]).copy()
-        if df_pg.empty:
-            continue
-
-        pv_min = df_pg["param_value"].min()
-        pv_max = df_pg["param_value"].max()
-
-        run_min = df_pg.loc[df_pg["param_value"].eq(pv_min), "run"].sort_values().iloc[0]
-        run_max = df_pg.loc[df_pg["param_value"].eq(pv_max), "run"].sort_values().iloc[0]
-
-        df_min = df_pg[df_pg["run"].eq(run_min)].copy()
-        df_min["case"] = "min"
-
-        df_max = df_pg[df_pg["run"].eq(run_max)].copy()
-        df_max["case"] = "max"
-
-        selected_parts.append(df_min)
-        if run_max != run_min:
-            selected_parts.append(df_max)
-
-    df = pd.concat(selected_parts, ignore_index=True)
-
-
-    fig, axes = plt.subplots(2, 2, figsize=(8, 6))
-    ax_UA  = axes[0, 0]
-    ax_p   = axes[0, 1]
-    ax_dp  = axes[1, 0]
-    ax_vel = axes[1, 1]
-
-    stage_ticks = sorted(df["stage_index"].unique())
-
-    for ax in (ax_UA, ax_p, ax_dp, ax_vel):
-        ax.set_xlabel("Stage [-]")
-        ax.set_xticks(stage_ticks)
-        ax.grid(True, which="both")
-
     ax_UA.set_ylabel("Stage conductance $UA$ [MW/K]")
-    ax_p.set_ylabel("Gas outlet pressure [Pa]")
-    ax_dp.set_ylabel("Total pressure drop [Pa]")
+    ax_p.set_ylabel("Gas outlet pressure [kPa]")
+    ax_dp.set_ylabel("Total pressure drop [kPa]")
     ax_vel.set_ylabel("Gas average velocity [m/s]")
 
-    legend_handles = {}
+    st = _get_pg_style("control")
+    color = st["color"]
+    marker = st["marker"]
+    line_style = st["linestyle"]
+    lw = 0.9
 
-    for (param_group, case), df_pg in df.groupby(["param_group", "case"]):
-        marker = CASE_MARKERS.get(case)
-        if marker is None:
-            marker = _get_pg_style(param_group)["marker"]
-        pg_style = _get_pg_style(param_group)
-        color = pg_style["color"]
-        line_style = pg_style["linestyle"]
-        lw = 0.7
+    for run_name, df_run in df.groupby("run"):
+        df_run = df_run.sort_values("stage_index")
 
-        for run_name, df_run in df_pg.groupby("run"):
-            df_run_sorted = df_run.sort_values("stage_index")
-            x     = df_run_sorted["stage_index"]
-            y_vel = df_run_sorted["gas avg velocity[m/s]"]
-            y_p   = df_run_sorted["gas out pressure[kpa]"]
-            y_dp  = df_run_sorted["pressure drop total[kpa]"].abs()
-            y_UA  = df_run_sorted["UA[MW/K]"]
+        x = df_run["stage_index"]
+        y_Tg   = df_run["gas out temp[°C]"]
+        y_Q    = df_run["Q total[MW]"]
+        y_Qrad = df_run["Q rad[MW]"]
+        y_Qconv= df_run["Q conv[MW]"]
+        y_UA   = df_run["UA[MW/K]"]
+        y_p    = df_run["gas out pressure[kpa]"]
+        y_dp   = df_run["pressure drop total[kpa]"].abs()
+        y_vel  = df_run["gas avg velocity[m/s]"]
 
-            legend_label = f"{param_group} ({case})" if case != "control" else "control"
+        ax_Tg.plot(x, y_Tg,   marker=marker, linestyle=line_style, color=color, linewidth=lw, label="Control case")
+        ax_Q.plot(x, y_Q,     marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_Qrad.plot(x, y_Qrad, marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_Qconv.plot(x, y_Qconv, marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_UA.plot(x, y_UA,   marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_p.plot(x, y_p,     marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_dp.plot(x, y_dp,   marker=marker, linestyle=line_style, color=color, linewidth=lw)
+        ax_vel.plot(x, y_vel, marker=marker, linestyle=line_style, color=color, linewidth=lw)
 
-            line_UA, = ax_UA.plot(
-                x,
-                y_UA,
-                marker=marker,
-                linestyle=line_style,
-                color=color,
-                linewidth=lw,
-                label=legend_label,
-            )
-
-            ax_p.plot(x, y_p,   marker=marker, linestyle=line_style, color=color, linewidth=lw)
-            ax_dp.plot(x, y_dp, marker=marker, linestyle=line_style, color=color, linewidth=lw)
-            ax_vel.plot(x, y_vel, marker=marker, linestyle=line_style, color=color, linewidth=lw)
-
-            if param_group not in legend_handles:
-                legend_handles[param_group] = line_UA
-
-
-
-    if legend_handles:
+    handles, labels = ax_Tg.get_legend_handles_labels()
+    if handles:
         fig.legend(
-            handles=list(legend_handles.values()),
-            labels=list(legend_handles.keys()),
+            handles=handles,
+            labels=labels,
             loc="lower center",
-            ncol=min(len(legend_handles), 4),
+            ncol=min(len(labels), 4),
             framealpha=0.8,
             bbox_to_anchor=(0.5, 0.02),
         )
 
-    marker_legend_handles = [
-        Line2D([], [], color="black", marker="o", linestyle="None", label="Min"),
-        Line2D([], [], color="black", marker="s", linestyle="None", label="Max"),
-        Line2D([], [], color="black", marker=_get_marker("control") or "o",
-            linestyle="None", label="Control"),
-    ]
+    fig.tight_layout(rect=(0.0, 0.06, 1.0, 0.98))
 
-    fig.legend(
-        handles=marker_legend_handles,
-        loc="lower center",
-        ncol=3,
-        framealpha=0.8,
-        bbox_to_anchor=(0.5, -0.02),
-    )
-
-    fig.tight_layout(rect=(0.0, 0.12, 1.0, 1.0))
-
-    out_path = out_dir / "stages_hydraulics.png"
+    out_path = out_dir / "stages_control_combined_8plots.png"
     fig.savefig(out_path, dpi=300)
-    plt.close(fig)
-
-def generate_default_case_steps_figure(
-    csv_path: str = r"results\runs\default_case_steps.csv",
-    output_dir: str = "figures",
-) -> None:
-    df = load_steps_data(csv_path)
-
-    # Basic column presence check (fail early with a clear message)
-    required = [
-        "x[m]",
-        "gas_T[°C]", "water_T[°C]",
-        "gas_P[kPa]", "water_P[kPa]",
-        "gas_V[m/s]", "water_V[m/s]",
-        "h_gas[W/m^2/K]", "h_water[W/m^2/K]",
-    ]
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        raise KeyError(f"Missing columns in {csv_path}: {missing}")
-
-    # Keep only rows with x
-    dfp = df.dropna(subset=["x[m]"]).sort_values("x[m]").copy()
-    x = dfp["x[m]"]
-
-    out_dir = Path(output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    fig, axes = plt.subplots(2, 2, figsize=(10, 7))
-    ax_T   = axes[0, 0]
-    ax_P   = axes[0, 1]
-    ax_V   = axes[1, 0]
-    ax_htc = axes[1, 1]
-
-    # --- Plot 1: Temperature
-    ax_T.plot(x, dfp["gas_T[°C]"],   label="Gas T [°C]")
-    ax_T.plot(x, dfp["water_T[°C]"], label="Water T [°C]")
-    ax_T.set_title("Temperature")
-    ax_T.set_xlabel("x [m]")
-    ax_T.set_ylabel("T [°C]")
-    ax_T.legend(loc="best", framealpha=0.8)
-
-    # --- Plot 2: Pressure
-    ax_P.plot(x, dfp["gas_P[kPa]"],   label="Gas P [kPa]")
-    ax_P.plot(x, dfp["water_P[kPa]"], label="Water P [kPa]")
-    ax_P.set_title("Pressure")
-    ax_P.set_xlabel("x [m]")
-    ax_P.set_ylabel("P [kPa]")
-    ax_P.legend(loc="best", framealpha=0.8)
-
-    # --- Plot 3: Velocity
-    ax_V.plot(x, dfp["gas_V[m/s]"],   label="Gas V [m/s]")
-    ax_V.plot(x, dfp["water_V[m/s]"], label="Water V [m/s]")
-    ax_V.set_title("Velocity")
-    ax_V.set_xlabel("x [m]")
-    ax_V.set_ylabel("V [m/s]")
-    ax_V.legend(loc="best", framealpha=0.8)
-
-    # --- Plot 4: Heat transfer coefficient (HTC)
-    ax_htc.plot(x, dfp["h_gas[W/m^2/K]"],   label="Gas h [W/m²/K]")
-    ax_htc.plot(x, dfp["h_water[W/m^2/K]"], label="Water h [W/m²/K]")
-    ax_htc.set_title("Heat transfer coefficient")
-    ax_htc.set_xlabel("x [m]")
-    ax_htc.set_ylabel("h [W/m²/K]")
-    ax_htc.legend(loc="best", framealpha=0.8)
-
-    # Match your global rcParams grid, but ensure on
-    for ax in (ax_T, ax_P, ax_V, ax_htc):
-        ax.grid(True, which="both")
-
-    fig.tight_layout()
-
-    out_path = out_dir / "default_case_steps_2x2.png"
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
 def generate_all_figures(csv_path: str, output_dir: str = "figures") -> None:
@@ -838,9 +558,4 @@ if __name__ == "__main__":
     generate_eff_stack_scatter(csv_arg, output_dir=out_arg)
 
     stage_csv = "results/summary/stages_summary_all_runs.csv"
-    generate_stage_heat_figure(stage_csv, output_dir=out_arg)
-
-    generate_stage_hydraulics_figure(stage_csv, output_dir=out_arg)
-
-    steps_csv = "results/runs/default_case_steps.csv"
-    generate_default_case_steps_figure(steps_csv, output_dir=out_arg)
+    generate_stage_combined_control_figure(stage_csv, output_dir=out_arg)

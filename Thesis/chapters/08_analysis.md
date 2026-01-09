@@ -117,6 +117,19 @@ Overall, the results show that fuel flow is the dominant factor affecting boiler
 
 \newpage
 
+### Stage-wise heat transfer and hydraulics
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{results/plots/per_run/stages_control_combined_8plots.png}
+\caption{Stage wise heat transfer and hydraulic profiles}
+\label{fig:stages_param_groups}
+\end{figure}
+
+Across all runs the stage pattern stays the same: gas temperature drops from HX 1 to HX 6, stage heat duty is highest in the first stages and decreases downstream, and early stages are driven mainly by radiative transfer while later stages are relatively more convective. Control cases sit between the minimum and maximum parameter cases, showing smooth scaling rather than any stage wise regime change.
+
+Excess air mainly shifts and weakens heat transfer: higher excess air lowers upstream gas temperatures and reduces early stage duties, pushes a larger share of recovery downstream, and increases gas velocity and total pressure drop across stages. Fuel flow scales everything up or down: higher fuel flow increases gas temperatures, stage duties, and both convective and radiative contributions in all stages, with the biggest absolute changes in the first tube bank section and upstream units, while also increasing pressure drop. Drum pressure has a smaller gas side impact but adjusts downstream recovery through water side conditions, slightly shifting late stage duties and conductance without changing the overall stage wise shape.
+
 ### Influence of excess air factor
 
 $$
@@ -215,7 +228,7 @@ $$
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{results/plots/per_run/performance_water_pressure.png}
+\includegraphics[width=\textwidth]{results/plots/per_run/performance_drum_pressure.png}
 \caption{Boiler performance as a function of drum pressure}
 \label{fig:performance_water_pressure}
 \end{figure}
@@ -298,26 +311,6 @@ Table: Fouling performance analysis.
 | drum pressure[kpa]                   |    1000 |    1000 |    1000 |    1000 |    1000 |
 
 While the boiler can continue to operate under fouled conditions, the results highlight the importance of maintaining clean heat transfer surfaces to ensure higher efficiency.
-
-### Stage-wise heat transfer and hydraulics
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_heat.png}
-\caption{Stage wise heat transfer profile}
-\label{fig:stages_param_groups}
-\end{figure}
-
-Across all runs the stage pattern stays the same: gas temperature drops from HX 1 to HX 6, stage heat duty is highest in the first stages and decreases downstream, and early stages are driven mainly by radiative transfer while later stages are relatively more convective. Control cases sit between the minimum and maximum parameter cases, showing smooth scaling rather than any stage wise regime change.
-
-Excess air mainly shifts and weakens heat transfer: higher excess air lowers upstream gas temperatures and reduces early stage duties, pushes a larger share of recovery downstream, and increases gas velocity and total pressure drop across stages. Fuel flow scales everything up or down: higher fuel flow increases gas temperatures, stage duties, and both convective and radiative contributions in all stages, with the biggest absolute changes in the first tube bank section and upstream units, while also increasing pressure drop. Drum pressure has a smaller gas side impact but adjusts downstream recovery through water side conditions, slightly shifting late stage duties and conductance without changing the overall stage wise shape.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{results/plots/per_run/stages_hydraulics.png}
-\caption{Stage wise hydraulics and conductance profile }
-\label{fig:stages_velocity_pressure_Qsum_UA}
-\end{figure}
 
 ## Conclusions from performance analysis
 
