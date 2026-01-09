@@ -4,15 +4,4 @@ This thesis develops a three pass fire tube industrial shell boiler model, imple
 
 Combustion calculations provide the adiabatic flame temperature, the fully burnt flue gas composition, and the total heat release the natural gas fuel provides. Hydraulic losses are resolved concurrently using friction factor and minor loss correlations yielding complete gas/water pressure drop profiles. Boiler level performance metrics, obtained under different operation conditions and analyzed,demonstrating that efficiency exhibits a shallow optimum near the design excess air setting; that pressure chiefly affects steam quantity rather than boiler efficiency; and that firing rate scales heat duties approximately linearly within the practical load range. The modelling framework provides a physics based tool suitable for analyzing industrial shell boiler behavior, supporting performance evaluation, operational optimization, and design exploration.
 
-```{=latex}
-\chapter*{List of Abbreviations}
-\addcontentsline{toc}{chapter}{List of Abbreviations}
-
-\glsaddall[types=\acronymtype]
-
-\printnoidxglossary[type=\acronymtype,style=acronyms-table,sort=word]
-\clearpage
-
-```
-
 \newpage
