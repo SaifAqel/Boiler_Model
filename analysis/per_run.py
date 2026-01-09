@@ -385,7 +385,7 @@ def generate_eff_stack_scatter(
 
     ax_dir.set_title("Direct efficiency vs stack temperature")
     ax_dir.set_xlabel("Stack temperature [°C]")
-    ax_dir.set_ylabel("Direct efficiency [-]")
+    ax_dir.set_ylabel("Direct efficiency [-] (LHV)")
     ax_dir.grid(True, which="both")
 
     # Legend (from the single axis)

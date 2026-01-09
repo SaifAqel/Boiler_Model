@@ -31,6 +31,9 @@ header-includes:
   - \usepackage{caption}
   - \captionsetup[table]{font=small}
   - \usepackage{pdfpages}
+  - \usepackage{indentfirst}
+  - \setlength{\parindent}{1.5em}
+
 autoEqnLabels: true
 filters:
   - pandoc-crossref
@@ -42,6 +45,48 @@ fitpaper=true,
 pagecommand={}
 ]{Thesis/figures/task_page.pdf}
 \clearpage
-\tableofcontents
 \clearpage
+
+\clearpage
+
+```{=latex}
+\chapter*{\centering DECLARATIONS}
+\addcontentsline{toc}{chapter}{DECLARATIONS}
+```
+
+\begin{center}
+Declaration about the acceptability of the thesis
+\end{center}
+
+This thesis fulfills every formal and content requirements of the regulation of the Budapest University of Technology and Economics, moreover it fulfills the assignment of the final project. This thesis is suitable for a review and an open defense.
+
+Budapest, DATE
+
+\vspace{2cm}
+
+\begin{flushright}
+Dr. Lezsovits Ferenc
+\end{flushright}
+
+\vspace{2cm}
+
+\begin{center}
+Declaration about the independent work
+\end{center}
+
+I, Saif-Aldain Ahmad Deeb Aqel (QTY3S6), hereby declare that the Thesis submitted for assessment and defense, exclusively contains the results of my own work assisted by my supervisor. Further to it, it is also stated that all other results taken from the technical literature or other sources are clearly identified and referred to according to copyright (footnotes/references are chapter and verse, and placed appropriately).
+
+I accept that the scientific results presented in my Thesis can be utilized by the Department of the supervisor for further research or teaching purposes.
+
+Budapest, DATE
+
+\vspace{2cm}
+
+\begin{flushright}
+Saif-Aldain Aqel
+\end{flushright}
+
+\clearpage
+\tableofcontents
+
 \newpage
