@@ -41,14 +41,14 @@ with the following interpretation:
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/economizer_section.jpg}
-\caption{Cross-section of the economizer tube bundle $\mathrm{HX_6}$, showing gas-side cross-flow and water-side internal flow.}
+\caption{Cross-section of the economizer tube bundle $\mathrm{HX_6}$, showing gas-side cross-flow and water-side internal flow (reproduced from \cite{economizer_cross_section_image}).}
 \label{fig:economizer-cross-section}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_with_economizer.png}
-\caption{Three-pass shell boiler with rear-mounted economizer for feedwater preheating.}
+\caption{Three-pass shell boiler with rear-mounted economizer for feedwater preheating (reproduced from \cite{three_pass_boiler_economizer_image}).}
 \label{fig:boiler-with-economizer}
 \end{figure}
 
@@ -57,7 +57,7 @@ with the following interpretation:
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_cross_section.jpg}
-\caption{Detailed cross-section of the simulated boiler, showing drum, furnace, tube banks and reversal chambers.}
+\caption{Detailed cross-section of the simulated boiler, showing drum, furnace, tube banks and reversal chambers (reproduced from \cite{boiler_cross_section_makeboiler}).}
 \label{fig:boiler-cross-section-2}
 \end{figure}
 
