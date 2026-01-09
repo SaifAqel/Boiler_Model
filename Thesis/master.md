@@ -88,5 +88,14 @@ Saif-Aldain Aqel
 
 \clearpage
 \tableofcontents
+\clearpage
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\clearpage
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+\clearpage
 
 \newpage
