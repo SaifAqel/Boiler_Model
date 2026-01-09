@@ -33,6 +33,32 @@ header-includes:
   - \usepackage{pdfpages}
   - \usepackage{indentfirst}
   - \setlength{\parindent}{1.5em}
+  - \usepackage[acronym,nonumberlist]{glossaries}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \makenoidxglossaries
+  - \loadglsentries{Thesis/abbreviations.tex}
+
+  - |
+    \newglossarystyle{acronyms-table}{
+      \renewenvironment{theglossary}
+        {\begin{longtable}{>{\bfseries}p{0.16\linewidth} p{0.64\linewidth} p{0.16\linewidth}}
+         \textbf{Abbrev.} & \textbf{Meaning} & \textbf{Units} \\
+         \hline\endhead}
+        {\end{longtable}}
+
+      % how each main entry prints
+      \renewcommand*{\glossentry}[2]{%
+        \glsentryshort{##1} & \glsentrylong{##1} & \glsentryuseri{##1}\\%
+      }
+
+      % how subentries print (indent the abbreviation slightly)
+      \renewcommand*{\subglossentry}[3]{%
+        \hspace*{1em}\glsentryshort{##2} & \glsentrylong{##2} & \glsentryuseri{##2}\\%
+      }
+
+      \renewcommand*{\glsgroupskip}{\addlinespace}
+    }
 
 autoEqnLabels: true
 filters:
