@@ -1,1 +1,9 @@
 pandoc Thesis/master.md Thesis/Chapters/*.md -o Thesis/thesis.pdf --filter pandoc-crossref --citeproc --pdf-engine=xelatex
+
+pandoc Thesis/master.md Thesis/Chapters/*.md \
+  -o Thesis/thesis.pdf \
+  --filter pandoc-crossref \
+  --biblatex \
+  --pdf-engine=latexmk \
+  --pdf-engine-opt=-xelatex \
+  --pdf-engine-opt=-interaction=nonstopmode

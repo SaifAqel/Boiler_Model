@@ -16,7 +16,7 @@ representing the furnace, reversal chambers, convective tube banks, and the econ
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_stages.jpg}
-\caption{Shell boiler labeled stages.}
+\caption{Shell boiler labeled stages (adapted from \cite{spirax_shell_boiler_stages}).}
 \label{fig:labeled_stages}
 \end{figure}
 

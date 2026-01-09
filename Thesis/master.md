@@ -3,9 +3,6 @@ title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers an
 author: "Saif-Aldain Aqel"
 date: 2025
 bibliography: "Thesis/refs/library.bib"
-csl: "Thesis/refs/ieee.csl"
-reference-section-title: "References"
-citeproc: true
 toc: false
 numbersections: true
 mainfont: "Arial"
