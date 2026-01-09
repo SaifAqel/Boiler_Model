@@ -49,8 +49,8 @@ pagecommand={}
 \clearpage
 
 ```{=latex}
-\chapter*{\centering DECLARATIONS}
-\addcontentsline{toc}{chapter}{DECLARATIONS}
+\chapter*{\centering Declarations}
+\addcontentsline{toc}{chapter}{Declarations}
 ```
 
 \begin{center}
@@ -87,6 +87,7 @@ Saif-Aldain Aqel
 
 \clearpage
 \tableofcontents
+\addcontentsline{toc}{chapter}{Table of Contents}
 \clearpage
 
 \listoffigures

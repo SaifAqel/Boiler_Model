@@ -1,8 +1,72 @@
-# Performance analysis
+# Performance Analysis
 
-The present chapter evaluates the thermal and hydraulic performance of the fire tube boiler model based on steady state simulations of a reference control case and systematic parameter variations.
+## Purpose, parameters, and methodology
 
-## Control case
+The purpose of this chapter is to evaluate the thermal and hydraulic performance of the developed fire tube shell boiler model under representative operating conditions and systematic parameter variations. The analysis aims to quantify how key controllable and design-relevant parameters influence boiler efficiency, steam production, heat-transfer distribution, and pressure losses.
+
+### Investigated parameters and ranges
+
+The following parameters are selected for investigation based on their practical importance in industrial boiler operation:
+
+- **Excess air ratio $\lambda$**
+
+  Controls combustion completeness, flue-gas mass flow, adiabatic flame temperature, and stack losses.
+
+  $$
+  \lambda = [1.00,\;1.05,\;1.10,\;1.15,\;1.20,\;1.30]
+  $$
+
+- **Fuel mass flow rate $\dot m_\mathrm{fuel}$**
+
+  Governs firing rate, heat input, and steam generation capacity.
+
+  $$
+  \dot m_\mathrm{fuel} = [0.025,\;0.050,\;0.075,\;0.10,\;0.125]\;\mathrm{kg\,s^{-1}}
+  $$
+
+- **Drum pressure $P_\mathrm{drum}$**
+
+  Influences saturation temperature, latent heat of vaporization, and available driving temperature difference.
+
+  $$
+  P_\mathrm{drum} = [4,\;10,\;16]\;\mathrm{bar}
+  $$
+
+- **Fouling factor $f$**
+
+  Represents degradation of effective heat-transfer surfaces due to deposits on gas-side and water-side walls.
+
+  $$
+  f = [0.5,\;1.0,\;2.0,\;5.0,\;10.0]
+  $$
+
+These ranges span typical industrial operating conditions and extend into off-design regimes to reveal performance limits and sensitivities.
+
+### Control case definition
+
+A single reference operating point is defined as the **control case**, against which all parameter variations are compared. The control case represents nominal boiler operation:
+
+- Fuel mass flow: $\dot m_\mathrm{fuel} = 0.1\ \mathrm{kg\,s^{-1}}$
+- Excess air ratio: $\lambda = 1.1$
+- Drum pressure: $P_\mathrm{drum} = 10\ \mathrm{bar}$
+
+All parameters not under investigation are held fixed at their control values during each parametric sweep.
+
+### Methodology of analysis
+
+For each operating condition, the coupled combustion–heat transfer–hydraulic solver is executed until convergence of water/steam mass flow and boiler efficiency. The following quantities are extracted and analyzed:
+
+- Direct and indirect boiler efficiencies
+- Steam production rate
+- Stack temperature
+- Stage-wise heat duties and conductance
+- Gas-side and water-side pressure drops
+
+Results are analyzed both at the **global boiler level** and at the **individual stage level** to distinguish overall performance trends from local heat-transfer and hydraulic effects.
+
+## Results and parametric analysis
+
+### Control Case Performance
 
 The control case is defined by a fuel mass flow of $\dot m_\mathrm{fuel}=0.1\ \mathrm{kg\,s^{-1}}$, an excess air ratio of $\lambda=1.1$, and a drum pressure of $P_\mathrm{drum}=10\ \mathrm{bar}$. These values represent the nominal operating point of the boiler and are used as the reference state throughout this chapter.
 
@@ -33,7 +97,7 @@ Table: Control case performance.
 | feedwater pressure[kpa]              | 1007.16 |
 | drum pressure[kpa]                   |    1000 |
 
-## Global boiler performance
+### Global boiler performance
 
 \begin{figure}[H]
 \centering
@@ -53,7 +117,7 @@ Overall, the results show that fuel flow is the dominant factor affecting boiler
 
 \newpage
 
-## Influence of excess air factor
+### Influence of excess air factor
 
 $$
 \lambda = [1.00, 1.05, 1.10, 1.15, 1.20, 1.30]\; [-]
@@ -66,7 +130,7 @@ $$
 \label{fig:performance_excess_air}
 \end{figure}
 
-At low excess air levels, a moderate increase in $\lambda$ improves combustion completeness and slightly stabilizes heat release, resulting in nearly constant efficiency around the control point. Beyond this region, additional air primarily increases the sensible heat carried by the flue gas, which directly increases stack losses and reduces efficiency.
+Increasing the excess air ratio increases flue-gas mass flow and sensible stack losses. As a result, boiler efficiency exhibits a shallow maximum near the control value $\lambda = 1.1$, beyond which additional air primarily raises stack temperature and pressure losses without improving useful heat transfer.
 
 Table: Excess air performance analysis.
 
@@ -99,7 +163,7 @@ Increasing the excess air ratio increases the total gas side pressure drop as hi
 
 \newpage
 
-## Influence of fuel mass flow
+### Influence of fuel mass flow
 
 $$
 \dot{m}_\mathrm{fuel} = [0.025, 0.050, 0.075, 0.10, 0.125]\; \frac{kg}{s}
@@ -143,7 +207,7 @@ Table: Fuel flow performance analysis.
 
 \newpage
 
-## Influence of drum pressure
+### Influence of drum pressure
 
 $$
 P_\mathrm{Drum} = [4.0, 10.0, 16.0]\; \mathrm{bar}
@@ -189,7 +253,7 @@ Increasing the drum pressure, raises the steam capacity because the latent heat 
 
 \newpage
 
-## Influence of fouling
+### Influence of fouling
 
 $$
 f = [0.5,\; 1.0,\; 2.0,\; 5.0,\; 10.0]\;[-]
@@ -235,7 +299,7 @@ Table: Fouling performance analysis.
 
 While the boiler can continue to operate under fouled conditions, the results highlight the importance of maintaining clean heat transfer surfaces to ensure higher efficiency.
 
-## Stage-wise heat transfer and hydraulics
+### Stage-wise heat transfer and hydraulics
 
 \begin{figure}[H]
 \centering
@@ -254,5 +318,19 @@ Excess air mainly shifts and weakens heat transfer: higher excess air lowers ups
 \caption{Stage wise hydraulics and conductance profile }
 \label{fig:stages_velocity_pressure_Qsum_UA}
 \end{figure}
+
+## Conclusions from performance analysis
+
+The parametric analysis demonstrates that the developed boiler model captures physically consistent trends across a wide range of operating conditions.
+
+The excess air ratio is identified as the most influential parameter affecting boiler efficiency, primarily through its control of flue-gas mass flow, adiabatic flame temperature, and stack losses. An efficiency optimum is observed near the nominal excess air setting, consistent with industrial practice.
+
+Fuel mass flow primarily scales the thermal duty and steam production rate, with efficiency remaining nearly constant over the investigated range. This indicates that, within practical limits, the available heat-transfer surface is sufficient to accommodate load variations without significant degradation in performance.
+
+Drum pressure mainly influences steam generation through changes in latent heat and saturation temperature, while its effect on overall efficiency is secondary. Higher pressures reduce the temperature driving force for heat transfer, resulting in elevated stack temperatures.
+
+Fouling degrades heat-transfer effectiveness across all stages, with the strongest impact observed in downstream convective sections. The results highlight the importance of maintaining clean heat-transfer surfaces to preserve efficiency and minimize stack losses.
+
+Overall, the analysis confirms that the coupled combustion–heat transfer–hydraulic framework provides a robust tool for evaluating operational trade-offs and identifying efficiency-critical parameters in industrial fire tube shell boilers.
 
 \newpage

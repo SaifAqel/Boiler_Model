@@ -270,10 +270,11 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
 
     for ax in axes_flat:
         ax.set_xlim(0, 100)
-        ax.set_xticks([0, 25, 50, 75, 100])
+        ax.set_xticks([0, 100])
+        ax.set_xticklabels(["Min", "Max"])
 
     for ax, kpi in zip(axes_flat, kpi_defs):
-        ax.set_xlabel("Sweep [%]")
+        ax.set_xlabel("Parameter range")
         ax.set_ylabel(kpi["ylabel"])
         ax.grid(True, which="both")
 
