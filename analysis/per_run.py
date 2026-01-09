@@ -38,7 +38,7 @@ style_markers: Dict[str, str] = {
 param_xlabels: Dict[str, str] = {
     "excess_air": "Excess air [-]",
     "fuel_flow": "Fuel flow [kg/s]",
-    "drum_pressure": "Water pressure [bar]",
+    "drum_pressure": "Drum pressure [bar]",
     "control": "Control setting [-]",
     "fouling": "Fouling factor [-]", 
 }
