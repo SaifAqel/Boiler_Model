@@ -118,21 +118,16 @@ class GeometryBuilder:
                 t    = spec["wall_t"].to("m")
                 Do_t = (Di_t + 2*t).to("m")
 
-                n_tubes_q    = spec.get("n_tubes", None)
-                n_circ_q     = spec.get("n_circuits", None)
-                tube_len_q   = spec.get("tube_length", None)
+                n_tubes_q  = spec.get("n_tubes", None)
+                tube_len_q = spec.get("tube_length", None)
 
-                if n_tubes_q is None or n_circ_q is None or tube_len_q is None:
-                    raise KeyError(
-                        f"{stg.name}: economiser requires n_tubes, n_circuits, tube_length"
-                    )
+                if n_tubes_q is None or tube_len_q is None:
+                    raise KeyError(f"{stg.name}: economiser requires n_tubes, tube_length")
 
-                N_tubes   = int(round(n_tubes_q.to("").magnitude))
-                N_circ    = int(round(n_circ_q.to("").magnitude))
-                tube_len  = tube_len_q.to("m")
+                N_tubes  = int(round(n_tubes_q.to("").magnitude))
+                tube_len = tube_len_q.to("m")
 
                 N_tubes = max(N_tubes, 1)
-                N_circ  = max(N_circ, 1)
 
                 Ds = spec["shell_inner_diameter"].to("m")
                 B  = spec["baffle_spacing"].to("m")
@@ -157,8 +152,8 @@ class GeometryBuilder:
                 hot_flow_A = A_cross
                 hot_Dh     = (4 * hot_flow_A / hot_wet_P).to("m")
 
-                cold_wet_P  = (N_circ * pi * Di_t).to("m")
-                cold_flow_A = (N_circ * (pi * (Di_t/2)**2)).to("m^2")
+                cold_wet_P  = (N_tubes * pi * Di_t).to("m")
+                cold_flow_A = (N_tubes * (pi * (Di_t/2)**2)).to("m^2")
                 cold_Dh     = (4 * cold_flow_A / cold_wet_P).to("m")
 
                 N_rows_q = spec.get("N_rows", None)
