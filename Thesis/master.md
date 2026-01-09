@@ -30,6 +30,9 @@ header-includes:
   - \usepackage{pdfpages}
   - \usepackage{indentfirst}
   - \setlength{\parindent}{1.5em}
+  - '\DefineBibliographyStrings{english}{bibliography={References}}'
+  - '\defbibheading{bibliography}{\chapter*{\bibname}\addcontentsline{toc}{chapter}{\bibname}}'
+
 autoEqnLabels: true
 filters:
   - pandoc-crossref
