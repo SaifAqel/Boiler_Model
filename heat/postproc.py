@@ -423,6 +423,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     eta_direct = None
     eta_indirect = None
 
+    Q_flue_out_MW = None
+
     if combustion is not None:
         Q_in_total = combustion.Q_in.to("MW").magnitude
 
@@ -434,11 +436,22 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         if combustion.fuel_LHV_mass is not None:
             LHV_mass_kJkg = combustion.fuel_LHV_mass.to("kJ/kg").magnitude
 
-        if P_LHV_W and P_LHV_W > 0.0:
-            eta_direct = Q_useful / P_LHV_W
+        try:
+            g_stack = gp.gas[-1]
+            h_stack_sens = _gas.h_sensible(g_stack.T, g_stack.P, g_stack.comp).to("J/kg")
+            Q_flue_out_MW = (g_stack.mass_flow * h_stack_sens).to("MW").magnitude
+        except Exception:
+            Q_flue_out_MW = None
 
         if Q_in_total and Q_in_total > 0.0:
-            eta_indirect = Q_useful / Q_in_total
+            eta_direct = Q_useful / Q_in_total
+
+            if Q_flue_out_MW is not None:
+                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
+                eta_indirect = 1.0 - Stack_loss_fraction
+            else:
+                Stack_loss_fraction = ""
+                eta_indirect = ""
 
     total_row = {
         "stage_index": "",
@@ -475,7 +488,9 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "steam_capacity[t/h]": steam_capacity_total_tph,
         "η_direct[-]": eta_direct if eta_direct is not None else "",
         "η_indirect[-]": eta_indirect if eta_indirect is not None else "",
+        "Stack_loss_fraction[-]": Stack_loss_fraction if Stack_loss_fraction is not None else "",
         "Q_total_useful[MW]": Q_useful,
+        "Q_flue_out[MW]": Q_flue_out_MW if Q_flue_out_MW is not None else "",
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",
