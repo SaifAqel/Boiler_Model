@@ -1,2 +1,2 @@
-excess_air_ratio: { value: 1.1, unit: dimensionless }
+excess_air_ratio: { value: 1.05, unit: dimensionless }
 drum_pressure: { value: 10, unit: bar }
