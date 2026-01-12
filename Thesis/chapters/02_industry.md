@@ -3,7 +3,7 @@
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/fire_tube_boiler_photo.png}
-\caption{Example of a packaged fire tube shell boiler in industrial service.}
+\caption{Example of a packaged fire tube shell boiler in industrial service (reproduced from \cite{heat_engines_lecture7}).}
 \label{fig:fire-tube-photo}
 \end{figure}
 

@@ -3,7 +3,7 @@
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_parts.png}
-\caption{Example of shell boiler setup components}
+\caption{Example of shell boiler setup components (reproduced from \cite{heat_engines_lecture7}).}
 \label{fig:boiler_parts}
 \end{figure}
 

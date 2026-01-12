@@ -181,8 +181,8 @@ def write_results_csvs(
 
             "steam_capacity[kg/s]", "steam_capacity[t/h]",
 
-            "η_direct[-]", "η_indirect[-]", "Stack_loss_fraction[-]"
-            "Q_total_useful[MW]", "Q_in_total[MW]", "Q_flue_out[MW]"
+            "η_direct[-]", "η_indirect[-]", "Stack_loss_fraction[-]",
+            "Q_total_useful[MW]", "Q_in_total[MW]", "Q_flue_out[MW]",
             "P_LHV[MW]", "LHV_mass[kJ/kg]",
         ],
     ).set_index("stage_index")
@@ -303,6 +303,8 @@ def write_results_csvs(
             ("steam capacity[t/h]",             "steam_capacity[t/h]"),
             ("eta direct[-]",                   "η_direct[-]"),
             ("eta indirect[-]",                 "η_indirect[-]"),
+            ("Stack loss fraction[-]",         "Stack_loss_fraction[-]"),
+            ("Q_flue_out[MW]",                  "Q_flue_out[MW]"),
             ("UA[MW/K]",                        "UA_stage[MW/K]"),
             ("Q_in total[MW]",                  "Q_in_total[MW]"),
             ("Q_useful[MW]",                     "Q_total_useful[MW]"),

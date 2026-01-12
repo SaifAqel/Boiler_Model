@@ -449,7 +449,7 @@ The six stages of the boiler are divided, from the water-side point of view, int
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_T-S_chart.png}
-\caption{Temperature–entropy ($T$–$s$) representation of the feedwater heating and evaporation process across economiser and boiler at the operating pressure.}
+\caption{Temperature–entropy ($T$–$s$) representation of the feedwater heating and evaporation process across economiser and boiler at the operating pressure (reproduced from \cite{heat_engines_lecture7}).}
 \label{fig:boiler-TS}
 \end{figure}
 

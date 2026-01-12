@@ -422,6 +422,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     LHV_mass_kJkg = None
     eta_direct = None
     eta_indirect = None
+    Stack_loss_fraction = None
 
     Q_flue_out_MW = None
 
@@ -450,8 +451,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
                 Stack_loss_fraction = Q_flue_out_MW / Q_in_total
                 eta_indirect = 1.0 - Stack_loss_fraction
             else:
-                Stack_loss_fraction = ""
-                eta_indirect = ""
+                Stack_loss_fraction = None
+                eta_indirect = None
 
     total_row = {
         "stage_index": "",
