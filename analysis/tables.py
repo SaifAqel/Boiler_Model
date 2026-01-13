@@ -3,6 +3,7 @@ import pandas as pd
 
 INPUT_CSV = os.path.join("results", "summary", "boiler_kpis_all_runs.csv")
 OUTPUT_MD = os.path.join("results", "summary", "boiler_kpis_tables.md")
+STAGES_CSV = os.path.join("results", "runs", "default_case_stages_summary.csv")
 
 def pretty_kpi_label(name: str) -> str:
     stripped = name.strip()
@@ -31,7 +32,7 @@ def pretty_kpi_label(name: str) -> str:
     if b.startswith("p-lhv"):
         return f"firing rate {unit}".strip()
 
-    return stripped.lower()
+    return stripped.title()
 
 def is_number(x) -> bool:
     try:
@@ -44,6 +45,43 @@ def format_param_value(v) -> str:
     if is_number(v):
         return f"{float(v):.2f}"
     return str(v)
+
+def format_stage_row_label(name: str) -> str:
+    # reuse KPI prettifier for consistent naming
+    return pretty_kpi_label(name)
+
+def format_stage_cell(v) -> str:
+    # keep blanks as blank (your CSV has empty cells)
+    if pd.isna(v) or v == "":
+        return ""
+    if is_number(v):
+        return f"{float(v):.2f}"
+    return str(v)
+
+def append_stages_summary_table(lines: list[str], stages_csv_path: str) -> None:
+    if not os.path.exists(stages_csv_path):
+        return
+
+    stages = pd.read_csv(stages_csv_path)
+
+    # First column is "name" (row labels)
+    if "name" not in stages.columns:
+        return
+
+    # Set index to the row label column, keep stage columns as columns
+    stages = stages.set_index("name")
+
+    # Format values cell-by-cell (handles numeric + blanks)
+    stages = stages.applymap(format_stage_cell)
+
+    # Pretty row labels
+    stages.index = [format_stage_row_label(i) for i in stages.index]
+    stages.index.name = "stage KPI"
+
+    # Add to markdown output
+    lines.append("## default case stages summary\n")
+    lines.append(stages.to_markdown())
+    lines.append("")
 
 def main():
     df = pd.read_csv(INPUT_CSV)
@@ -126,6 +164,8 @@ def main():
         lines.append(f"## {title.lower()}\n")
         lines.append(table.to_markdown())
         lines.append("")
+
+    append_stages_summary_table(lines, STAGES_CSV)
 
     os.makedirs(os.path.dirname(OUTPUT_MD), exist_ok=True)
     with open(OUTPUT_MD, "w", encoding="utf-8") as f:
