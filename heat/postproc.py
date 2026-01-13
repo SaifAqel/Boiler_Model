@@ -437,18 +437,12 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         if combustion.fuel_LHV_mass is not None:
             LHV_mass_kJkg = combustion.fuel_LHV_mass.to("kJ/kg").magnitude
 
-        try:
-            g_stack = gp.gas[-1]
-            h_stack_sens = _gas.h_sensible(g_stack.T, g_stack.P, g_stack.comp).to("J/kg")
-            Q_flue_out_MW = (g_stack.mass_flow * h_stack_sens).to("MW").magnitude
-        except Exception:
-            Q_flue_out_MW = None
-
         if P_LHV_W and P_LHV_W > 0.0:
-            eta_direct = Q_useful / P_LHV_W
+            eta_direct = Q_useful / Q_in_total
+            Q_flue_out_MW = Q_in_total - Q_useful
 
             if Q_flue_out_MW is not None:
-                Stack_loss_fraction = Q_flue_out_MW / P_LHV_W
+                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
                 eta_indirect = 1.0 - Stack_loss_fraction
             else:
                 Stack_loss_fraction = None
