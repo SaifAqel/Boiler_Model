@@ -444,11 +444,11 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         except Exception:
             Q_flue_out_MW = None
 
-        if Q_in_total and Q_in_total > 0.0:
-            eta_direct = Q_useful / Q_in_total
+        if P_LHV_W and P_LHV_W > 0.0:
+            eta_direct = Q_useful / P_LHV_W
 
             if Q_flue_out_MW is not None:
-                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
+                Stack_loss_fraction = Q_flue_out_MW / P_LHV_W
                 eta_indirect = 1.0 - Stack_loss_fraction
             else:
                 Stack_loss_fraction = None
