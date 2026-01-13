@@ -422,15 +422,15 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
             steam_capacity_total_tph = None
 
     Q_useful_hx = Q_total
-
     Q_in_total = None
     P_LHV_W = None
     LHV_mass_kJkg = None
     eta_direct = None
     eta_indirect = None
     Stack_loss_fraction = None
-
     Q_flue_out_MW = None
+
+    Q_useful = Q_useful_hx
 
     if combustion is not None:
         Q_in_total = combustion.Q_in.to("MW").magnitude
@@ -449,18 +449,11 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         except Exception:
             Q_flue_out_MW = None
 
-        if P_LHV_W and P_LHV_W > 0.0:
+        if Q_in_total and Q_in_total > 0.0:
+            eta_direct = Q_useful / Q_in_total
             if Q_flue_out_MW is not None:
-                Q_useful = max(0.0, P_LHV_W - Q_flue_out_MW)
-
-                Stack_loss_fraction = Q_flue_out_MW / P_LHV_W
-                eta_direct = 1.0 - Stack_loss_fraction
-                eta_indirect = eta_direct
-            else:
-                eta_direct = Q_useful / P_LHV_W
-                eta_indirect = None
-                Stack_loss_fraction = None
-
+                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
+                eta_indirect = 1.0 - Stack_loss_fraction
 
     total_row = {
         "stage_index": "",
@@ -500,7 +493,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "Stack_loss_fraction[-]": Stack_loss_fraction if Stack_loss_fraction is not None else "",
         "Q_total_useful[MW]": Q_useful,
         "Q_flue_out[MW]": Q_flue_out_MW if Q_flue_out_MW is not None else "",
-        "Q_balance_error[MW]": (Q_useful_hx - Q_useful) if (P_LHV_W is not None and Q_flue_out_MW is not None) else "",
+        "Q_balance_error[MW]": (Q_in_total - (Q_useful + Q_flue_out_MW)) if (Q_in_total is not None and Q_flue_out_MW is not None) else "",
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",
