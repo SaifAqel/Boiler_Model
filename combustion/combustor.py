@@ -18,7 +18,7 @@ class Combustor:
         air.mass_flow = air_flow_rates(air, fuel, self.excess_air_ratio)
 
         power_LHV, Q_in = total_input_heat(fuel, air)
-        HHV_mass, LHV_mass, P_HHV, P_LHV = compute_LHV_HHV(fuel)
+        HHV_mass, LHV_mass, P_HHV, P_LHV = compute_LHV_HHV(fuel, air)
 
         flue_ad = adiabatic_flame_T(air, fuel)
         T_ad = flue_ad.T

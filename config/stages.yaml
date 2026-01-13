@@ -162,14 +162,14 @@ HX_5:
 HX_6:
   kind: "economiser"
   pool_boiling: false
-  inner_diameter: { value: 0.0337, unit: m }
+  inner_diameter: { value: 0.0250, unit: m }
   tube_length: { value: 80, unit: m }
   n_tubes: { value: 120, unit: dimensionless }
   arrangement: "staggered"
   N_rows: { value: 26, unit: dimensionless }
   ST: { value: 0.075, unit: m }
   SL: { value: 0.08, unit: m }
-  baffle_spacing: { value: 0.25, unit: m }
+  baffle_spacing: { value: 0.15, unit: m }
   baffle_cut: { value: 0.25, unit: dimensionless }
   bundle_clearance: { value: 0.010, unit: m }
   wall:
@@ -186,7 +186,7 @@ HX_6:
         emissivity: { value: 0.80, unit: dimensionless }
         fouling_thickness: { value: 0.0, unit: m }
         fouling_conductivity: { value: 0.20, unit: W/m/K }
-  shell_inner_diameter: { value: 0.95, unit: m } # Gas side
+  shell_inner_diameter: { value: 0.60, unit: m } # Gas side
 
   K:
     hot_inlet: 0.5

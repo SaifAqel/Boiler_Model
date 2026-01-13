@@ -5,11 +5,18 @@ from common.props import WaterProps, GasProps
 from common.units import Q_
 from heat.gas_htc import emissivity 
 from combustion.mass_mole import to_mole
+import cantera as ct
+from common.units import Q_
+from common.constants import T_ref, P_ref
 
 _gas = GasProps()
 
 def _mag_or_nan(q, unit):
     return q.to(unit).magnitude if q is not None else float("nan")
+
+def flue_sensible_to_ref(g) -> Q_:
+    h_sens = _gas.h_sensible(g.T, g.P, g.comp).to("J/kg")
+    return (g.mass_flow * h_sens).to("MW")
 
 def profile_to_dataframe(gp: "GlobalProfile", *, remap_water: bool = True) -> "pd.DataFrame":
     stage_ranges: dict[int, tuple[int, int]] = {}
@@ -414,8 +421,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         else:
             steam_capacity_total_tph = None
 
-
-    Q_useful = Q_total
+    Q_useful_hx = Q_total
 
     Q_in_total = None
     P_LHV_W = None
@@ -437,22 +443,30 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         if combustion.fuel_LHV_mass is not None:
             LHV_mass_kJkg = combustion.fuel_LHV_mass.to("kJ/kg").magnitude
 
-        if P_LHV_W and P_LHV_W > 0.0:
-            eta_direct = Q_useful / Q_in_total
-            Q_flue_out_MW = Q_in_total - Q_useful
+        try:
+            g_stack = gp.gas[-1]
+            Q_flue_out_MW = flue_sensible_to_ref(g_stack).to("MW").magnitude
+        except Exception:
+            Q_flue_out_MW = None
 
+        if P_LHV_W and P_LHV_W > 0.0:
             if Q_flue_out_MW is not None:
-                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
-                eta_indirect = 1.0 - Stack_loss_fraction
+                Q_useful = max(0.0, P_LHV_W - Q_flue_out_MW)
+
+                Stack_loss_fraction = Q_flue_out_MW / P_LHV_W
+                eta_direct = 1.0 - Stack_loss_fraction
+                eta_indirect = eta_direct
             else:
-                Stack_loss_fraction = None
+                eta_direct = Q_useful / P_LHV_W
                 eta_indirect = None
+                Stack_loss_fraction = None
+
 
     total_row = {
         "stage_index": "",
         "stage_name": "TOTAL_BOILER",
         "stage_kind": "",
-        "Q_stage[MW]": Q_useful,
+        "Q_stage[MW]": Q_useful_hx,
         "UA_stage[MW/K]": UA_total,
         "gas_V_avg[m/s]": "",
         "water_V_avg[m/s]": "",
@@ -486,6 +500,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "Stack_loss_fraction[-]": Stack_loss_fraction if Stack_loss_fraction is not None else "",
         "Q_total_useful[MW]": Q_useful,
         "Q_flue_out[MW]": Q_flue_out_MW if Q_flue_out_MW is not None else "",
+        "Q_balance_error[MW]": (Q_useful_hx - Q_useful) if (P_LHV_W is not None and Q_flue_out_MW is not None) else "",
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",

@@ -99,7 +99,7 @@ def run_boiler_case(
     hg = WaterProps.h_g(P_drum).to("J/kg")
     h_feed = water_template.h.to("J/kg")
     latent = (hg - hf).to("J/kg")
-    m_fw = ((Q_(0.85, "") * combustion_results.Q_in.to("W")) / (latent + (hf - h_feed))).to("kg/s")
+    m_fw = ((Q_(0.94, "") * combustion_results.Q_in.to("W")) / (latent + (hf - h_feed))).to("kg/s")
 
     prev_m = None
     final_result = None
@@ -164,7 +164,6 @@ def run_boiler_case(
     if P_drum is not None and final_m_fw is not None:
         P_drum_Pa = P_drum.to("Pa")
 
-        # Start guess: above drum pressure
         P_in = (P_drum_Pa * Q_(1.01, "")).to("Pa")
 
         max_p_iter = 30
@@ -193,17 +192,14 @@ def run_boiler_case(
 
             P_out = last_result["water_out"].P.to("Pa")
 
-            # Want economiser outlet == drum pressure
             err = (P_drum_Pa - P_out).to("Pa")
 
             if abs(err).to("Pa").magnitude < tol_P.to("Pa").magnitude:
                 feed_P = P_in
                 break
 
-            # Update inlet pressure by the outlet error
             P_in = (P_in + err).to("Pa")
 
-            # Physical clamp: feed must be >= drum
             if P_in < P_drum_Pa:
                 P_in = P_drum_Pa
 
