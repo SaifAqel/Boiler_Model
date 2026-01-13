@@ -433,7 +433,8 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
     Q_useful = Q_useful_hx
 
     if combustion is not None:
-        Q_in_total = combustion.Q_in.to("MW").magnitude
+        # "Declared" input from combustion model (may not match postproc reference basis)
+        Q_in_declared = combustion.Q_in.to("MW").magnitude
 
         if combustion.fuel_P_LHV is not None:
             P_LHV_W = combustion.fuel_P_LHV.to("MW").magnitude
@@ -443,17 +444,39 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         if combustion.fuel_LHV_mass is not None:
             LHV_mass_kJkg = combustion.fuel_LHV_mass.to("kJ/kg").magnitude
 
+        # Stack sensible loss to reference
         try:
             g_stack = gp.gas[-1]
             Q_flue_out_MW = flue_sensible_to_ref(g_stack).to("MW").magnitude
         except Exception:
             Q_flue_out_MW = None
 
-        if Q_in_total and Q_in_total > 0.0:
-            eta_direct = Q_useful / Q_in_total
-            if Q_flue_out_MW is not None:
-                Stack_loss_fraction = Q_flue_out_MW / Q_in_total
-                eta_indirect = 1.0 - Stack_loss_fraction
+        # ---- ENFORCE: Q_in_used = Q_useful + Q_flue_out ----
+        if Q_flue_out_MW is not None:
+            Q_in_used = Q_useful + Q_flue_out_MW
+        else:
+            # If we can't compute flue loss, fall back to declared input
+            Q_in_used = Q_in_declared
+
+        # Report balance error against the declared combustion input (diagnostic)
+        if (Q_in_declared is not None) and (Q_flue_out_MW is not None):
+            Q_balance_err_MW = Q_in_declared - (Q_useful + Q_flue_out_MW)
+        else:
+            Q_balance_err_MW = None
+
+        # Efficiencies computed from enforced balance => ALWAYS equal
+        if Q_in_used and Q_in_used > 0.0 and Q_flue_out_MW is not None:
+            eta_direct = Q_useful / Q_in_used
+            Stack_loss_fraction = Q_flue_out_MW / Q_in_used
+            eta_indirect = 1.0 - Stack_loss_fraction
+        elif Q_in_used and Q_in_used > 0.0:
+            eta_direct = Q_useful / Q_in_used
+            eta_indirect = eta_direct
+            Stack_loss_fraction = None
+
+        # overwrite the variable used downstream for reporting
+        Q_in_total = Q_in_used
+
 
     total_row = {
         "stage_index": "",
@@ -493,7 +516,7 @@ def summary_from_profile(gp: "GlobalProfile", combustion: CombustionResult | Non
         "Stack_loss_fraction[-]": Stack_loss_fraction if Stack_loss_fraction is not None else "",
         "Q_total_useful[MW]": Q_useful,
         "Q_flue_out[MW]": Q_flue_out_MW if Q_flue_out_MW is not None else "",
-        "Q_balance_error[MW]": (Q_in_total - (Q_useful + Q_flue_out_MW)) if (Q_in_total is not None and Q_flue_out_MW is not None) else "",
+        "Q_balance_error[MW]": (Q_balance_err_MW if Q_balance_err_MW is not None else ""),
         "Q_in_total[MW]": Q_in_total if Q_in_total is not None else "",
         "P_LHV[MW]": P_LHV_W if P_LHV_W is not None else "",
         "LHV_mass[kJ/kg]": LHV_mass_kJkg if LHV_mass_kJkg is not None else "",

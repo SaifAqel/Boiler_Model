@@ -23,7 +23,6 @@ def run_hx(
     gas: GasStream,
     drum: Drum,
     drum_pressure: Q_ | None = None,
-    circulation_ratio: Q_ | float | None = None,
     target_dx: str | None = None,
     min_steps: int = 20,
     max_steps: int = 400,

@@ -8,11 +8,11 @@ class GasProps:
     def __init__(self, mech_path: str = "config/flue_cantera.yaml", phase: str = "gas_mix"):
         self._sol = ct.Solution(mech_path, phase)
 
-    def _set(self, T: Q_, P: Q_, X: Dict[str, Q_], film_T: Optional[Q_] = None):
+    def _set(self, T: Q_, P: Q_, Y: Dict[str, Q_], film_T: Optional[Q_] = None):
         T_K = (film_T or T).to("K").magnitude
         P_Pa = P.to("Pa").magnitude
-        X_map = {k: v.to("dimensionless").magnitude for k, v in X.items()}
-        self._sol.TPX = T_K, P_Pa, X_map
+        Y_map = {k: v.to("dimensionless").magnitude for k, v in Y.items()}
+        self._sol.TPY = T_K, P_Pa, Y_map
         return self._sol
 
     def cp(self, T: Q_, P: Q_, X: Dict[str, Q_], film_T: Optional[Q_] = None) -> Q_:

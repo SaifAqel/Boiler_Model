@@ -1,9 +1,10 @@
 from combustion.adiabatic_flame_temperature import adiabatic_flame_T
 from combustion.heat import total_input_heat, compute_LHV_HHV
-from combustion.flue import air_flow_rates, from_fuel_and_air
+from combustion.flue import air_flow_rates
 from common.results import CombustionResult
 from common.models import GasStream
 from common.units import Q_
+from combustion.adiabatic_flame_temperature import adiabatic_flame_T_no_dissociation
 
 class Combustor:
     def __init__(self, air: GasStream, fuel: GasStream, excess_air_ratio: Q_):
@@ -23,14 +24,8 @@ class Combustor:
         flue_ad = adiabatic_flame_T(air, fuel)
         T_ad = flue_ad.T
 
-        mass_comp_burnt, m_dot_flue = from_fuel_and_air(fuel, air)
+        flue_boiler = adiabatic_flame_T_no_dissociation(air, fuel)
 
-        flue_boiler = GasStream(
-            mass_flow = Q_(m_dot_flue, "kg/s"),
-            T         = T_ad,
-            P         = air.P,
-            comp      = {sp: Q_(y, "") for sp, y in mass_comp_burnt.items()},
-        )
 
         return CombustionResult(
             LHV            = power_LHV,
