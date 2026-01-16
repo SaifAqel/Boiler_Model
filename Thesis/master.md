@@ -1,5 +1,5 @@
 ---
-title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers and Evaluation of Operation Conditions – Draft"
+title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers and Evaluation of Operation Conditions"
 author: "Saif-Aldain Aqel"
 date: 2025
 bibliography: "Thesis/refs/library.bib"
