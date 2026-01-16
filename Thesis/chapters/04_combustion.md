@@ -109,7 +109,7 @@ in `combustion/flue.py`. The algorithm is:
 
 ### Air-fuel ratio and excess air $\lambda$
 
-The simulation specifies an excess air ratio $\lambda = 1.1$ in `config/operation.yaml`. This value enters the calculation through `air_flow_rates(air, fuel, excess)` in `combustion/flue.py`.
+The simulation specifies an excess air ratio $\lambda = 1.05$ in `config/operation.yaml`. This value enters the calculation through `air_flow_rates(air, fuel, excess)` in `combustion/flue.py`.
 
 #### Actual $\mathrm{O_2}$ supplied {- .unlisted}
 

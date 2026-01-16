@@ -119,16 +119,14 @@
 
 ## Abbreviations {- .unlisted}
 
-| Abbrev.    | Meaning                          | Units |
-| ---------- | -------------------------------- | ----- |
-| AFR        | Air–fuel ratio                   | --    |
-| API        | Active pharmaceutical ingredient | --    |
-| CIP        | Clean-in-place                   | --    |
-| HHV        | Higher heating value             | --    |
-| HP         | Enthalpy–pressure mode           | --    |
-| HTC        | Heat-transfer coefficient        | --    |
-| IAPWS-IF97 | Water/steam properties standard  | --    |
-| LHV        | Lower heating value              | --    |
-| NASA       | Thermo data source               | --    |
+| Abbrev.    | Meaning                         | Units |
+| ---------- | ------------------------------- | ----- |
+| AFR        | Air–fuel ratio                  | --    |
+| HHV        | Higher heating value            | --    |
+| HP         | Enthalpy–pressure mode          | --    |
+| HTC        | Heat-transfer coefficient       | --    |
+| IAPWS-IF97 | Water/steam properties standard | --    |
+| LHV        | Lower heating value             | --    |
+| NASA       | Thermo data source              | --    |
 
 \newpage

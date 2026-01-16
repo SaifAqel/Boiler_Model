@@ -7,7 +7,7 @@ The purpose of this chapter is to evaluate the thermal and hydraulic performance
 The control case defines the nominal operating condition of the boiler and serves as the reference point for all subsequent parametric studies. It represents typical industrial operation, enabling direct comparison with published industrial boiler performance data. Defined by:
 
 - Fuel mass flow: $\dot m_\mathrm{fuel} = 0.1\ \mathrm{kg\,s^{-1}}$
-- Excess air ratio: $\lambda = 1.1$
+- Excess air ratio: $\lambda = 1.05$
 - Drum pressure: $P_\mathrm{drum} = 10\ \mathrm{bar}$
 - Fouling factor : $f = 1\ \text{[-]}$
 

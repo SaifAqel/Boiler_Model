@@ -133,11 +133,11 @@ The tube wall temperatures on the gas and water sides, $T_{gw}$ and $T_{ww}$, ar
 Given $q'(x)$, the wall side energy balances yield:
 
 $$
-T_{gw} = T_g - \frac{q'}{h_{g,\text{tot}}}
+T_{gw} = T_g - \frac{q'}{{h_{g,\text{tot}}}{P_g }}
 $$
 
 $$
-T_{ww} = T_w + \frac{q'}{h_w}
+T_{ww} = T_w + \frac{q'}{{h_w}{P_w}}
 $$
 
 The wall conduction temperature drop is:
