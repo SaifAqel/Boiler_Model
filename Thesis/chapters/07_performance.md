@@ -87,25 +87,4 @@ Two boiler efficiencies are reported:
   1 - \frac{Q_\text{losses}}{Q_\text{in}}
   $$
 
-## Water/Steam flow rate convergence
-
-The water/steam mass flow rate is obtained iteratively from an assumed overall boiler efficiency and the combustion heat input. At each iteration $n$ the code:
-
-1. Assumes an efficiency $\eta^{(n)}$.
-2. Computes the target useful duty:
-   $$
-   Q_\text{target}^{(n)} = \eta^{(n)}\,Q_\text{in}
-   $$
-3. Determines the required water mass flow $\dot m_\text{w}^{(n)}$ from the enthalpy rise between feedwater and saturated steam at drum pressure:
-   $$
-   \dot m_\text{w}^{(n)} \;=\;
-   \frac{Q_\text{target}^{(n)}}{h_\text{steam}(P_\text{drum}) - h_\text{fw}}
-   $$
-4. Runs the full multi-stage heat-exchanger model with $\dot m_\text{w}^{(n)}$ and reads back the resulting indirect efficiency $\eta_\text{indirect}^{(n)}$.
-5. Sets the next efficiency guess $\eta^{(n+1)} = \eta_\text{indirect}^{(n)}$ and repeats until the mass flow change is below the specified tolerance:
-   $$
-   \bigl|\dot m_\text{w}^{(n)} - \dot m_\text{w}^{(n-1)}\bigr|
-   < 10^{-3}\,\text{kg/s}
-   $$
-
 \newpage

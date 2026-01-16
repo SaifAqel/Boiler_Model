@@ -50,7 +50,6 @@
 | $p_r$                    | Reduced pressure                 | --                                   |
 | $Pr$                     | Prandtl number                   | --                                   |
 | $Q$                      | Heat rate                        | W                                    |
-| $q$                      | Dynamic pressure                 | Pa                                   |
 | $q'(x)$                  | Linear heat flux                 | W\,m$^{-1}$                          |
 | $q''$                    | Heat flux                        | W\,m$^{-2}$                          |
 | $Q_{\mathrm{in}}$        | Heat input                       | W                                    |
@@ -59,7 +58,6 @@
 | $Re$                     | Reynolds number                  | --                                   |
 | $R_p$                    | Roughness parameter              | \textmu m                            |
 | $R'$                     | Resistance per length            | K\,W$^{-1}$\,m$^{-1}$                |
-| $S$                      | Suppression/pitch factor         | --                                   |
 | $S_L$                    | Longitudinal pitch               | m                                    |
 | $S_T$                    | Transverse pitch                 | m                                    |
 | $T$                      | Temperature                      | K                                    |
@@ -74,7 +72,7 @@
 | $V$                      | Velocity                         | m\,s$^{-1}$                          |
 | $w_i$                    | Mass fraction                    | --                                   |
 | $X$                      | Mole fraction vector             | --                                   |
-| $x$                      | Vapor quality / mole fraction    | --                                   |
+| $x$                      | Vapor quality                    | --                                   |
 | $x$                      | Axial coordinate                 | m                                    |
 | $x_i$                    | Mole fraction                    | --                                   |
 | $X_{tt}$                 | Martinelli parameter             | --                                   |
@@ -83,63 +81,41 @@
 
 ## Greek symbols {- .unlisted}
 
-| Symbol                 | Name                               | Units                        |
-| ---------------------- | ---------------------------------- | ---------------------------- |
-| $\alpha$               | Exponent/constant                  | --                           |
-| $\Delta P$             | Pressure drop                      | Pa                           |
-| $\Delta T$             | Temperature difference             | K                            |
-| $\delta$               | Thickness                          | m                            |
-| $\varepsilon$          | Emissivity / roughness             | --                           |
-| $\eta$                 | Efficiency                         | --                           |
-| $\kappa$               | Thermal conductivity               | W\,m$^{-1}$\,K$^{-1}$        |
-| $\lambda$              | Excess air ratio                   | --                           |
-| $\mu$                  | Dynamic viscosity                  | Pa\,s                        |
-| $\nu$                  | Stoichiometric/kinematic viscosity | mol/mol (or m$^2$\,s$^{-1}$) |
-| $\Phi_{\mathrm{geom}}$ | Geometry factor                    | --                           |
-| $\phi$                 | Correction/geometry factor         | --                           |
-| $\pi$                  | Pi                                 | --                           |
-| $\rho$                 | Density                            | kg\,m$^{-3}$                 |
-| $\sigma$               | Stefan–Boltzmann constant          | W\,m$^{-2}$\,K$^{-4}$        |
+| Symbol        | Name                               | Units                        |
+| ------------- | ---------------------------------- | ---------------------------- |
+| $\alpha$      | Exponent/constant                  | --                           |
+| $\Delta P$    | Pressure drop                      | Pa                           |
+| $\Delta T$    | Temperature difference             | K                            |
+| $\delta$      | Thickness                          | m                            |
+| $\varepsilon$ | Emissivity / roughness             | --                           |
+| $\eta$        | Efficiency                         | --                           |
+| $\kappa$      | Thermal conductivity               | W\,m$^{-1}$\,K$^{-1}$        |
+| $\lambda$     | Excess air ratio                   | --                           |
+| $\mu$         | Dynamic viscosity                  | Pa\,s                        |
+| $\nu$         | Stoichiometric/kinematic viscosity | mol/mol (or m$^2$\,s$^{-1}$) |
+| $\pi$         | Pi                                 | --                           |
+| $\rho$        | Density                            | kg\,m$^{-3}$                 |
+| $\sigma$      | Stefan–Boltzmann constant          | W\,m$^{-2}$\,K$^{-4}$        |
 
 ## Subscripts / indices / conventions {- .unlisted}
 
-| Index    | Meaning          | Units |
-| -------- | ---------------- | ----- |
-| ad       | Adiabatic        | --    |
-| air      | Air              | --    |
-| b        | Bulk             | --    |
-| bend     | Bend             | --    |
-| boiler   | Boiler           | --    |
-| c / cold | Cold side        | --    |
-| conv     | Convective       | --    |
-| crit     | Critical         | --    |
-| drum     | Drum             | --    |
-| eq       | Equilibrium      | --    |
-| f        | Saturated liquid | --    |
-| fg       | Gas fouling      | --    |
-| fo       | Water fouling    | --    |
-| fw       | Feedwater        | --    |
-| g        | Gas side         | --    |
-| gw       | Gas wall         | --    |
-| HX$_j$   | HX stage         | --    |
-| in       | Inlet            | --    |
-| indirect | Indirect         | --    |
-| l        | Liquid           | --    |
-| lo       | Liquid-only      | --    |
-| minor    | Minor loss       | --    |
-| nb       | Nucleate boiling | --    |
-| out      | Outlet           | --    |
-| prod     | Products         | --    |
-| rad      | Radiative        | --    |
-| react    | Reactants        | --    |
-| ref      | Reference        | --    |
-| sens     | Sensible         | --    |
-| stage    | Stage            | --    |
-| steam    | Steam            | --    |
-| tot      | Total            | --    |
-| w        | Water side       | --    |
-| wall     | Wall             | --    |
-| ww       | Water wall       | --    |
+| Index  | Meaning          | Units |
+| ------ | ---------------- | ----- |
+| ad     | Adiabatic        | --    |
+| conv   | Convective       | --    |
+| crit   | Critical         | --    |
+| eq     | Equilibrium      | --    |
+| fw     | Feedwater        | --    |
+| HX$_j$ | HX stage         | --    |
+| in     | Inlet            | --    |
+| nb     | Nucleate boiling | --    |
+| out    | Outlet           | --    |
+| prod   | Products         | --    |
+| rad    | Radiative        | --    |
+| react  | Reactants        | --    |
+| ref    | Reference        | --    |
+| sens   | Sensible         | --    |
+| tot    | Total            | --    |
 
 ## Abbreviations {- .unlisted}
 
