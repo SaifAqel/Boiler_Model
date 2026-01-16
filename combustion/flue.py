@@ -20,7 +20,7 @@ def air_flow_rates(air: GasStream, fuel: GasStream, excess: Q_) -> Q_:
     air_m = air_n * M_air
     return air_m
 
-def from_fuel_and_air(fuel: GasStream, air: GasStream) -> GasStream:
+def from_fuel_and_air(fuel: GasStream, air: GasStream) -> tuple[dict[str, float], float]:
     O2_req = stoich_O2_required_per_mol_fuel(fuel)
     fuel_x = to_mole(fuel.comp)
     fuel_n = molar_flow(fuel.comp, fuel.mass_flow)

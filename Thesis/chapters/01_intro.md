@@ -4,7 +4,7 @@ Industrial shell boilers remain one of the most widely deployed technologies for
 
 Despite their apparent simplicity, the thermal behavior of shell boilers is governed by tightly coupled processes: multi stage radiative and convective heat transfer, natural circulation boiling inside the pressure parts, complex flue gas property variations, and geometry dependent hydraulic losses. Modern operation demands higher efficiency, reduced emissions, increased reliability, and improved control.
 
-This thesis develops a physics based model for a three pass fire tube shell boiler that integrates combustion calculations, detailed flue gas thermophysical properties, multi stage heat transfer modelling, and hydraulic loss estimation. The model is implemented as a one dimensional marching solver applied to six sequential heat exchange stages:
+This thesis develops a physics based model for a three pass fire tube shell boiler that integrates combustion calculations, detailed flue gas thermophysical properties, multi stage heat transfer modelling, and hydraulic loss estimation. The model is implemented as a one dimensional marching solver applied to six sequential heat exchange stages;
 
 $$
 \mathrm{HX_1} \rightarrow \mathrm{HX_2} \rightarrow \mathrm{HX_3}

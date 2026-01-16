@@ -40,13 +40,6 @@ with the following interpretation:
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{Thesis/figures/economizer_section.jpg}
-\caption{Cross-section of the economizer tube bundle $\mathrm{HX_6}$, showing gas-side cross-flow and water-side internal flow (reproduced from \cite{economizer_cross_section_image}).}
-\label{fig:economizer-cross-section}
-\end{figure}
-
-\begin{figure}[H]
-\centering
 \includegraphics[width=\textwidth]{Thesis/figures/boiler_with_economizer.png}
 \caption{Three-pass shell boiler with rear-mounted economizer for feedwater preheating (reproduced from \cite{three_pass_boiler_economizer_image}).}
 \label{fig:boiler-with-economizer}
@@ -92,26 +85,24 @@ Table: Pool boiling pressure part geometry
 |   HX4   | reversal chamber |   1.60    |  0.80   |    1     |         20          |         50         |
 |   HX5   | tube bank        |   0.076   |  5.620  |   100    |         2.9         |         50         |
 
-The tube banks HX3 and HX5 are staggered arrangements with six tube rows. The transverse and longitudinal pitches are both $S_T = S_L = 0.11\ \text{m}$.
-
-Reversal chambers HX2 and HX4 include curvature effects through a bend radius of $0.8\ \text{m}$
+The tube banks HX3 and HX5 are staggered arrangements with six tube rows. The transverse and longitudinal pitches are both $S_T = S_L = 0.11\ \text{m}$, respectively. Reversal chambers HX2 and HX4 include curvature effects through a bend radius of $0.8\ \text{m}$
 
 ### Economizer {- .unlisted}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{Thesis/figures/economizer_section.jpg}
+\caption{Cross-section of the economizer tube bundle $\mathrm{HX_6}$, showing gas-side cross-flow and water-side internal flow (reproduced from \cite{economizer_cross_section_image}).}
+\label{fig:economizer-cross-section}
+\end{figure}
+
 The economizer is modelled as a shell and tube heat exchanger operating under single phase conditions on both sides. It is located downstream of the final pool boiling stage.
 
-Flue gas flows on the shell side through a cylindrical duct of inner diameter
-$D_{\text{shell}} = 0.95\ \text{m}$.
+Flue gas flows on the shell side through a cylindrical duct of inner diameter $D_{\text{shell}} = 0.95\ \text{m}$. The tube side consists of 120 tubes of inner diameter $D_{i,\text{eco}} = 0.0250\ \text{m}$ with a tube length of $L_{\text{tube}} = 80\ \text{m}$.
 
-The tube side consists of four parallel circuits. Each circuit contains sixty tubes of inner diameter $D_{i,\text{eco}} = 0.0337\ \text{m}$ with a total developed tube length of $L_{\text{tube}} = 80\ \text{m}$ per circuit.
+The tube bundle is arranged in a staggered configuration. Transverse and longitudinal pitches are $S_T = 0.075\ \text{m}$ and $S_L = 0.08\ \text{m}$ respectively. Baffle spacing is $0.15\ \text{m}$ with a baffle cut of $0.25$.
 
-The tube bundle is arranged in a staggered configuration. Transverse and longitudinal pitches are $S_T = 0.09\ \text{m}$ and $S_L = 0.10\ \text{m}$ respectively.
-
-Baffle spacing is $0.25\ \text{m}$ with a baffle cut of $0.25$ and a bundle clearance of $10\ \text{mm}$.
-
-The economizer tubes are made of steel with wall thickness $t_{\text{eco}} = 2.6\ \text{mm}$ and thermal conductivity $k_{\text{eco}} = 50\ \text{W m}^{-1}\text{K}^{-1}$. Inner surface roughness is $20\ \mu\text{m}$ and outer surface roughness is $50\ \mu\text{m}$. No fouling resistance is applied in the economizer.
-
-\newpage
+The economizer tubes are made of steel with wall thickness $t_{\text{eco}} = 2.6\ \text{mm}$ and thermal conductivity $k_{\text{eco}} = 50\ \text{W m}^{-1}\text{K}^{-1}$. Inner surface roughness is $20\ \mu\text{m}$ and outer surface roughness is $50\ \mu\text{m}$.
 
 ## Assumptions and limitations
 
