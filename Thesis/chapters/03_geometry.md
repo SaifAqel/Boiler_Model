@@ -98,7 +98,7 @@ The tube banks HX3 and HX5 are staggered arrangements with six tube rows. The tr
 
 The economizer is modelled as a shell and tube heat exchanger operating under single phase conditions on both sides. It is located downstream of the final pool boiling stage.
 
-Flue gas flows on the shell side through a cylindrical duct of inner diameter $D_{\text{shell}} = 0.95\ \text{m}$. The tube side consists of 120 tubes of inner diameter $D_{i,\text{eco}} = 0.0250\ \text{m}$ with a tube length of $L_{\text{tube}} = 80\ \text{m}$.
+Flue gas flows on the shell side through a cylindrical duct of inner diameter $D_{\text{shell}} = 0.60\ \text{m}$. The tube side consists of 120 tubes of inner diameter $D_{i,\text{eco}} = 0.0250\ \text{m}$ with a tube length of $L_{\text{tube}} = 80\ \text{m}$.
 
 The tube bundle is arranged in a staggered configuration. Transverse and longitudinal pitches are $S_T = 0.075\ \text{m}$ and $S_L = 0.08\ \text{m}$ respectively. Baffle spacing is $0.15\ \text{m}$ with a baffle cut of $0.25$.
 

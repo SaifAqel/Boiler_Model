@@ -54,7 +54,7 @@ Table: Operation parameters.
 
 |     Quantity     |       Symbol        | Value |     Units      |
 | :--------------: | :-----------------: | :---: | :------------: |
-| Excess air ratio |      $\lambda$      |  1.1  |     $(-)$      |
+| Excess air ratio |      $\lambda$      | 1.05  |     $(-)$      |
 |  Drum pressure   | $P_{\mathrm{drum}}$ |  10   | $\mathrm{bar}$ |
 
 ## Heat Exchange Stages ($config/stages.yaml$) {- .unlisted}
@@ -63,20 +63,19 @@ Table: Stages parameters.
 
 |       Quantity       |         Symbol         | HX-1  | HX-2 | HX-3  | HX-4 | HX-5  |  HX-6  |            Units             |
 | :------------------: | :--------------------: | :---: | :--: | :---: | :--: | :---: | :----: | :--------------------------: |
-|    Inner diameter    |         $D_i$          |  1.4  | 1.6  | 0.076 | 1.6  | 0.076 | 0.0337 |         $\mathrm{m}$         |
+|    Inner diameter    |         $D_i$          |  1.4  | 1.6  | 0.076 | 1.6  | 0.076 | 0.0250 |         $\mathrm{m}$         |
 | Inner / tube length  |       $L_i,\,L$        | 5.276 | 0.8  | 4.975 | 0.8  | 5.620 |   80   |         $\mathrm{m}$         |
-|    Wall thickness    |        $\delta$        | 0.02  |  —   |   —   |  —   |   —   |   —    |         $\mathrm{m}$         |
-| Thermal conductivity |          $k$           |  50   |  —   |   —   |  —   |   —   |   —    | $\mathrm{W\,m^{-1}\,K^{-1}}$ |
+|    Wall thickness    |        $\delta$        | 0.02  | 0.02 | 0.02  | 0.02 | 0.02  |  0.02  |         $\mathrm{m}$         |
+| Thermal conductivity |          $k$           |  50   |  50  |  50   |  50  |  50   |   50   | $\mathrm{W\,m^{-1}\,K^{-1}}$ |
 |   Curvature radius   |          $R$           |   —   | 0.8  |   —   | 0.8  |   —   |   —    |         $\mathrm{m}$         |
-|   Number of tubes    |          $N$           |   —   |  —   |  118  |  —   |  100  |   60   |            $(-)$             |
-|    Number of rows    |  $N_{\mathrm{rows}}$   |   —   |  —   |   6   |  —   |   6   |   20   |            $(-)$             |
-|  Number of circuits  |         $n_c$          |   —   |  —   |   —   |  —   |   —   |   4    |            $(-)$             |
-|   Transverse pitch   |         $S_T$          |   —   |  —   | 0.11  |  —   | 0.11  |  0.09  |         $\mathrm{m}$         |
-|  Longitudinal pitch  |         $S_L$          |   —   |  —   | 0.11  |  —   | 0.11  |  0.10  |         $\mathrm{m}$         |
-|    Baffle spacing    |          $B$           |   —   |  —   | 0.45  |  —   | 0.45  |  0.25  |         $\mathrm{m}$         |
+|   Number of tubes    |          $N$           |   —   |  —   |  118  |  —   |  100  |  120   |            $(-)$             |
+|    Number of rows    |  $N_{\mathrm{rows}}$   |   —   |  —   |   6   |  —   |   6   |   26   |            $(-)$             |
+|   Transverse pitch   |         $S_T$          |   —   |  —   | 0.11  |  —   | 0.11  | 0.075  |         $\mathrm{m}$         |
+|  Longitudinal pitch  |         $S_L$          |   —   |  —   | 0.11  |  —   | 0.11  |  0.08  |         $\mathrm{m}$         |
+|    Baffle spacing    |          $B$           |   —   |  —   | 0.45  |  —   | 0.45  |  0.15  |         $\mathrm{m}$         |
 |      Baffle cut      |          $c$           |   —   |  —   | 0.25  |  —   | 0.25  |  0.25  |            $(-)$             |
 |   Bundle clearance   |           —            |   —   |  —   | 0.010 |  —   | 0.010 | 0.010  |         $\mathrm{m}$         |
-| Shell inner diameter |  $D_{\mathrm{shell}}$  |   —   |  —   |   —   |  —   |   —   |  0.95  |         $\mathrm{m}$         |
+| Shell inner diameter |  $D_{\mathrm{shell}}$  |   —   |  —   |   —   |  —   |   —   |  0.6   |         $\mathrm{m}$         |
 |    Hot inlet loss    |  $K_{\text{hot,in}}$   |  0.5  |  —   |  0.5  |  —   |  0.5  |  0.5   |            $(-)$             |
 |   Hot outlet loss    |  $K_{\text{hot,out}}$  |  0.0  |  —   |  1.0  |  —   |  1.0  |  1.0   |            $(-)$             |
 |    Hot bend loss     | $K_{\text{hot,bend}}$  |  0.0  | 0.3  |   —   | 0.3  |   —   |   —    |            $(-)$             |

@@ -2,7 +2,6 @@
 title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers and Evaluation of Operation Conditions"
 author: "Saif-Aldain Aqel"
 date: 2025
-bibliography: "Thesis/refs/library.bib"
 toc: false
 numbersections: true
 mainfont: "Arial"
@@ -30,6 +29,7 @@ header-includes:
   - \usepackage{pdfpages}
   - \usepackage{indentfirst}
   - \setlength{\parindent}{1.5em}
+  - \addbibresource{Thesis/refs/library.bib}
   - '\DefineBibliographyStrings{english}{bibliography={References}}'
   - '\defbibheading{bibliography}{\chapter*{\bibname}\addcontentsline{toc}{chapter}{\bibname}}'
 
