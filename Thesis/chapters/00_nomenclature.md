@@ -130,3 +130,5 @@
 | NASA       | Thermo data source              | --    |
 
 \newpage
+\cleardoublepage
+\pagenumbering{arabic}
