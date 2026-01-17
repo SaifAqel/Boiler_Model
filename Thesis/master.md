@@ -1,7 +1,4 @@
 ---
-title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers and Evaluation of Operation Conditions"
-author: "Saif-Aldain Aqel"
-date: 2025
 toc: false
 numbersections: true
 mainfont: "Arial"
@@ -39,13 +36,16 @@ filters:
 ---
 
 \includepdf[
+pages={1,2},
+pagecommand={}
+]{Thesis/figures/Title_page.pdf}
+\clearpage
+
+\includepdf[
 pages=1,
 fitpaper=true,
 pagecommand={}
 ]{Thesis/figures/task_page.pdf}
-\clearpage
-\clearpage
-
 \clearpage
 
 ```{=latex}

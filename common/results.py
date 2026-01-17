@@ -347,5 +347,5 @@ def write_results_csvs(
         ]
         pd.DataFrame(columns=empty_cols).to_csv(boiler_summary_path, index=False)
 
-    return str(steps_path), str(stages_summary_path), str(boiler_summary_path)   
+    return str(steps_path), str(stages_summary_path), str(boiler_summary_path)  
 

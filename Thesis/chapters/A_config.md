@@ -1,5 +1,7 @@
 # config and input
 
+The following tables show all variables given by the user to the program.
+
 ## Air Properties ($config/air.yaml$) {- .unlisted}
 
 Table: Air parameters.

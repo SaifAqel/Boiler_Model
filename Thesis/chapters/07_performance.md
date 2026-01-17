@@ -70,7 +70,7 @@ The total input heat from combustion $Q_\text{in}$ is taken from the combustion 
 
 ## Efficiency
 
-Two boiler efficiencies are reported:
+Efficiency indicates how well the boiler converts the heat released from fuel into useful steam or hot water. Two boiler efficiencies are reported:
 
 - Direct efficiency (LHV):
 
@@ -86,5 +86,7 @@ Two boiler efficiencies are reported:
   \;=\;
   1 - \frac{Q_\text{losses}}{Q_\text{in}}
   $$
+
+The direct and indirect methods together provide a complete view of boiler efficiency, with the direct method quantifying useful heat output and the indirect method identifying heat losses. Their combined use supports accurate performance evaluation and targeted efficiency improvements.
 
 \newpage
