@@ -1,0 +1,26 @@
+parameter,value
+fuel mass flow[kg/s],0.075
+air flow[kg/s],1.2676958480276859
+excess air ratio[-],1.05
+feedwater flow[kg/s],1.4255600700117093
+steam capacity[t/h],5.134057054272804
+eta direct[-],0.9501888304508117
+eta indirect[-],0.9501888304508117
+Stack loss fraction[-],0.049811169549188294
+Q_flue_out[MW],0.17471576654945778
+UA[MW/K],0.008682440207167925
+Q_in total[MW],3.5075620213439636
+Q_useful[MW],3.332846254794506
+Q_balance_error[MW],-9.046670566048576e-05
+pressure drop fric total[kPa],-4.571414759115645
+pressure drop minor total[kPa],-2.1807240852723497
+pressure drop total[kPa],-6.752138844387995
+water pressure drop fric total[kPa],-0.027230333976265585
+water pressure drop minor total[kPa],-0.0005567334084288296
+water pressure drop total[kPa],-0.027787067384694417
+LHV[kJ/kg],46730.96939782223
+P-LHV[MW],3.504822704836667
+Tad[°C],1981.4958544144943
+stack temperature[°C],142.1098148400198
+feedwater pressure[kPa],1000.0277869614524
+drum pressure[kPa],1000.0
