@@ -1,0 +1,11 @@
+pandoc Thesis/Presentation/slides.md \
+  -t revealjs \
+  -s \
+  --resource-path=.:.. \
+  -o output/slides.html
+
+
+pandoc Thesis/Presentation/slides.md \
+  -t beamer \
+  --resource-path=.:.. \
+  -o output/slides.pdf
