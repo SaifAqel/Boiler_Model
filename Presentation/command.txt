@@ -2,7 +2,7 @@
 pandoc Presentation/slides.md \
   -t beamer \
   --resource-path=.:.. \
-  -o Thesis/slides.pdf
+  -o Presentation/slides.pdf
 
 
 # Backup / Q&A bank (not slides)
