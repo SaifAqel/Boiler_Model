@@ -1,6 +1,13 @@
 ---
 title: "Heat Transfer and Fluid Flow Calculations of Industrial Shell Boilers and Evaluation of Operation Conditions"
 author: "Saif-Aldain Aqel"
+theme: default
+aspectratio: 169
+header-includes:
+  - \usepackage{beamerthemeBME}
+  - \usepackage{booktabs}
+  - \usepackage{siunitx}
+  - \usepackage{microtype}
 ---
 
 ## Agenda
@@ -11,18 +18,6 @@ author: "Saif-Aldain Aqel"
 - Sanity checks / validation posture
 - Key results: control case + parametric trends
 - Conclusions, limitations
-
-::: notes
-Today I’ll present a physics-based model of a three-pass fire-tube shell boiler implemented in Python.
-I’ll start with why this is a coupled problem and what the thesis tries to achieve, then introduce the six-stage boiler representation.
-After that, I’ll walk through the modeling architecture—combustion, the 1D heat-transfer solver, and hydraulics—and how they couple.
-Because there is no dedicated experimental campaign in the thesis, I’ll frame validation as consistency checks and comparisons to expected industrial ranges.
-Then I’ll summarize the control case with the key performance numbers and finish with the main parametric trends for excess air, pressure, firing rate, and fouling.
-Finally I’ll close with conclusions and limitations, and then questions.
-Transition: first, what problem are we solving and why do we need this structure?
-:::
-
----
 
 ## Motivation & problem statement
 
@@ -44,8 +39,6 @@ At the same time, hydraulics matters because pressure losses and velocities chan
 So the thesis goal is a practical, physics-based model that is detailed enough to capture these couplings, but still computationally efficient for parametric sweeps and engineering use.
 Transition: with that in mind, here is the specific boiler layout I model.
 :::
-
----
 
 ## Boiler configuration: three-pass + economizer (HX1–HX6)
 
