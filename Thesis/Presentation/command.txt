@@ -3,3 +3,66 @@ pandoc Thesis/Presentation/slides.md \
   -t beamer \
   --resource-path=.:.. \
   -o Thesis/slides.pdf
+
+
+# Backup / Q&A bank (not slides)
+
+1. **Why model six stages instead of a single UA?**
+
+- Stage geometry and regimes differ (radiation in HX1 vs convection in HX6).
+- Needed to reproduce duty redistribution with \(\lambda\), fouling.  
+  Support: _“Boiler configuration”_, _“Heat-transfer model”_, stage-wise figure.
+
+2. **How is the water/steam mass flow determined?**
+
+- Outer fixed-point loop between efficiency guess and \(\dot m*w\) from \(\dot m_w= \eta Q*\mathrm{in}/(h*g-h*\mathrm{in})\).
+- Iterate until \(|\Delta \dot m*w|<10^{-3}\) kg/s.  
+  Support: *“Sanity checks / validation posture”\_ (verbal), thesis Ch. 7 procedure.
+
+3. **Why compute two flue-gas representations (equilibrium vs fully burnt)?**
+
+- Equilibrium (HP) gives \(T\_\mathrm{ad}\) with dissociation.
+- Fully burnt “frozen” set gives stable property evaluation for HX/hydraulics.  
+  Support: _“Model architecture”_, thesis Ch. 4.
+
+4. **What dominates heat transfer in the furnace?**
+
+- Radiation contributes strongly at high \(T\); modeled via gray-gas bands.
+- HX1 duty is largest (2.86 MW in control case) and mostly radiative.  
+  Support: _“Gas/water properties + radiation handling”_, _“Control case”_.
+
+5. **Where does most gas-side pressure drop occur and why?**
+
+- Economizer dominates due to crossflow bundle losses (drag-based).
+- Control case \(\Delta P*g \approx 12.45\) kPa, with HX6 contributing most.  
+  Support: *“Hydraulics”_, _“Control case”\_, stage summary table in thesis.
+
+6. **Why is efficiency optimum near \(\lambda\approx 1.05\)?**
+
+- Higher \(\lambda\) increases flue mass flow and sensible stack losses.
+- Lower \(\lambda\) reduces excess air margin; optimum balances losses vs temperature level.  
+  Support: _“Parametric trends”_, thesis Fig. performance_excess_air.
+
+7. **Pressure effect: why steam quantity changes more than efficiency?**
+
+- \(P\) shifts \(T*\mathrm{sat}\) and latent heat; affects \(\dot m*\mathrm{steam}\) for same duty.
+- Efficiency changes are secondary over 4–16 bar in results.  
+  Support: _“Parametric trends”_, thesis Fig. performance_drum_pressure and table.
+
+8. **Fuel flow scaling: why near-linear duties/steam vs firing rate?**
+
+- Available heat transfer area sufficient over 25–125% range; solver shows proportional \(Q\_\mathrm{useful}\).
+- Slight efficiency drop at highest load indicates effectiveness limits.  
+  Support: _“Parametric trends”_, thesis Fig. performance_fuel_flow.
+
+9. **Fouling: why does downstream recovery degrade first?**
+
+- Downstream stages already have smaller \(\Delta T\); added resistance reduces UA effectiveness more.
+- Stack temperature rises (e.g., ~152°C → ~165°C at high fouling).  
+  Support: _“Parametric trends”_, thesis Fig. performance_fouling.
+
+10. **What would you do next to strengthen validation?**
+
+- Instrumented boiler test: stack \(T\), O2/CO2, steam rate, feedwater \(T\), ΔP across economizer.
+- Calibrate fouling/roughness and confirm stage-wise duty distribution.  
+  Support: _“Conclusions & limitations”_.
