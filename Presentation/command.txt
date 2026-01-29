@@ -1,5 +1,5 @@
 
-pandoc Thesis/Presentation/slides.md \
+pandoc Presentation/slides.md \
   -t beamer \
   --resource-path=.:.. \
   -o Thesis/slides.pdf
