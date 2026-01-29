@@ -140,7 +140,7 @@ Transition: with that in mind, here is the specific boiler layout I model.
 ## Stage-wise heat transfer and hydraulics (control)
 
 \begin{center}
-\includegraphics{results/plots/per_run/stages_control_combined_8plots.png}
+\includegraphics{results/plots/per_run/stages_control_combined_8plots_16x9.png}
 \end{center}
 
 ## Control case: key performance numbers (reference point)
@@ -170,7 +170,7 @@ Transition: with that in mind, here is the specific boiler layout I model.
 ## KPI overview across parameter groups
 
 \begin{center}
-\includegraphics{results/plots/per_run/kpi_overview_all_param_groups.png}
+\includegraphics{results/plots/per_run/kpi_overview_all_param_groups_16x9.png}
 \end{center}
 
 ## Conclusions & limitations

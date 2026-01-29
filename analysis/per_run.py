@@ -70,6 +70,7 @@ plt.rcParams["axes.grid"] = True
 plt.rcParams["grid.linestyle"] = ":"
 plt.rcParams["grid.linewidth"] = 0.5
 plt.rcParams["grid.alpha"] = 0.7
+FIGSIZE_16x9 = (13.333, 7.5)
 
 def load_data(csv_path: str) -> pd.DataFrame:
     csv_file = Path(csv_path)
@@ -247,7 +248,13 @@ def plot_stack_pressure(ax, df_group: pd.DataFrame, param_group: str) -> None:
     labels = [l.get_label() for l in lines]
     ax.legend(lines, labels, loc="best", framealpha=0.8)
 
-def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> None:
+def generate_overall_kpi_figure(
+    csv_path: str,
+    output_dir: str = "figures",
+    *,
+    figsize=(9, 10),
+    filename="kpi_overview_all_param_groups.png",
+) -> None:
     df = load_data(csv_path)
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -265,7 +272,7 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
         {"column": "eta direct[-]",           "ylabel": "Direct efficiency [-]"},
     ]
 
-    fig, axes = plt.subplots(4, 2, figsize=(9, 10))
+    fig, axes = plt.subplots(4, 2, figsize=figsize)
     axes_flat = axes.flatten()
 
     for ax in axes_flat:
@@ -329,7 +336,7 @@ def generate_overall_kpi_figure(csv_path: str, output_dir: str = "figures") -> N
 
     fig.tight_layout(rect=(0.0, 0.05, 1.0, 1.0))
 
-    out_path = out_dir / "kpi_overview_all_param_groups.png"
+    out_path = out_dir / filename
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
@@ -403,7 +410,11 @@ def generate_eff_stack_scatter(
 def generate_stage_combined_control_figure(
     csv_path: str = "results/summary/stages_summary_all_runs.csv",
     output_dir: str = "figures",
+    *,
+    figsize=(10, 10),
+    filename="stages_control_combined_8plots.png",
 ) -> None:
+
     df = load_data(csv_path)
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -435,7 +446,7 @@ def generate_stage_combined_control_figure(
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
 
-    fig, axes = plt.subplots(4, 2, figsize=(10, 10))
+    fig, axes = plt.subplots(4, 2, figsize=figsize)
     ax_Tg   = axes[0, 0]
     ax_Q    = axes[0, 1]
     ax_Qrad = axes[1, 0]
@@ -501,7 +512,7 @@ def generate_stage_combined_control_figure(
 
     fig.tight_layout(rect=(0.0, 0.06, 1.0, 0.98))
 
-    out_path = out_dir / "stages_control_combined_8plots.png"
+    out_path = out_dir / filename
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
 
@@ -555,7 +566,21 @@ if __name__ == "__main__":
 
     generate_overall_kpi_figure(csv_arg, output_dir=out_arg)
 
+    generate_overall_kpi_figure(
+        csv_arg,
+        output_dir=out_arg,
+        figsize=FIGSIZE_16x9,
+        filename="kpi_overview_all_param_groups_16x9.png",
+    )
+
     generate_eff_stack_scatter(csv_arg, output_dir=out_arg)
 
     stage_csv = "results/summary/stages_summary_all_runs.csv"
     generate_stage_combined_control_figure(stage_csv, output_dir=out_arg)
+
+    generate_stage_combined_control_figure(
+        stage_csv,
+        output_dir=out_arg,
+        figsize=FIGSIZE_16x9,
+        filename="stages_control_combined_8plots_16x9.png",
+    )
