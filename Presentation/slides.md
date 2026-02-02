@@ -36,10 +36,11 @@ header-includes:
       % Author
       {\large By: Saif-Aldain Aqel\par}
 
-      % Supervisor
-      {\large Supervisor: Dr. Lezsovits Ference\par}
+      % Supervisor/Advisor
+      {\large Supervisor: Dr. Lezsovits Ferenc \hspace{1.2cm} Advisor: Dr. Tamas Laza\par}
+
 
       % Date
-      {\large 3 February 2026\par}
+      {\large 4 February 2026\par}
     }
 ---
