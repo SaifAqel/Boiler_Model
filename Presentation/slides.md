@@ -37,7 +37,7 @@ header-includes:
       {\large By: Saif-Aldain Aqel\par}
 
       % Supervisor/Advisor
-      {\large Supervisor: Dr. Lezsovits Ferenc \hspace{1.2cm} Advisor: Dr. Tamas Laza\par}
+      {\large Supervisor: Dr. Lezsovits Ferenc\par}
 
 
       % Date
