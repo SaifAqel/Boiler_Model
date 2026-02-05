@@ -1,5 +1,5 @@
-pandoc Presentation/slides.md \
+pandoc Presentation/title.md \
   -t beamer \
   --resource-path=.:.. \
   --pdf-engine=xelatex \
-  -o Presentation/slides.pdf
+  -o Presentation/title.pdf
