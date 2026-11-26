@@ -60,13 +60,3 @@ Every value is `{ value: <number>, unit: <pint unit> }`, so units are explicit a
 checked. Geometry in `config/stages.yaml`, operating point in `config/operation.yaml`
 (excess air ratio, drum pressure), fuel composition in `config/fuel.yaml`, fouling via
 the `fouling_factor` argument to `run_boiler_case()`.
-
-## Thesis build
-
-```bash
-pandoc Thesis/master.md Thesis/chapters/*.md -o Thesis/thesis.pdf \
-  --filter pandoc-crossref --biblatex \
-  --pdf-engine=latexmk --pdf-engine-opt=-xelatex
-```
-
-Requires xelatex, pandoc-crossref and biber.
